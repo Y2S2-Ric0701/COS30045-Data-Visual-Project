@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="COS20031 Database Design Project – Hospitalised Injuries from Road Crashes in Australia – Swinburne University of Technology Sarawak Campus" />
+
+  <title>Hospitalised Injuries from Road Crashes in Australia</title>
+
+  <!-- ── Apple San Francisco Font Fallback Stack ─────────────── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- ── Stylesheets ─────────────────────────────────────────── -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/visualisations.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       APPLE-STYLE FROSTED GLASS NAVIGATION BAR
+       ═══════════════════════════════════════════════════════════ -->
+  <nav class="apple-nav">
+    <div class="apple-nav-inner">
+      <a href="#" class="apple-nav-brand">
+        <span class="apple-brand-badge">COS20031</span>
+        <span class="apple-brand-title">Road Crash Analytics</span>
+      </a>
+      <div class="apple-nav-links">
+        <a href="#introduction">Overview</a>
+        <a href="#key-statistics">Key Metrics</a>
+        <a href="#chart-section-1">Trends</a>
+        <a href="#chart-section-2">Severity</a>
+        <a href="#citations">Data Sources</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       HERO SECTION – Apple-style Clean Minimalist Editorial
+       ═══════════════════════════════════════════════════════════ -->
+  <header class="apple-hero">
+    <div class="container hero-container">
+      <div class="hero-eyebrow">
+        <span>Data Vis Project (2026 S2)_Group 9</span>
+        <span class="eyebrow-divider">•</span>
+        <span>Swinburne University of Technology Sarawak Campus</span>
+      </div>
+      <h1 class="hero-title">
+        Hospitalised Injuries from Road Crashes in Australia
+      </h1>
+      <p class="hero-subtitle">
+        An interactive empirical exploration into national road trauma patterns,
+        injury severity trajectories, and jurisdictional distributions across Australia.
+      </p>
+      <div class="hero-chips">
+        <span class="hero-chip">AIHW &amp; BITRE Official Data</span>
+        <span class="hero-chip">2015 &ndash; 2023 Reporting Window</span>
+        <span class="hero-chip chip-accent">Munzner &amp; Tufte Visual Encoding</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN CONTENT
+       ═══════════════════════════════════════════════════════════ -->
+  <main class="container">
+
+    <!-- ── Introduction / Context Card ───────────────────────── -->
+    <section id="introduction" class="apple-section">
+      <div class="apple-card intro-card">
+        <div class="section-kicker">Research Context</div>
+        <h2 class="apple-card-title">Understanding Australia's Road Crash Burden</h2>
+        <p class="apple-card-text">
+          Road traffic injuries represent one of Australia's most persistent public
+          health and economic challenges. While headline road fatalities are closely
+          monitored, hospitalised injuries present a broader, multi-faceted measure
+          of trauma severity, long-term disability, and healthcare system strain.
+        </p>
+        <p class="apple-card-text text-secondary">
+          Through systematic visual storytelling, this dashboard unpacks the nuances
+          between minor injuries, serious trauma, and critical intensive-care admissions
+          across all eight Australian states and territories.
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Key Callout Metric Cards (Apple Health / Watch style) ── -->
+    <section id="key-statistics" class="apple-section">
+      <div class="section-header-compact">
+        <div class="section-kicker">Summary Benchmarks</div>
+        <h2 class="section-heading">Key Statistics at a Glance</h2>
+      </div>
+
+      <div class="callout-grid">
+        <div class="callout-card">
+          <div class="card-eyebrow">NATIONAL ADMISSIONS (2023)</div>
+          <div class="callout-number" id="callout-total">20,135</div>
+          <div class="callout-footer">
+            <span class="trend-badge trend-up">+5.1%</span>
+            <span class="callout-label">vs. previous period</span>
+          </div>
+        </div>
+
+        <div class="callout-card">
+          <div class="card-eyebrow">HIGH-CONCENTRATION REGION</div>
+          <div class="callout-number" id="callout-trend">NSW &amp; VIC</div>
+          <div class="callout-footer">
+            <span class="trend-badge trend-neutral">61.4%</span>
+            <span class="callout-label">of all national hospital admissions</span>
+          </div>
+        </div>
+
+        <div class="callout-card">
+          <div class="card-eyebrow">SERIOUS &amp; CRITICAL SHARE</div>
+          <div class="callout-number" id="callout-severity">41.8%</div>
+          <div class="callout-footer">
+            <span class="trend-badge trend-alert">High Trauma</span>
+            <span class="callout-label">requiring extended inpatient care</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Filters (Apple iOS Segmented Control) ─────────────── -->
+    <section id="filters" class="apple-section">
+      <div class="filter-wrapper">
+        <div class="filter-label-wrap">
+          <span class="filter-headline">Filter by Jurisdiction:</span>
+          <span class="filter-subheadline">Select a state or territory to highlight specific regional trajectories</span>
+        </div>
+        <div id="filters-container" class="apple-segmented-control" role="tablist">
+          <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">All States</button>
+          <button class="filter-btn" data-filter="NSW" role="tab" aria-selected="false">NSW</button>
+          <button class="filter-btn" data-filter="VIC" role="tab" aria-selected="false">VIC</button>
+          <button class="filter-btn" data-filter="QLD" role="tab" aria-selected="false">QLD</button>
+          <button class="filter-btn" data-filter="WA" role="tab" aria-selected="false">WA</button>
+          <button class="filter-btn" data-filter="SA" role="tab" aria-selected="false">SA</button>
+          <button class="filter-btn" data-filter="TAS" role="tab" aria-selected="false">TAS</button>
+          <button class="filter-btn" data-filter="ACT" role="tab" aria-selected="false">ACT</button>
+          <button class="filter-btn" data-filter="NT" role="tab" aria-selected="false">NT</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Chart 1: Regional Distribution (Apple Health style) ── -->
+    <section id="chart-section-1" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 1 • Empirical Distribution</div>
+            <h2 class="chart-card-title">Total Hospitalised Injuries by Jurisdiction</h2>
+            <p class="chart-card-desc">
+              Comparative volume across Australian states with pre-attentive emphasis
+              applied to the leading jurisdiction following the <em>Muted Baseline + Bold Accent</em> rule.
+            </p>
+          </div>
+          <div class="chart-legend-box" id="chart-1-legend">
+            <span class="legend-chip"><span class="swatch swatch-accent"></span> Focal Insight (Highest)</span>
+            <span class="legend-chip"><span class="swatch swatch-baseline"></span> Baseline Jurisdictions</span>
+          </div>
+        </div>
+
+        <div class="responsive-svg-container" id="chart-1">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Chart 2: Injury Severity Breakdown ────────────────── -->
+    <section id="chart-section-2" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 2 • Severity Stratification</div>
+            <h2 class="chart-card-title">Hospitalisation Trends by Injury Severity</h2>
+            <p class="chart-card-desc">
+              National distribution across Minor, Serious, and Critical trauma categories
+              encoded using an accessible, color-blind safe palette (Munzner, 2014).
+            </p>
+          </div>
+          <div class="chart-legend-box" id="chart-2-legend">
+            <span class="legend-chip"><span class="swatch swatch-minor"></span> Minor</span>
+            <span class="legend-chip"><span class="swatch swatch-serious"></span> Serious</span>
+            <span class="legend-chip"><span class="swatch swatch-critical"></span> Critical</span>
+          </div>
+        </div>
+
+        <div class="responsive-svg-container" id="chart-2">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Narrative Conclusion (Apple Card) ─────────────────── -->
+    <section id="conclusion" class="apple-section">
+      <div class="apple-card conclusion-card">
+        <div class="section-kicker">Summary Insights &amp; Policy</div>
+        <h2 class="apple-card-title">Implications for Australia's National Road Safety Strategy</h2>
+        <p class="apple-card-text">
+          The analysis demonstrates persistent clustering of hospitalised trauma in the
+          most populous eastern seaboard states (NSW, VIC, QLD), where serious and critical
+          injuries represent over 40% of admissions. While absolute fatality counts have
+          stabilized due to vehicular crash protection, non-fatal hospitalisations remain elevated.
+        </p>
+        <div class="conclusion-highlights">
+          <div class="highlight-item">
+            <span class="highlight-icon">✦</span>
+            <div>
+              <strong>Targeted Vulnerable Road User Infrastructure:</strong>
+              Separated cycling corridors and pedestrian crossings significantly reduce high-severity impacts.
+            </div>
+          </div>
+          <div class="highlight-item">
+            <span class="highlight-icon">✦</span>
+            <div>
+              <strong>Regional Emergency Response Timing:</strong>
+              Critical-injury recovery outcomes depend heavily on rapid transit to trauma centers in non-metro areas.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       APPLE-STYLE MINIMALIST FOOTER
+       ═══════════════════════════════════════════════════════════ -->
+  <footer class="site-footer" id="citations">
+    <div class="container footer-container">
+      <div class="footer-references">
+        <p class="footer-references-title">Data Sources &amp; Course References</p>
+        <ol class="footer-ordered-list">
+          <li>
+            <strong>Australian Institute of Health and Welfare (AIHW):</strong>
+            <em>Hospitalised injury due to land transport crashes, Australia</em>.
+            <a href="https://www.aihw.gov.au/reports/injury/hospitalised-injury-due-to-land-transport-crashes" target="_blank" rel="noopener noreferrer">
+              View official AIHW reports &nearr;
+            </a>
+          </li>
+          <li>
+            <strong>Bureau of Infrastructure and Transport Research Economics (BITRE):</strong>
+            <em>Road Deaths Australia &amp; Crash Inpatient Summaries</em>.
+            <a href="https://www.bitre.gov.au/publications/ongoing/road_deaths_australia_annual_summaries" target="_blank" rel="noopener noreferrer">
+              Access BITRE data portal &nearr;
+            </a>
+          </li>
+          <li>
+            <strong>Theoretical Foundations:</strong>
+            Munzner, T. (2014). <em>Visualization Analysis and Design</em>. CRC Press;
+            Tufte, E. R. (2001). <em>The Visual Display of Quantitative Information</em>;
+            Knaflic, C. N. (2015). <em>Storytelling with Data</em>.
+          </li>
+        </ol>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="footer-bottom">
+        <div class="footer-meta">
+          <span>&copy; 2026 Data Vis Project (2026 S2)_Group 9</span>
+          <span class="meta-dot">&bull;</span>
+          <span>COS20031 Database Design Project</span>
+          <span class="meta-dot">&bull;</span>
+          <span>Swinburne University of Technology Sarawak Campus</span>
+        </div>
+        <div class="footer-deployment-link">
+          <a href="https://data-vis-project-2026-s2-group-9.vercel.app" target="_blank" rel="noopener noreferrer">
+            Live on Vercel &nearr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCRIPTS – D3 v7 CDN first, then project modules
+       ═══════════════════════════════════════════════════════════ -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/shared-constants.js"></script>
+  <script src="js/load-data.js"></script>
+  <script src="js/main-narrative.js"></script>
+
+</body>
+</html>
+
