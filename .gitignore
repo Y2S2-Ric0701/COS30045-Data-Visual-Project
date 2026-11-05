@@ -27,3 +27,8 @@ dist/
 # ── Misc ─────────────────────────────────────────────────────
 *.log
 Thumbs.db
+
+# ── KNIME Workspace & Local Analysis ─────────────────────────
+.metadata/
+Example Workflows/
+data_visual_project/
