@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Question 4: What crash characteristics are associated with hospitalised injuries? – Hospitalised Injuries from Road Crashes in Australia" />
+
+  <title>Q4: What crash characteristics are associated with hospitalised injuries? | Road Crash Analytics</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/visualisations.css" />
+</head>
+<body data-page="crash">
+
+  <!-- Navbar injected by js/layout.js -->
+  <div id="site-nav"></div>
+
+  <header class="apple-hero">
+    <div class="container hero-container">
+      <div class="hero-eyebrow">
+        <span>Research Question 4</span>
+      </div>
+      <h1 class="hero-title">What crash characteristics are associated with hospitalised injuries?</h1>
+      <p class="hero-subtitle">Examining the circumstances of crashes that lead to hospitalisation.</p>
+      <div class="hero-chips">
+        <a href="#collision-type" class="hero-chip">Collision Type</a>
+        <a href="#counterparty" class="hero-chip">Counterparty</a>
+        <a href="#crash-scenario" class="hero-chip">Crash Scenario</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ── Figure 4.1: Collision Type ── -->
+    <section id="collision-type" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 4.1 &bull; Collision Type</div>
+            <h2 class="chart-card-title">Collision Type</h2>
+            <p class="chart-card-desc">Hospitalised injuries by collision type.</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-collision-type">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Figure 4.2: Counterparty ── -->
+    <section id="counterparty" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 4.2 &bull; Counterparty</div>
+            <h2 class="chart-card-title">Counterparty</h2>
+            <p class="chart-card-desc">Hospitalised injuries by the other party involved in the crash.</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-counterparty">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Figure 4.3: Crash Scenario ── -->
+    <section id="crash-scenario" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 4.3 &bull; Crash Scenario</div>
+            <h2 class="chart-card-title">Crash Scenario</h2>
+            <p class="chart-card-desc">Hospitalised injuries by crash scenario (traffic vs non-traffic, etc.).</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-crash-scenario">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer injected by js/layout.js -->
+  <div id="site-footer"></div>
+
+  <script src="js/layout.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/shared-constants.js"></script>
+  <script src="js/load-data.js"></script>
+  <!-- Page-specific chart script goes here -->
+
+</body>
+</html>
