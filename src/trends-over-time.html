@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Question 2: How have hospitalised road crash injuries changed between 2011 and 2021? – Hospitalised Injuries from Road Crashes in Australia" />
+
+  <title>Q2: How have hospitalised road crash injuries changed between 2011 and 2021? | Road Crash Analytics</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/visualisations.css" />
+</head>
+<body data-page="trends">
+
+  <!-- Navbar injected by js/layout.js -->
+  <div id="site-nav"></div>
+
+  <header class="apple-hero">
+    <div class="container hero-container">
+      <div class="hero-eyebrow">
+        <span>Research Question 2</span>
+      </div>
+      <h1 class="hero-title">How have hospitalised road crash injuries changed between 2011 and 2021?</h1>
+      <p class="hero-subtitle">Tracking the trajectory of road crash hospitalisations across a decade.</p>
+      <div class="hero-chips">
+        <a href="#year" class="hero-chip">Year</a>
+        <a href="#injury-count" class="hero-chip">Injury Count</a>
+        <a href="#demographic-trends" class="hero-chip">Demographic Trends</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ── Figure 2.1: Year ── -->
+    <section id="year" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 2.1 &bull; Year</div>
+            <h2 class="chart-card-title">Year</h2>
+            <p class="chart-card-desc">Annual change in hospitalised injuries, 2011&ndash;2021.</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-year">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Figure 2.2: Injury Count ── -->
+    <section id="injury-count" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 2.2 &bull; Injury Count</div>
+            <h2 class="chart-card-title">Injury Count</h2>
+            <p class="chart-card-desc">Total hospitalised injury counts and rates over time.</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-injury-count">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Figure 2.3: Demographic Trends ── -->
+    <section id="demographic-trends" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 2.3 &bull; Demographic Trends</div>
+            <h2 class="chart-card-title">Demographic Trends</h2>
+            <p class="chart-card-desc">How trends differ across age, gender and road user groups.</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-demographic-trends">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer injected by js/layout.js -->
+  <div id="site-footer"></div>
+
+  <script src="js/layout.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/shared-constants.js"></script>
+  <script src="js/load-data.js"></script>
+  <!-- Page-specific chart script goes here -->
+
+</body>
+</html>

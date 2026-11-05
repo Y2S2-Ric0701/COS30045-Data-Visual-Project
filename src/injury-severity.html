@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Question 5: What are the most severe consequences of hospitalised road crash injuries? – Hospitalised Injuries from Road Crashes in Australia" />
+
+  <title>Q5: What are the most severe consequences of hospitalised road crash injuries? | Road Crash Analytics</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/visualisations.css" />
+</head>
+<body data-page="severity">
+
+  <!-- Navbar injected by js/layout.js -->
+  <div id="site-nav"></div>
+
+  <header class="apple-hero">
+    <div class="container hero-container">
+      <div class="hero-eyebrow">
+        <span>Research Question 5</span>
+      </div>
+      <h1 class="hero-title">What are the most severe consequences of hospitalised road crash injuries?</h1>
+      <p class="hero-subtitle">Understanding the most serious outcomes of road crash hospitalisations.</p>
+      <div class="hero-chips">
+        <a href="#mortality-risk" class="hero-chip">Mortality Risk</a>
+        <a href="#length-of-stay" class="hero-chip">Length of Stay</a>
+        <a href="#injury-severity" class="hero-chip">Injury Severity</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ── Figure 5.1: Mortality Risk ── -->
+    <section id="mortality-risk" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 5.1 &bull; Mortality Risk</div>
+            <h2 class="chart-card-title">Mortality Risk</h2>
+            <p class="chart-card-desc">In-hospital mortality associated with road crash injuries.</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-mortality-risk">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Figure 5.2: Length of Stay ── -->
+    <section id="length-of-stay" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 5.2 &bull; Length of Stay</div>
+            <h2 class="chart-card-title">Length of Stay</h2>
+            <p class="chart-card-desc">Length of hospital stay for road crash injuries.</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-length-of-stay">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Figure 5.3: Injury Severity ── -->
+    <section id="injury-severity" class="apple-section">
+      <div class="apple-chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="section-kicker">Figure 5.3 &bull; Injury Severity</div>
+            <h2 class="chart-card-title">Injury Severity</h2>
+            <p class="chart-card-desc">Distribution of injury severity (e.g. high-threat-to-life injuries).</p>
+          </div>
+        </div>
+        <div class="responsive-svg-container" id="chart-injury-severity">
+          <!-- D3 SVG injected here -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer injected by js/layout.js -->
+  <div id="site-footer"></div>
+
+  <script src="js/layout.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/shared-constants.js"></script>
+  <script src="js/load-data.js"></script>
+  <!-- Page-specific chart script goes here -->
+
+</body>
+</html>
