@@ -182,6 +182,47 @@ a:hover {
   text-decoration: none;
 }
 
+.apple-nav-links a.active {
+  color: var(--apple-text-primary);
+  font-weight: 600;
+}
+
+/* ── Research Question Cards (home page) ────────────────────── */
+.question-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.question-card {
+  background: var(--apple-surface);
+  border-radius: var(--apple-radius-lg);
+  border: 1px solid var(--apple-card-border);
+  padding: 24px 22px;
+  box-shadow: var(--apple-shadow-card);
+  color: var(--apple-text-primary);
+  transition: transform var(--apple-transition-smooth), box-shadow var(--apple-transition-smooth);
+}
+
+.question-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--apple-shadow-hover);
+  text-decoration: none;
+}
+
+.question-card-title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 8px 0;
+}
+
+.question-card-meta {
+  font-size: 13px;
+  color: var(--apple-text-secondary);
+  margin: 0;
+}
+
 /* ── Hero Section (Apple Product Launch Editorial) ──────────── */
 .apple-hero {
   padding: 64px 0 48px 0;
@@ -247,6 +288,11 @@ a:hover {
   font-size: 12px;
   font-weight: 500;
   color: var(--apple-text-tertiary);
+}
+
+a.hero-chip:hover {
+  color: var(--apple-text-primary);
+  text-decoration: none;
 }
 
 .hero-chip.chip-accent {

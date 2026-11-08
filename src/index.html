@@ -19,26 +19,10 @@
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
 </head>
-<body>
+<body data-page="home">
 
-  <!-- ═══════════════════════════════════════════════════════════
-       APPLE-STYLE FROSTED GLASS NAVIGATION BAR
-       ═══════════════════════════════════════════════════════════ -->
-  <nav class="apple-nav">
-    <div class="apple-nav-inner">
-      <a href="#" class="apple-nav-brand">
-        <span class="apple-brand-badge">COS20031</span>
-        <span class="apple-brand-title">Road Crash Analytics</span>
-      </a>
-      <div class="apple-nav-links">
-        <a href="#introduction">Overview</a>
-        <a href="#key-statistics">Key Metrics</a>
-        <a href="#chart-section-1">Trends</a>
-        <a href="#chart-section-2">Severity</a>
-        <a href="#citations">Data Sources</a>
-      </div>
-    </div>
-  </nav>
+  <!-- Navbar injected by js/layout.js -->
+  <div id="site-nav"></div>
 
   <!-- ═══════════════════════════════════════════════════════════
        HERO SECTION – Apple-style Clean Minimalist Editorial
@@ -86,6 +70,41 @@
           between minor injuries, serious trauma, and critical intensive-care admissions
           across all eight Australian states and territories.
         </p>
+      </div>
+    </section>
+
+    <!-- ── Research Questions (links to each question page) ──── -->
+    <section id="questions" class="apple-section">
+      <div class="section-header-compact">
+        <div class="section-kicker">Explore the Story</div>
+        <h2 class="section-heading">Five Research Questions</h2>
+      </div>
+      <div class="question-grid">
+        <a href="who-is-affected.html" class="question-card">
+          <div class="card-eyebrow">QUESTION 1</div>
+          <h3 class="question-card-title">Who is most affected by hospitalised road crash injuries?</h3>
+          <p class="question-card-meta">Age group &bull; Gender &bull; Road user type</p>
+        </a>
+        <a href="trends-over-time.html" class="question-card">
+          <div class="card-eyebrow">QUESTION 2</div>
+          <h3 class="question-card-title">How have hospitalised road crash injuries changed between 2011 and 2021?</h3>
+          <p class="question-card-meta">Year &bull; Injury count &bull; Demographic trends</p>
+        </a>
+        <a href="geographic-distribution.html" class="question-card">
+          <div class="card-eyebrow">QUESTION 3</div>
+          <h3 class="question-card-title">Where are hospitalised road crash injuries most common?</h3>
+          <p class="question-card-meta">State &amp; territory &bull; Metro vs regional &bull; Geographic distribution</p>
+        </a>
+        <a href="crash-characteristics.html" class="question-card">
+          <div class="card-eyebrow">QUESTION 4</div>
+          <h3 class="question-card-title">What crash characteristics are associated with hospitalised injuries?</h3>
+          <p class="question-card-meta">Collision type &bull; Counterparty &bull; Crash scenario</p>
+        </a>
+        <a href="injury-severity.html" class="question-card">
+          <div class="card-eyebrow">QUESTION 5</div>
+          <h3 class="question-card-title">What are the most severe consequences of hospitalised road crash injuries?</h3>
+          <p class="question-card-meta">Mortality risk &bull; Length of stay &bull; Injury severity</p>
+        </a>
       </div>
     </section>
 
@@ -228,59 +247,13 @@
 
   </main>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       APPLE-STYLE MINIMALIST FOOTER
-       ═══════════════════════════════════════════════════════════ -->
-  <footer class="site-footer" id="citations">
-    <div class="container footer-container">
-      <div class="footer-references">
-        <p class="footer-references-title">Data Sources &amp; Course References</p>
-        <ol class="footer-ordered-list">
-          <li>
-            <strong>Australian Institute of Health and Welfare (AIHW):</strong>
-            <em>Hospitalised injury due to land transport crashes, Australia</em>.
-            <a href="https://www.aihw.gov.au/reports/injury/hospitalised-injury-due-to-land-transport-crashes" target="_blank" rel="noopener noreferrer">
-              View official AIHW reports &nearr;
-            </a>
-          </li>
-          <li>
-            <strong>Bureau of Infrastructure and Transport Research Economics (BITRE):</strong>
-            <em>Road Deaths Australia &amp; Crash Inpatient Summaries</em>.
-            <a href="https://www.bitre.gov.au/publications/ongoing/road_deaths_australia_annual_summaries" target="_blank" rel="noopener noreferrer">
-              Access BITRE data portal &nearr;
-            </a>
-          </li>
-          <li>
-            <strong>Theoretical Foundations:</strong>
-            Munzner, T. (2014). <em>Visualization Analysis and Design</em>. CRC Press;
-            Tufte, E. R. (2001). <em>The Visual Display of Quantitative Information</em>;
-            Knaflic, C. N. (2015). <em>Storytelling with Data</em>.
-          </li>
-        </ol>
-      </div>
-
-      <div class="footer-divider"></div>
-
-      <div class="footer-bottom">
-        <div class="footer-meta">
-          <span>&copy; 2026 Data Vis Project (2026 S2)_Group 9</span>
-          <span class="meta-dot">&bull;</span>
-          <span>COS20031 Database Design Project</span>
-          <span class="meta-dot">&bull;</span>
-          <span>Swinburne University of Technology Sarawak Campus</span>
-        </div>
-        <div class="footer-deployment-link">
-          <a href="https://data-vis-project-2026-s2-group-9.vercel.app" target="_blank" rel="noopener noreferrer">
-            Live on Vercel &nearr;
-          </a>
-        </div>
-      </div>
-    </div>
-  </footer>
+  <!-- Footer injected by js/layout.js -->
+  <div id="site-footer"></div>
 
   <!-- ═══════════════════════════════════════════════════════════
        SCRIPTS – D3 v7 CDN first, then project modules
        ═══════════════════════════════════════════════════════════ -->
+  <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/load-data.js"></script>
