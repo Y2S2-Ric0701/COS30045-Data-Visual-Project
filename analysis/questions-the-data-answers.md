@@ -22,7 +22,7 @@ Including 2020–21 silently deflates the death rate by approximately one-fifth.
 ### Trap 2 — Unequal age band widths
 
 | Age band | Width (years) |
-|----------|---------------|
+| -------- | ------------- |
 | 0–7      | 8             |
 | 8–16     | 9             |
 | 17–25    | 9             |
@@ -38,10 +38,10 @@ label (count ÷ band width) to give readers the density perspective.
 
 ### Trap 3 — Two series breaks
 
-| Year | Jurisdiction | Change | Estimated national impact |
-|------|-------------|--------|--------------------------|
-| 2012 | Victoria    | Stopped counting cases treated solely in Emergency Departments | −2.8% nationally (NISU estimate) |
-| 2017 (June) | NSW  | Same ED-only exclusion applied | Varies by road user group |
+| Year        | Jurisdiction | Change                                                         | Estimated national impact        |
+| ----------- | ------------ | -------------------------------------------------------------- | -------------------------------- |
+| 2012        | Victoria     | Stopped counting cases treated solely in Emergency Departments | −2.8% nationally (NISU estimate) |
+| 2017 (June) | NSW          | Same ED-only exclusion applied                                 | Varies by road user group        |
 
 These breaks are **not neutral across road users** — a visible dip in one trend line
 may reflect an administrative reporting change, not an actual safety improvement.
@@ -52,11 +52,11 @@ The published BITRE tables shade 2011 and 2017-onward for this reason.
 
 ## Null Value Treatment
 
-| Column | Null count | What a null means | KNIME action |
-|--------|-----------|-------------------|--------------|
-| `Died_cases` | 108,178 of 117,919 rows | No deaths in that cell **up to Jun 2020**; not recorded after that | `Missing Value` node → Fix Value: `0` for Jan 2011 to Jun 2020. Exclude Jul 2020 – Dec 2021 from any death analysis |
-| `Died_bed_days` | 107,331 | Same as above | Same as above |
-| `Count of cases` | 4,937 | A "bed days only" row — patient transferred between hospitals counts as a case once, but subsequent bed days still recorded | `Missing Value` node → Fix Value: `0`. Their `Hospitalisations` is already 0 |
+| Column           | Null count              | What a null means                                                                                                           | KNIME action                                                                                                        |
+| ---------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `Died_cases`     | 108,178 of 117,919 rows | No deaths in that cell **up to Jun 2020**; not recorded after that                                                          | `Missing Value` node → Fix Value: `0` for Jan 2011 to Jun 2020. Exclude Jul 2020 – Dec 2021 from any death analysis |
+| `Died_bed_days`  | 107,331                 | Same as above                                                                                                               | Same as above                                                                                                       |
+| `Count of cases` | 4,937                   | A "bed days only" row — patient transferred between hospitals counts as a case once, but subsequent bed days still recorded | `Missing Value` node → Fix Value: `0`. Their `Hospitalisations` is already 0                                        |
 
 **Validation:** with nulls treated as 0, `Count of cases − Died_cases = Hospitalisations`
 holds on all 117,919 rows. There are no literal zeros in `Died_cases`, confirming null
@@ -81,14 +81,14 @@ The five research questions below are aligned with the team's website structure
 **Chart type:** Horizontal Bar Chart (ranking age groups from highest to lowest)
 
 | Age group | Total cases (2011–2021) | Cases per year of age |
-|-----------|------------------------|-----------------------|
-| 40–64     | 134,246                | ~5,400                |
-| 26–39     | 99,795                 | ~7,100                |
-| 17–25     | 89,259                 | **~9,900**            |
-| 65–74     | 42,831                 | ~4,300                |
-| 8–16      | 33,180                 | ~3,700                |
-| 75+       | 30,922                 | N/A (open-ended)      |
-| 0–7       | 9,455                  | ~1,200                |
+| --------- | ----------------------- | --------------------- |
+| 40–64     | 134,246                 | ~5,400                |
+| 26–39     | 99,795                  | ~7,100                |
+| 17–25     | 89,259                  | **~9,900**            |
+| 65–74     | 42,831                  | ~4,300                |
+| 8–16      | 33,180                  | ~3,700                |
+| 75+       | 30,922                  | N/A (open-ended)      |
+| 0–7       | 9,455                   | ~1,200                |
 
 **Key insight:** 40–64 leads by raw count (widest band), but **17–25 is the densest
 group** per year of age — about 1.8× the density of the 40–64 band.
@@ -97,12 +97,13 @@ group** per year of age — about 1.8× the density of the 40–64 band.
 
 **Chart type:** Donut Chart (proportion comparison of two categories)
 
-| Sex | Cases (2011–2021) | Share |
-|-----|-------------------|-------|
-| Male | 268,244 | **65%** |
-| Female | 144,754 | 35% |
+| Sex    | Cases (2011–2021) | Share   |
+| ------ | ----------------- | ------- |
+| Male   | 268,244           | **65%** |
+| Female | 144,754           | 35%     |
 
 Gender gap by road user (% male):
+
 - Heavy transport driver: **97.3%** male
 - Motorcyclist: **89.6%** male
 - Pedal cyclist: ~78% male
@@ -117,15 +118,15 @@ but **reverses** for car passengers and bus occupants.
 
 **Chart type:** Lollipop Chart (cleaner, more modern than standard bar chart)
 
-| Road user | Share (2021) | Total (2011–2021) |
-|-----------|-------------|-------------------|
-| Car driver | 33.7% | ~132,000 |
-| Motorcyclist | 22.5% | ~89,000 |
-| Pedal cyclist | 20.7% | ~72,000 |
-| Car passenger | 11.4% | ~52,000 |
-| Pedestrian | 5.9% | ~28,000 |
-| Heavy transport driver | 1.0% | ~4,700 |
-| Bus occupant | 0.4% | ~2,100 |
+| Road user              | Share (2021) | Total (2011–2021) |
+| ---------------------- | ------------ | ----------------- |
+| Car driver             | 33.7%        | ~132,000          |
+| Motorcyclist           | 22.5%        | ~89,000           |
+| Pedal cyclist          | 20.7%        | ~72,000           |
+| Car passenger          | 11.4%        | ~52,000           |
+| Pedestrian             | 5.9%         | ~28,000           |
+| Heavy transport driver | 1.0%         | ~4,700            |
+| Bus occupant           | 0.4%         | ~2,100            |
 
 ---
 
@@ -138,15 +139,15 @@ but **reverses** for car passengers and bus occupants.
 
 **Chart type:** Multi-series Line Chart (one line per road user, shared y-axis)
 
-| Road user | 2011 | 2021 | Change |
-|-----------|------|------|--------|
-| Car driver | 10,948 | 13,327 | +22% |
-| Motorcyclist | 7,565 | 8,883 | +17% |
-| Pedal cyclist | 5,391 | 8,163 | **+51%** |
-| Car passenger | 4,853 | 4,495 | −7% |
-| Pedestrian | 2,754 | 2,334 | **−15%** |
-| Heavy transport driver | 455 | 383 | −16% |
-| Bus occupant | 214 | 169 | −21% |
+| Road user              | 2011   | 2021   | Change   |
+| ---------------------- | ------ | ------ | -------- |
+| Car driver             | 10,948 | 13,327 | +22%     |
+| Motorcyclist           | 7,565  | 8,883  | +17%     |
+| Pedal cyclist          | 5,391  | 8,163  | **+51%** |
+| Car passenger          | 4,853  | 4,495  | −7%      |
+| Pedestrian             | 2,754  | 2,334  | **−15%** |
+| Heavy transport driver | 455    | 383    | −16%     |
+| Bus occupant           | 214    | 169    | −21%     |
 
 **Key insight:** The cycling surge (+51%) and pedestrian decline (−15%) are the
 dominant trends. Vulnerable road users (motorcyclist + cyclist + pedestrian) now
@@ -164,6 +165,7 @@ cyclists (climbing steeply) and pedestrians (falling) visually immediate.
 **Chart type:** Annotated Area Chart (with labelled events / reporting changes)
 
 Critical annotations to include:
+
 - **2012:** Victoria series break (ED-only cases excluded → ~2.8% national dip)
 - **2017 (June):** NSW series break (same ED exclusion)
 - **2020:** COVID-19 lockdowns — cycling injuries peaked at **8,332** (highest in series),
@@ -196,11 +198,11 @@ does **not** contain a state column — only `ABS remoteness area`.
 The national `raw` sheet contains `ABS remoteness area` with values:
 `Major Cities`, `Inner Regional`, `Outer Regional`, `Remote`, `Very Remote`, `Missing`.
 
-| Remoteness | Share of cases | Died per 1,000 | Bed days per case |
-|-----------|---------------|----------------|-------------------|
-| Major Cities | **66%** | 5.5 | 4.6 |
-| Regional (Inner + Outer) | ~30% | **6.9** | **5.5** |
-| Remote + Very Remote | ~3% | Higher | Higher |
+| Remoteness               | Share of cases | Died per 1,000 | Bed days per case |
+| ------------------------ | -------------- | -------------- | ----------------- |
+| Major Cities             | **66%**        | 5.5            | 4.6               |
+| Regional (Inner + Outer) | ~30%           | **6.9**        | **5.5**           |
+| Remote + Very Remote     | ~3%            | Higher         | Higher            |
 
 **Key insight:** Cities have the volume, but **Regional injuries are more severe** —
 higher mortality rate (6.9 vs 5.5 per 1,000) and longer hospital stays (5.5 vs 4.6 days).
@@ -224,14 +226,14 @@ by total hospitalisations per state would provide an effective spatial overview.
 
 **Chart type:** Treemap (showing composition and relative size)
 
-| Counterparty | Cases (2011–2021) | Share |
-|-------------|-------------------|-------|
-| Car, pick-up truck or van | 170,730 | **41%** |
-| Non-collision (no other vehicle involved) | 108,678 | **26%** |
-| Fixed or stationary object | 59,019 | 14% |
-| Other/unspecified transport | 49,547 | 12% |
-| Heavy transport vehicle or bus | 11,970 | 3% |
-| Smaller groups (pedestrian/animal, pedal cycle, 2/3-wheeled motor, train) | ~12,000 | ~3% |
+| Counterparty                                                              | Cases (2011–2021) | Share   |
+| ------------------------------------------------------------------------- | ----------------- | ------- |
+| Car, pick-up truck or van                                                 | 170,730           | **41%** |
+| Non-collision (no other vehicle involved)                                 | 108,678           | **26%** |
+| Fixed or stationary object                                                | 59,019            | 14%     |
+| Other/unspecified transport                                               | 49,547            | 12%     |
+| Heavy transport vehicle or bus                                            | 11,970            | 3%      |
+| Smaller groups (pedestrian/animal, pedal cycle, 2/3-wheeled motor, train) | ~12,000           | ~3%     |
 
 **Key insight:** Over a quarter of all hospitalisations (26%) involve **no other vehicle**
 at all — these are single-vehicle loss-of-control crashes.
@@ -241,6 +243,7 @@ at all — these are single-vehicle loss-of-control crashes.
 **Chart type:** Heatmap Matrix (Road User rows × Counterparty columns, colour = count)
 
 Biggest road user × counterparty pairs:
+
 1. Car driver vs car/ute/van: **73,930** cases
 2. Motorcyclist non-collision: **37,983** cases
 3. Pedal cyclist non-collision: **33,446** cases
@@ -303,6 +306,7 @@ By counterparty:
 | Car/ute/van | 7.2 |
 
 Other dimensions:
+
 - By sex: Male 6.5, Female 5.3
 - By remoteness: Regional **6.9** vs Major Cities 5.5
 
@@ -310,14 +314,14 @@ Other dimensions:
 
 **Chart type:** Box Plot (shows median, spread, and outliers of bed day distributions)
 
-| Group dimension | Longest stays (avg bed days per case) |
-|----------------|--------------------------------------|
-| **By age:** 75+ | **9.8 days** |
-| Adults under 65 | 4–5 days |
-| **By road user:** Pedestrian | **9.0 days** |
-| Cyclist | 3.0 days |
-| **By counterparty:** Train | **14.5 days** |
-| Heavy vehicle | 8.4 days |
+| Group dimension              | Longest stays (avg bed days per case) |
+| ---------------------------- | ------------------------------------- |
+| **By age:** 75+              | **9.8 days**                          |
+| Adults under 65              | 4–5 days                              |
+| **By road user:** Pedestrian | **9.0 days**                          |
+| Cyclist                      | 3.0 days                              |
+| **By counterparty:** Train   | **14.5 days**                         |
+| Heavy vehicle                | 8.4 days                              |
 
 #### Sub-question 5.3 — Volume vs Severity (the "aha" chart)
 
@@ -325,12 +329,12 @@ Other dimensions:
 
 This is the **narrative climax** of the entire data story.
 
-| Road user | Cases (volume) | Deaths per 1,000 (severity) | Bed days (bubble size) |
-|-----------|---------------|---------------------------|----------------------|
-| Car driver | Highest | Mid-table (5.9) | 4.5 |
-| Pedal cyclist | High & growing | **Lowest** (1.9) | 3.0 |
-| Pedestrian | Low & falling | **Highest** (21.8) | **9.0** |
-| Motorcyclist | High | Low (4.1) | 5.4 |
+| Road user     | Cases (volume) | Deaths per 1,000 (severity) | Bed days (bubble size) |
+| ------------- | -------------- | --------------------------- | ---------------------- |
+| Car driver    | Highest        | Mid-table (5.9)             | 4.5                    |
+| Pedal cyclist | High & growing | **Lowest** (1.9)            | 3.0                    |
+| Pedestrian    | Low & falling  | **Highest** (21.8)          | **9.0**                |
+| Motorcyclist  | High           | Low (4.1)                   | 5.4                    |
 
 **The twist:** Car drivers have the most cases but are mid-table for severity.
 Pedestrians have few cases but suffer **~12× the mortality rate of cyclists** and
@@ -366,17 +370,18 @@ Act 3: THE TWIST (RQ5)
 
 Each KNIME branch should terminate with a `CSV Writer` node exporting to `src/data/`:
 
-| KNIME Branch | Attach CSV Writer After | Output File | Columns |
-|-------------|------------------------|-------------|---------|
-| Branch 1 (Age) | `Sorter (#8)` | `rq1_age_group.csv` | `Age group`, `Sum(Hospitalisations)` |
-| Branch 2 (Road User) | `Sorter (#11)` | `rq1_road_user.csv` | `Road user`, `Sum(Hospitalisations)` |
-| Branch 4 (Gender) | `Pivot (#21)` | `rq1_gender.csv` | `Road user`, `Male`, `Female` |
-| Branch 3 (Trends) | `Pivot (#13)` | `rq2_trends.csv` | `Calendar year`, one column per road user |
-| NEW (Geography) | New GroupBy → Sorter | `rq3_geography.csv` | `ABS remoteness area`, `Sum(Hospitalisations)`, `Sum(Died_cases)`, `Sum(Bed days)` |
-| Branch 5 (Counterparty) | `Math Formula (#33)` | `rq4_counterparty.csv` | `Road user`, counterparty % columns |
-| NEW (Severity) | Connect from `Rule-based Row Filter (#5)` → GroupBy | `rq5_severity.csv` | `Road user`, `Cases`, `Died_cases`, `Bed days`, `Deaths_per_1000`, `Avg_bed_days` |
+| KNIME Branch            | Attach CSV Writer After                             | Output File            | Columns                                                                            |
+| ----------------------- | --------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------- |
+| Branch 1 (Age)          | `Sorter (#8)`                                       | `rq1_age_group.csv`    | `Age group`, `Sum(Hospitalisations)`                                               |
+| Branch 2 (Road User)    | `Sorter (#11)`                                      | `rq1_road_user.csv`    | `Road user`, `Sum(Hospitalisations)`                                               |
+| Branch 4 (Gender)       | `Pivot (#21)`                                       | `rq1_gender.csv`       | `Road user`, `Male`, `Female`                                                      |
+| Branch 3 (Trends)       | `Pivot (#13)`                                       | `rq2_trends.csv`       | `Calendar year`, one column per road user                                          |
+| NEW (Geography)         | New GroupBy → Sorter                                | `rq3_geography.csv`    | `ABS remoteness area`, `Sum(Hospitalisations)`, `Sum(Died_cases)`, `Sum(Bed days)` |
+| Branch 5 (Counterparty) | `Math Formula (#33)`                                | `rq4_counterparty.csv` | `Road user`, counterparty % columns                                                |
+| NEW (Severity)          | Connect from `Rule-based Row Filter (#5)` → GroupBy | `rq5_severity.csv`     | `Road user`, `Cases`, `Died_cases`, `Bed days`, `Deaths_per_1000`, `Avg_bed_days`  |
 
 **CSV Writer settings:**
+
 - Column delimiter: `,` (comma)
 - ☑ Include column header
 - ☐ Include row ID (uncheck — D3 doesn't need KNIME Row0, Row1 IDs)
