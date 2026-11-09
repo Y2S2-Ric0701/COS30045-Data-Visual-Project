@@ -387,14 +387,19 @@
             .attr('cx', 0)
             .attr('cy', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
             .attr('r', 6.5)
-            .attr('fill', (d, i) => vis.config.palette[i % vis.config.palette.length])
+            .attr('fill', (d, i) => (vis.config.colorMap && vis.config.colorMap[d.label])
+              ? vis.config.colorMap[d.label]
+              : vis.config.palette[i % vis.config.palette.length])
             .attr('stroke', '#ffffff')
             .attr('stroke-width', 2)
             .call(enter => enter.transition().duration(vis.config.duration).ease(vis.config.ease)
               .attr('cx', d => vis.xScale(d.value))),
           update => update
             .attr('cy', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
-            .attr('cx', d => vis.xScale(d.value)),
+            .attr('cx', d => vis.xScale(d.value))
+            .attr('fill', (d, i) => (vis.config.colorMap && vis.config.colorMap[d.label])
+              ? vis.config.colorMap[d.label]
+              : vis.config.palette[i % vis.config.palette.length]),
           exit => exit.remove()
         );
 

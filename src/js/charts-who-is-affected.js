@@ -59,9 +59,19 @@ document.addEventListener('DOMContentLoaded', function () {
       labelKey: 'Road user',
       valueKey: 'Sum(Hospitalisations)',
       xLabel: 'Total Hospitalised Cases (2011–2021)',
-      palette: ['#0072B2', '#E69F00', '#009E73', '#56B4E9', '#888888'],
       height: 440,
       margin: { top: 25, right: 90, bottom: 45, left: 210 },
+      colorMap: {
+        'Car driver': '#0072B2',
+        'Motorcyclist': '#E69F00',
+        'Pedal cyclist': '#009E73',
+        'Car passenger': '#56B4E9',
+        'Pedestrian': '#D55E00',
+        'Other or unknown': '#94a3b8',
+        'Heavy transport driver': '#64748b',
+        'Pick-up truck or van occupant': '#94a3b8',
+        'Bus occupant': '#94a3b8',
+      },
     });
   }).catch(err => console.error('Error loading rq1_road_user.csv:', err));
 
