@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
       unit: ' deaths / 1k',
       valueFormatter: d => `${d.toFixed(1)} / 1k`,
       showProportion: false,
-      margin: { top: 25, right: 90, bottom: 45, left: 210 },
+      margin: { top: 25, right: 90, bottom: 45, left: 235 },
       height: 420,
     });
 
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
       unit: ' days',
       valueFormatter: d => `${d.toFixed(1)} days`,
       showProportion: false,
-      margin: { top: 25, right: 90, bottom: 45, left: 210 },
+      margin: { top: 25, right: 90, bottom: 45, left: 235 },
       height: 420,
     });
 
@@ -75,8 +75,8 @@ document.addEventListener('DOMContentLoaded', function () {
       rKey: 'avgBedDays',
       labelKey: 'user',
       colorMap: userColors,
-      height: 480,
-      margin: { top: 35, right: 90, bottom: 55, left: 80 },
+      height: 520,
+      margin: { top: 40, right: 95, bottom: 65, left: 95 },
     });
 
   }).catch(err => console.error('Error loading rq5_mortality_severity.csv:', err));

@@ -849,7 +849,8 @@
         .attr('class', 'quad-x')
         .attr('x1', vis.xScale(50000)).attr('x2', vis.xScale(50000))
         .attr('y1', 0).attr('y2', vis.innerHeight)
-        .attr('stroke', 'rgba(0,0,0,0.12)')
+        .attr('stroke', '#e2e8f0')
+        .attr('stroke-width', 1.5)
         .attr('stroke-dasharray', '4 4');
 
       vis.annotationsG.selectAll('.quad-y').data([6.0])
@@ -857,31 +858,36 @@
         .attr('class', 'quad-y')
         .attr('x1', 0).attr('x2', vis.innerWidth)
         .attr('y1', vis.yScale(6.0)).attr('y2', vis.yScale(6.0))
-        .attr('stroke', 'rgba(0,0,0,0.12)')
+        .attr('stroke', '#e2e8f0')
+        .attr('stroke-width', 1.5)
         .attr('stroke-dasharray', '4 4');
 
-      // Quadrant labels
-      vis.annotationsG.selectAll('.quad-label-ped').data(['Catastrophic Vulnerability (High Mortality, High Stays)'])
+      // Quadrant watermark badges (non-colliding corner watermarks)
+      vis.annotationsG.selectAll('.quad-badge-i').data(['QUADRANT I • High Mortality Risk, Vulnerable'])
         .join('text')
-        .attr('class', 'quad-label-ped')
+        .attr('class', 'quad-badge-i')
         .attr('x', 14)
-        .attr('y', 20)
-        .style('font-size', '11px')
+        .attr('y', 14)
+        .style('font-size', '10px')
         .style('font-weight', '600')
+        .style('letter-spacing', '0.04em')
+        .style('text-transform', 'uppercase')
         .style('fill', '#D55E00')
-        .style('opacity', 0.85)
+        .style('opacity', 0.65)
         .text(d => d);
 
-      vis.annotationsG.selectAll('.quad-label-vol').data(['High-Volume Cohort (Drivers & Motorcyclists)'])
+      vis.annotationsG.selectAll('.quad-badge-iv').data(['QUADRANT IV • High Volume, Moderate Severity'])
         .join('text')
-        .attr('class', 'quad-label-vol')
+        .attr('class', 'quad-badge-iv')
         .attr('x', vis.innerWidth - 10)
-        .attr('y', vis.innerHeight - 15)
+        .attr('y', vis.innerHeight - 10)
         .attr('text-anchor', 'end')
-        .style('font-size', '11px')
+        .style('font-size', '10px')
         .style('font-weight', '600')
+        .style('letter-spacing', '0.04em')
+        .style('text-transform', 'uppercase')
         .style('fill', '#0072B2')
-        .style('opacity', 0.85)
+        .style('opacity', 0.65)
         .text(d => d);
 
       // Axes
@@ -909,11 +915,45 @@
         .attr('class', 'axis-label')
         .attr('transform', 'rotate(-90)')
         .attr('x', -vis.innerHeight / 2)
-        .attr('y', -45)
+        .attr('y', -48)
         .attr('text-anchor', 'middle')
         .style('fill', '#86868b')
         .style('font-size', '12px')
         .text(d => d);
+
+      // Smart label placement dictionary to prevent all overlapping
+      const LABEL_OFFSETS = {
+        'Pedestrian': { dx: 0, dy: -10, anchor: 'middle', useYTop: true },
+        'Car driver': { dx: -8, dy: 4, anchor: 'end', useYCenter: true },
+        'Motorcyclist': { dx: 0, dy: -8, anchor: 'middle', useYTop: true },
+        'Pedal cyclist': { dx: 0, dy: 18, anchor: 'middle', useYBottom: true },
+        'Car passenger': { dx: 0, dy: -8, anchor: 'middle', useYTop: true },
+        'Bus occupant': { dx: -18, dy: -10, anchor: 'end', leader: true },
+        'Pick-up truck or van occupant': { dx: -20, dy: 4, anchor: 'end', leader: true },
+        'Heavy transport driver': { dx: -18, dy: 18, anchor: 'end', leader: true },
+        'Other or unknown': { dx: 22, dy: 4, anchor: 'start', leader: true },
+      };
+
+      // Leader lines for clustered points
+      vis.plotG.selectAll('.bubble-leader')
+        .data(vis.displayData.filter(d => LABEL_OFFSETS[d.user] && LABEL_OFFSETS[d.user].leader), d => d.user)
+        .join(
+          enter => enter.append('line')
+            .attr('class', 'bubble-leader')
+            .attr('x1', d => vis.xScale(d.cases))
+            .attr('y1', d => vis.yScale(d.rate))
+            .attr('x2', d => vis.xScale(d.cases) + (LABEL_OFFSETS[d.user].dx > 0 ? 16 : -14))
+            .attr('y2', d => vis.yScale(d.rate) + LABEL_OFFSETS[d.user].dy * 0.7)
+            .attr('stroke', '#cbd5e1')
+            .attr('stroke-width', 1.2)
+            .attr('stroke-dasharray', '2 2'),
+          update => update
+            .attr('x1', d => vis.xScale(d.cases))
+            .attr('y1', d => vis.yScale(d.rate))
+            .attr('x2', d => vis.xScale(d.cases) + (LABEL_OFFSETS[d.user].dx > 0 ? 16 : -14))
+            .attr('y2', d => vis.yScale(d.rate) + LABEL_OFFSETS[d.user].dy * 0.7),
+          exit => exit.remove()
+        );
 
       // Bubbles
       vis.plotG.selectAll('.bubble')
@@ -925,7 +965,7 @@
             .attr('cy', d => vis.yScale(d.rate))
             .attr('r', 0)
             .attr('fill', d => vis.config.colorMap[d.user] || '#0072B2')
-            .attr('fill-opacity', 0.75)
+            .attr('fill-opacity', 0.78)
             .attr('stroke', d => vis.config.colorMap[d.user] || '#0072B2')
             .attr('stroke-width', 2)
             .call(enter => enter.transition().duration(vis.config.duration)
@@ -952,26 +992,53 @@
             .style('top', `${event.pageY - 30}px`);
         })
         .on('mouseleave', function () {
-          d3.select(this).attr('fill-opacity', 0.75).attr('stroke-width', 2);
+          d3.select(this).attr('fill-opacity', 0.78).attr('stroke-width', 2);
           vis.tooltip.classed('visible', false);
         });
 
-      // Labels on bubbles
+      // Labels on bubbles with halo & anti-collision offsets
       vis.plotG.selectAll('.bubble-text')
         .data(vis.displayData, d => d.user)
         .join(
           enter => enter.append('text')
             .attr('class', 'bubble-text')
-            .attr('x', d => vis.xScale(d.cases))
-            .attr('y', d => vis.yScale(d.rate) - vis.rScale(d.avgBedDays) - 6)
-            .attr('text-anchor', 'middle')
+            .attr('x', d => {
+              const cfg = LABEL_OFFSETS[d.user] || { dx: 0 };
+              const r = vis.rScale(d.avgBedDays);
+              return vis.xScale(d.cases) + cfg.dx + (cfg.anchor === 'end' && !cfg.leader ? -r : 0);
+            })
+            .attr('y', d => {
+              const cfg = LABEL_OFFSETS[d.user] || { dy: -6 };
+              const r = vis.rScale(d.avgBedDays);
+              if (cfg.useYTop) return vis.yScale(d.rate) - r + cfg.dy;
+              if (cfg.useYBottom) return vis.yScale(d.rate) + r + cfg.dy;
+              if (cfg.useYCenter) return vis.yScale(d.rate) + cfg.dy;
+              return vis.yScale(d.rate) + cfg.dy;
+            })
+            .attr('text-anchor', d => (LABEL_OFFSETS[d.user] ? LABEL_OFFSETS[d.user].anchor : 'middle'))
             .style('font-size', '11px')
             .style('font-weight', '600')
             .style('fill', d => vis.config.colorMap[d.user] || '#1d1d1f')
+            .style('paint-order', 'stroke fill')
+            .style('stroke', '#ffffff')
+            .style('stroke-width', '3.5px')
+            .style('stroke-linejoin', 'round')
+            .style('stroke-linecap', 'round')
             .text(d => d.user),
           update => update
-            .attr('x', d => vis.xScale(d.cases))
-            .attr('y', d => vis.yScale(d.rate) - vis.rScale(d.avgBedDays) - 6),
+            .attr('x', d => {
+              const cfg = LABEL_OFFSETS[d.user] || { dx: 0 };
+              const r = vis.rScale(d.avgBedDays);
+              return vis.xScale(d.cases) + cfg.dx + (cfg.anchor === 'end' && !cfg.leader ? -r : 0);
+            })
+            .attr('y', d => {
+              const cfg = LABEL_OFFSETS[d.user] || { dy: -6 };
+              const r = vis.rScale(d.avgBedDays);
+              if (cfg.useYTop) return vis.yScale(d.rate) - r + cfg.dy;
+              if (cfg.useYBottom) return vis.yScale(d.rate) + r + cfg.dy;
+              if (cfg.useYCenter) return vis.yScale(d.rate) + cfg.dy;
+              return vis.yScale(d.rate) + cfg.dy;
+            }),
           exit => exit.remove()
         );
     }
