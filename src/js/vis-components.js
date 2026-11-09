@@ -1185,7 +1185,6 @@
       vis.activeFilter = category || 'all';
       vis.resetSpotlight();
     }
-    }
   }
 
   // ── Global Export Namespace ──────────────────────────────────
