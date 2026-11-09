@@ -139,6 +139,10 @@
         baselineColor: '#888888',
         xLabel: 'Cases',
         showLabels: true,
+        showProportion: true,
+        valueLabel: 'Hospitalised:',
+        unit: '',
+        valueFormatter: null,
       }, config));
     }
 
@@ -165,6 +169,10 @@
     renderVis() {
       const vis = this;
 
+      const fmtVal = vis.config.valueFormatter
+        ? vis.config.valueFormatter
+        : d => `${fmtComma(d)}${vis.config.unit}`;
+
       // Scales
       vis.yScale = d3.scaleBand()
         .domain(vis.displayData.map(d => d.label))
@@ -187,7 +195,7 @@
         .attr('stroke-dasharray', '2 4');
 
       // Axes
-      vis.yAxisG.call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(10))
+      vis.yAxisG.call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12))
         .selectAll('text')
         .style('font-size', '12px')
         .style('font-weight', '500')
@@ -221,8 +229,10 @@
             .attr('x', 0)
             .attr('height', vis.yScale.bandwidth())
             .attr('rx', 4)
-            .attr('fill', d => d.label === vis.config.accentKey ? vis.config.accentColor : vis.config.baselineColor)
-            .attr('opacity', d => d.label === vis.config.accentKey ? 0.95 : 0.5)
+            .attr('fill', d => (vis.config.colorMap && vis.config.colorMap[d.label])
+              ? vis.config.colorMap[d.label]
+              : (d.label === vis.config.accentKey ? vis.config.accentColor : vis.config.baselineColor))
+            .attr('opacity', d => (vis.config.accentKey ? (d.label === vis.config.accentKey ? 0.95 : 0.5) : 0.85))
             .attr('width', 0)
             .call(enter => enter.transition().duration(vis.config.duration).ease(vis.config.ease)
               .attr('width', d => vis.xScale(d.value))),
@@ -238,8 +248,8 @@
           vis.tooltip.classed('visible', true)
             .html(`
               <div class="tooltip-title">${d.label}</div>
-              <div class="tooltip-row"><span>Hospitalised:</span> <span class="tooltip-val">${fmtComma(d.value)}</span></div>
-              <div class="tooltip-row"><span>Proportion:</span> <span class="tooltip-accent">${fmtPercent(d.value / vis.totalSum)}</span></div>
+              <div class="tooltip-row"><span>${vis.config.valueLabel}</span> <span class="tooltip-accent">${fmtVal(d.value)}</span></div>
+              ${vis.config.showProportion ? `<div class="tooltip-row"><span>Proportion:</span> <span class="tooltip-val">${fmtPercent(d.value / vis.totalSum)}</span></div>` : ''}
             `);
         })
         .on('mousemove', function (event) {
@@ -249,7 +259,7 @@
         })
         .on('mouseleave', function (event, d) {
           d3.select(this)
-            .attr('opacity', d.label === vis.config.accentKey ? 0.95 : 0.5)
+            .attr('opacity', vis.config.accentKey ? (d.label === vis.config.accentKey ? 0.95 : 0.5) : 0.85)
             .attr('filter', null);
           vis.tooltip.classed('visible', false);
         });
@@ -266,11 +276,11 @@
               .style('font-size', '11px')
               .style('font-weight', '600')
               .style('fill', '#1d1d1f')
-              .text(d => fmtComma(d.value)),
+              .text(d => fmtVal(d.value)),
             update => update
               .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
               .attr('x', d => vis.xScale(d.value) + 8)
-              .text(d => fmtComma(d.value)),
+              .text(d => fmtVal(d.value)),
             exit => exit.remove()
           );
       }
@@ -774,20 +784,38 @@
       const vis = this;
 
       vis.displayData = vis.rawData.map(d => {
-        const cases = +d['Sum(Count of cases)'] || +d[vis.config.xKey] || 0;
-        const deaths = +d['Sum(Died_cases)'] || 0;
-        const bedDays = +d['Sum(Bed days)'] || 0;
-        const rate = +d['Deaths_per_1000'] || (cases > 0 ? (deaths / cases) * 1000 : 0);
-        const avgBedDays = cases > 0 ? bedDays / cases : 0;
+        // Robust extraction from either pre-formatted or raw KNIME columns
+        const cases = (d[vis.config.xKey] !== undefined && !isNaN(+d[vis.config.xKey]))
+          ? +d[vis.config.xKey]
+          : (+d['Sum(Count of cases)'] || 0);
+
+        const deaths = (d.deaths !== undefined && !isNaN(+d.deaths))
+          ? +d.deaths
+          : (+d['Sum(Died_cases)'] || 0);
+
+        const bedDays = (d.bedDays !== undefined && !isNaN(+d.bedDays))
+          ? +d.bedDays
+          : (+d['Sum(Bed days)'] || 0);
+
+        const rate = (d[vis.config.yKey] !== undefined && !isNaN(+d[vis.config.yKey]))
+          ? +d[vis.config.yKey]
+          : (+d['Deaths_per_1000'] || (cases > 0 ? (deaths / cases) * 1000 : 0));
+
+        const avgBedDays = (d[vis.config.rKey] !== undefined && !isNaN(+d[vis.config.rKey]))
+          ? +d[vis.config.rKey]
+          : (cases > 0 && bedDays > 0 ? bedDays / cases : 0);
+
+        const user = String(d[vis.config.labelKey] || d['Road user'] || '');
+
         return {
-          user: d['Road user'] || d[vis.config.labelKey],
+          user,
           cases,
           deaths,
           bedDays,
-          rate,
-          avgBedDays,
+          rate: Math.round(rate * 100) / 100,
+          avgBedDays: Math.round(avgBedDays * 10) / 10,
         };
-      }).filter(d => !d.user.toLowerCase().includes('unknown position') && d.cases > 1000);
+      }).filter(d => d.user && !d.user.toLowerCase().includes('unknown position') && d.cases > 1000);
 
       vis.renderVis();
     }
@@ -796,17 +824,17 @@
       const vis = this;
 
       vis.xScale = d3.scaleLinear()
-        .domain([0, (d3.max(vis.displayData, d => d.cases) || 100) * 1.15])
+        .domain([0, (d3.max(vis.displayData, d => d.cases) || 120000) * 1.15])
         .range([0, vis.innerWidth]);
 
       vis.yScale = d3.scaleLinear()
-        .domain([0, (d3.max(vis.displayData, d => d.rate) || 10) * 1.15])
+        .domain([0, (d3.max(vis.displayData, d => d.rate) || 25) * 1.15])
         .nice()
         .range([vis.innerHeight, 0]);
 
       vis.rScale = d3.scaleSqrt()
         .domain([0, d3.max(vis.displayData, d => d.avgBedDays) || 10])
-        .range([4, 26]);
+        .range([6, 30]);
 
       // Grid
       vis.gridG.call(
@@ -832,15 +860,60 @@
         .attr('stroke', 'rgba(0,0,0,0.12)')
         .attr('stroke-dasharray', '4 4');
 
+      // Quadrant labels
+      vis.annotationsG.selectAll('.quad-label-ped').data(['Catastrophic Vulnerability (High Mortality, High Stays)'])
+        .join('text')
+        .attr('class', 'quad-label-ped')
+        .attr('x', 14)
+        .attr('y', 20)
+        .style('font-size', '11px')
+        .style('font-weight', '600')
+        .style('fill', '#D55E00')
+        .style('opacity', 0.85)
+        .text(d => d);
+
+      vis.annotationsG.selectAll('.quad-label-vol').data(['High-Volume Cohort (Drivers & Motorcyclists)'])
+        .join('text')
+        .attr('class', 'quad-label-vol')
+        .attr('x', vis.innerWidth - 10)
+        .attr('y', vis.innerHeight - 15)
+        .attr('text-anchor', 'end')
+        .style('font-size', '11px')
+        .style('font-weight', '600')
+        .style('fill', '#0072B2')
+        .style('opacity', 0.85)
+        .text(d => d);
+
       // Axes
       vis.xAxisG
         .attr('transform', `translate(0,${vis.innerHeight})`)
         .call(d3.axisBottom(vis.xScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d))
         .selectAll('text').style('font-size', '11px').style('fill', '#86868b');
 
+      vis.xAxisG.selectAll('.axis-label').data(['Total Hospitalised Cases (2011–2019 Cumulative Volume)'])
+        .join('text')
+        .attr('class', 'axis-label')
+        .attr('x', vis.innerWidth / 2)
+        .attr('y', 42)
+        .attr('text-anchor', 'middle')
+        .style('fill', '#86868b')
+        .style('font-size', '12px')
+        .text(d => d);
+
       vis.yAxisG
         .call(d3.axisLeft(vis.yScale).ticks(6))
         .selectAll('text').style('font-size', '11px').style('fill', '#86868b');
+
+      vis.yAxisG.selectAll('.axis-label').data(['In-Hospital Deaths per 1,000 Cases'])
+        .join('text')
+        .attr('class', 'axis-label')
+        .attr('transform', 'rotate(-90)')
+        .attr('x', -vis.innerHeight / 2)
+        .attr('y', -45)
+        .attr('text-anchor', 'middle')
+        .style('fill', '#86868b')
+        .style('font-size', '12px')
+        .text(d => d);
 
       // Bubbles
       vis.plotG.selectAll('.bubble')

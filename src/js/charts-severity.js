@@ -25,14 +25,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }).filter(d => !d.user.toLowerCase().includes('unknown position') && d.cases > 1000);
 
     const userColors = {
-      'Pedestrian': '#D55E00',
-      'Bus occupant': '#E69F00',
-      'Car passenger': '#56B4E9',
       'Car driver': '#0072B2',
-      'Motorcyclist': '#CC79A7',
+      'Motorcyclist': '#E69F00',
       'Pedal cyclist': '#009E73',
+      'Car passenger': '#56B4E9',
+      'Pedestrian': '#D55E00',
       'Heavy transport driver': '#64748b',
       'Pick-up truck or van occupant': '#94a3b8',
+      'Bus occupant': '#94a3b8',
+      'Other or unknown': '#94a3b8',
     };
 
     // ── Figure 5.1: In-Hospital Mortality Rate per 1,000 Cases ───
@@ -43,6 +44,12 @@ document.addEventListener('DOMContentLoaded', function () {
       accentColor: '#D55E00',
       baselineColor: '#888888',
       xLabel: 'Deaths per 1,000 Hospitalised Cases (2011–2019 Baseline)',
+      valueLabel: 'Mortality Rate:',
+      unit: ' deaths / 1k',
+      valueFormatter: d => `${d.toFixed(1)} / 1k`,
+      showProportion: false,
+      margin: { top: 25, right: 90, bottom: 45, left: 210 },
+      height: 420,
     });
 
     // ── Figure 5.2: Average Hospital Bed Days per Case ────────────
@@ -50,9 +57,15 @@ document.addEventListener('DOMContentLoaded', function () {
       labelKey: 'user',
       valueKey: 'avgBedDays',
       accentKey: 'Pedestrian',
-      accentColor: '#E69F00',
-      baselineColor: '#60a5fa',
-      xLabel: 'Average Inpatient Bed Days per Case',
+      accentColor: '#D55E00',
+      baselineColor: '#888888',
+      xLabel: 'Average Inpatient Bed Days per Hospitalised Case',
+      valueLabel: 'Average Stay:',
+      unit: ' days',
+      valueFormatter: d => `${d.toFixed(1)} days`,
+      showProportion: false,
+      margin: { top: 25, right: 90, bottom: 45, left: 210 },
+      height: 420,
     });
 
     // ── Figure 5.3: Volume vs. Severity Bubble Chart (Climax) ────
@@ -62,6 +75,8 @@ document.addEventListener('DOMContentLoaded', function () {
       rKey: 'avgBedDays',
       labelKey: 'user',
       colorMap: userColors,
+      height: 480,
+      margin: { top: 35, right: 90, bottom: 55, left: 80 },
     });
 
   }).catch(err => console.error('Error loading rq5_mortality_severity.csv:', err));
