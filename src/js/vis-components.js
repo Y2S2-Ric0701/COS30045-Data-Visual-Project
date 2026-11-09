@@ -921,17 +921,42 @@
         .style('font-size', '12px')
         .text(d => d);
 
+      // Crosshair Projection Lines Layer
+      vis.crosshairG = vis.g.append('g')
+        .attr('class', 'crosshair-layer')
+        .style('pointer-events', 'none');
+
+      vis.crossLineX = vis.crosshairG.append('line')
+        .attr('stroke', '#64748b')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '3 3')
+        .style('display', 'none');
+
+      vis.crossLineY = vis.crosshairG.append('line')
+        .attr('stroke', '#64748b')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '3 3')
+        .style('display', 'none');
+
+      vis.crossBadgeX = vis.crosshairG.append('g').style('display', 'none');
+      vis.crossBadgeX.append('rect').attr('rx', 4).attr('fill', '#1d1d1f').attr('opacity', 0.9);
+      vis.crossBadgeX.append('text').attr('fill', '#ffffff').attr('font-size', '10px').attr('font-weight', '600').attr('text-anchor', 'middle');
+
+      vis.crossBadgeY = vis.crosshairG.append('g').style('display', 'none');
+      vis.crossBadgeY.append('rect').attr('rx', 4).attr('fill', '#1d1d1f').attr('opacity', 0.9);
+      vis.crossBadgeY.append('text').attr('fill', '#ffffff').attr('font-size', '10px').attr('font-weight', '600').attr('text-anchor', 'end');
+
       // Smart label placement dictionary to prevent all overlapping
       const LABEL_OFFSETS = {
-        'Pedestrian': { dx: 0, dy: -10, anchor: 'middle', useYTop: true },
-        'Car driver': { dx: -8, dy: 4, anchor: 'end', useYCenter: true },
-        'Motorcyclist': { dx: 0, dy: -8, anchor: 'middle', useYTop: true },
+        'Pedestrian': { dx: 0, dy: -12, anchor: 'middle', useYTop: true },
+        'Car driver': { dx: -12, dy: 4, anchor: 'end', useYCenter: true },
+        'Motorcyclist': { dx: 0, dy: -10, anchor: 'middle', useYTop: true },
         'Pedal cyclist': { dx: 0, dy: 18, anchor: 'middle', useYBottom: true },
-        'Car passenger': { dx: 0, dy: -8, anchor: 'middle', useYTop: true },
-        'Bus occupant': { dx: -18, dy: -10, anchor: 'end', leader: true },
-        'Pick-up truck or van occupant': { dx: -20, dy: 4, anchor: 'end', leader: true },
-        'Heavy transport driver': { dx: -18, dy: 18, anchor: 'end', leader: true },
-        'Other or unknown': { dx: 22, dy: 4, anchor: 'start', leader: true },
+        'Car passenger': { dx: 0, dy: -10, anchor: 'middle', useYTop: true },
+        'Bus occupant': { dx: -22, dy: -12, anchor: 'end', leader: true },
+        'Pick-up truck or van occupant': { dx: -24, dy: 4, anchor: 'end', leader: true },
+        'Heavy transport driver': { dx: -22, dy: 20, anchor: 'end', leader: true },
+        'Other or unknown': { dx: 24, dy: 4, anchor: 'start', leader: true },
       };
 
       // Leader lines for clustered points
@@ -942,21 +967,21 @@
             .attr('class', 'bubble-leader')
             .attr('x1', d => vis.xScale(d.cases))
             .attr('y1', d => vis.yScale(d.rate))
-            .attr('x2', d => vis.xScale(d.cases) + (LABEL_OFFSETS[d.user].dx > 0 ? 16 : -14))
-            .attr('y2', d => vis.yScale(d.rate) + LABEL_OFFSETS[d.user].dy * 0.7)
-            .attr('stroke', '#cbd5e1')
+            .attr('x2', d => vis.xScale(d.cases) + (LABEL_OFFSETS[d.user].dx > 0 ? 18 : -16))
+            .attr('y2', d => vis.yScale(d.rate) + LABEL_OFFSETS[d.user].dy * 0.75)
+            .attr('stroke', '#94a3b8')
             .attr('stroke-width', 1.2)
             .attr('stroke-dasharray', '2 2'),
           update => update
             .attr('x1', d => vis.xScale(d.cases))
             .attr('y1', d => vis.yScale(d.rate))
-            .attr('x2', d => vis.xScale(d.cases) + (LABEL_OFFSETS[d.user].dx > 0 ? 16 : -14))
-            .attr('y2', d => vis.yScale(d.rate) + LABEL_OFFSETS[d.user].dy * 0.7),
+            .attr('x2', d => vis.xScale(d.cases) + (LABEL_OFFSETS[d.user].dx > 0 ? 18 : -16))
+            .attr('y2', d => vis.yScale(d.rate) + LABEL_OFFSETS[d.user].dy * 0.75),
           exit => exit.remove()
         );
 
       // Bubbles
-      vis.plotG.selectAll('.bubble')
+      vis.bubbles = vis.plotG.selectAll('.bubble')
         .data(vis.displayData, d => d.user)
         .join(
           enter => enter.append('circle')
@@ -968,6 +993,7 @@
             .attr('fill-opacity', 0.78)
             .attr('stroke', d => vis.config.colorMap[d.user] || '#0072B2')
             .attr('stroke-width', 2)
+            .style('cursor', 'pointer')
             .call(enter => enter.transition().duration(vis.config.duration)
               .attr('r', d => vis.rScale(d.avgBedDays))),
           update => update
@@ -977,14 +1003,7 @@
           exit => exit.remove()
         )
         .on('mouseenter', function (event, d) {
-          d3.select(this).attr('fill-opacity', 0.95).attr('stroke-width', 3);
-          vis.tooltip.classed('visible', true)
-            .html(`
-              <div class="tooltip-title">${d.user}</div>
-              <div class="tooltip-row"><span>Total Cases (x):</span> <span class="tooltip-val">${fmtComma(d.cases)}</span></div>
-              <div class="tooltip-row"><span>Deaths / 1,000 (y):</span> <span class="tooltip-accent">${fmtDec2(d.rate)}</span></div>
-              <div class="tooltip-row"><span>Avg Stay (size):</span> <span class="tooltip-val">${fmtDec1(d.avgBedDays)} days</span></div>
-            `);
+          vis.spotlight(d.user);
         })
         .on('mousemove', function (event) {
           vis.tooltip
@@ -992,12 +1011,11 @@
             .style('top', `${event.pageY - 30}px`);
         })
         .on('mouseleave', function () {
-          d3.select(this).attr('fill-opacity', 0.78).attr('stroke-width', 2);
-          vis.tooltip.classed('visible', false);
+          vis.resetSpotlight();
         });
 
       // Labels on bubbles with halo & anti-collision offsets
-      vis.plotG.selectAll('.bubble-text')
+      vis.bubbleLabels = vis.plotG.selectAll('.bubble-text')
         .data(vis.displayData, d => d.user)
         .join(
           enter => enter.append('text')
@@ -1024,6 +1042,7 @@
             .style('stroke-width', '3.5px')
             .style('stroke-linejoin', 'round')
             .style('stroke-linecap', 'round')
+            .style('pointer-events', 'none')
             .text(d => d.user),
           update => update
             .attr('x', d => {
@@ -1041,6 +1060,131 @@
             }),
           exit => exit.remove()
         );
+    }
+
+    /**
+     * Interactive Spotlight Focus Mode
+     */
+    spotlight(userName) {
+      const vis = this;
+      const target = vis.displayData.find(d => d.user === userName);
+      if (!target) return;
+
+      const cx = vis.xScale(target.cases);
+      const cy = vis.yScale(target.rate);
+      const r = vis.rScale(target.avgBedDays);
+
+      // Spotlight target bubble and dim others
+      vis.plotG.selectAll('.bubble')
+        .transition().duration(200)
+        .attr('fill-opacity', d => d.user === userName ? 0.96 : 0.08)
+        .attr('stroke-width', d => d.user === userName ? 4 : 1)
+        .attr('r', d => d.user === userName ? r * 1.15 : vis.rScale(d.avgBedDays));
+
+      // Emphasize label and dim others
+      vis.plotG.selectAll('.bubble-text')
+        .transition().duration(200)
+        .style('opacity', d => d.user === userName ? 1 : 0.12)
+        .style('font-size', d => d.user === userName ? '12.5px' : '11px')
+        .style('font-weight', d => d.user === userName ? '700' : '600');
+
+      vis.plotG.selectAll('.bubble-leader')
+        .transition().duration(200)
+        .style('opacity', d => d.user === userName ? 1 : 0.08);
+
+      // Draw crosshair projection lines
+      vis.crossLineX
+        .attr('x1', cx).attr('x2', cx)
+        .attr('y1', cy).attr('y2', vis.innerHeight)
+        .style('display', null);
+
+      vis.crossLineY
+        .attr('x1', 0).attr('x2', cx)
+        .attr('y1', cy).attr('y2', cy)
+        .style('display', null);
+
+      // X badge (cases)
+      const xText = `${fmtComma(target.cases)} cases`;
+      vis.crossBadgeX.select('text').text(xText);
+      const xBoxWidth = Math.max(70, xText.length * 6.5);
+      vis.crossBadgeX.select('rect')
+        .attr('x', cx - xBoxWidth / 2).attr('y', vis.innerHeight + 4)
+        .attr('width', xBoxWidth).attr('height', 18);
+      vis.crossBadgeX.select('text')
+        .attr('x', cx).attr('y', vis.innerHeight + 16);
+      vis.crossBadgeX.style('display', null);
+
+      // Y badge (rate)
+      const yText = `${fmtDec2(target.rate)} / 1k`;
+      vis.crossBadgeY.select('text').text(yText);
+      const yBoxWidth = Math.max(65, yText.length * 6.8);
+      vis.crossBadgeY.select('rect')
+        .attr('x', -yBoxWidth - 6).attr('y', cy - 9)
+        .attr('width', yBoxWidth).attr('height', 18);
+      vis.crossBadgeY.select('text')
+        .attr('x', -10).attr('y', cy + 4);
+      vis.crossBadgeY.style('display', null);
+
+      // Tooltip Popover
+      vis.tooltip.classed('visible', true)
+        .html(`
+          <div class="tooltip-title">${target.user}</div>
+          <div class="tooltip-row"><span>Total Hospitalised:</span> <span class="tooltip-val">${fmtComma(target.cases)}</span></div>
+          <div class="tooltip-row"><span>Deaths per 1,000:</span> <span class="tooltip-accent">${fmtDec2(target.rate)}</span></div>
+          <div class="tooltip-row"><span>Died Cases:</span> <span class="tooltip-val">${fmtComma(target.deaths)}</span></div>
+          <div class="tooltip-row"><span>Avg Inpatient Stay:</span> <span class="tooltip-val">${fmtDec1(target.avgBedDays)} days</span></div>
+        `);
+    }
+
+    /**
+     * Reset Spotlight to Baseline
+     */
+    resetSpotlight() {
+      const vis = this;
+      vis.crossLineX.style('display', 'none');
+      vis.crossLineY.style('display', 'none');
+      vis.crossBadgeX.style('display', 'none');
+      vis.crossBadgeY.style('display', 'none');
+      vis.tooltip.classed('visible', false);
+
+      const allowed = vis.getAllowedUsers();
+
+      vis.plotG.selectAll('.bubble')
+        .transition().duration(250)
+        .attr('fill-opacity', d => (!allowed || allowed.includes(d.user)) ? 0.78 : 0.05)
+        .attr('stroke-width', 2)
+        .attr('r', d => (!allowed || allowed.includes(d.user)) ? vis.rScale(d.avgBedDays) : 3);
+
+      vis.plotG.selectAll('.bubble-text')
+        .transition().duration(250)
+        .style('opacity', d => (!allowed || allowed.includes(d.user)) ? 1 : 0)
+        .style('font-size', '11px')
+        .style('font-weight', '600');
+
+      vis.plotG.selectAll('.bubble-leader')
+        .transition().duration(250)
+        .style('opacity', d => (!allowed || allowed.includes(d.user)) ? 1 : 0);
+    }
+
+    /**
+     * Filter cohorts interactively
+     */
+    getAllowedUsers() {
+      const vis = this;
+      const groups = {
+        vulnerable: ['Pedestrian', 'Motorcyclist', 'Pedal cyclist'],
+        occupants: ['Car driver', 'Car passenger', 'Bus occupant', 'Pick-up truck or van occupant'],
+        freight: ['Heavy transport driver', 'Other or unknown'],
+        all: null,
+      };
+      return groups[vis.activeFilter || 'all'];
+    }
+
+    filterByCohort(category) {
+      const vis = this;
+      vis.activeFilter = category || 'all';
+      vis.resetSpotlight();
+    }
     }
   }
 

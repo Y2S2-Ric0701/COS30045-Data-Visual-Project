@@ -78,11 +78,20 @@
           <div>
             <div class="section-kicker">Figure 5.3 &bull; Synthesis Risk Matrix</div>
             <h2 class="chart-card-title">Volume vs. Severity: Multi-Dimensional Risk Matrix</h2>
-            <p class="chart-card-desc">Integrating total crash volume (X), in-hospital mortality rate (Y), and hospital stay duration (bubble size) to reveal the divergence between volume and fatality risk.</p>
+            <p class="chart-card-desc">Integrating total crash volume (X), in-hospital mortality rate (Y), and hospital stay duration (bubble size). Use the cohort filter or hover over bubbles and legend chips for spotlight inspection.</p>
+          </div>
+          <div class="apple-segmented-control" id="severity-filter-control" role="group" aria-label="Filter road user cohort">
+            <button class="filter-btn active" data-filter="all">All Cohorts (9)</button>
+            <button class="filter-btn" data-filter="vulnerable">Vulnerable Users</button>
+            <button class="filter-btn" data-filter="occupants">Vehicle Occupants</button>
+            <button class="filter-btn" data-filter="freight">Freight & Transport</button>
           </div>
         </div>
         <div class="responsive-svg-container" id="chart-injury-severity">
           <!-- D3 SVG injected here -->
+        </div>
+        <div class="interactive-bubble-legend" id="bubble-interactive-legend" aria-label="Interactive road user spotlight legend">
+          <!-- Populated interactively by charts-severity.js -->
         </div>
       </div>
     </section>

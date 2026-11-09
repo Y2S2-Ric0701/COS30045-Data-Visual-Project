@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ── Figure 5.3: Volume vs. Severity Bubble Chart (Climax) ────
-    new Vis.BubbleChart('#chart-injury-severity', formatted, {
+    const bubbleVis = new Vis.BubbleChart('#chart-injury-severity', formatted, {
       xKey: 'cases',
       yKey: 'rate',
       rKey: 'avgBedDays',
@@ -78,6 +78,52 @@ document.addEventListener('DOMContentLoaded', function () {
       height: 520,
       margin: { top: 40, right: 95, bottom: 65, left: 95 },
     });
+
+    // ── Interactive Segmented Control Filtering ──────────────────
+    const filterBtns = document.querySelectorAll('#severity-filter-control .filter-btn');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function () {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.getAttribute('data-filter');
+        bubbleVis.filterByCohort(filter);
+      });
+    });
+
+    // ── Interactive Road User Spotlight Legend Bar ──────────────
+    const legendContainer = d3.select('#bubble-interactive-legend');
+    if (!legendContainer.empty()) {
+      legendContainer.selectAll('*').remove();
+
+      formatted.forEach(d => {
+        const color = userColors[d.user] || '#0072B2';
+        const chip = legendContainer.append('button')
+          .attr('class', 'legend-chip')
+          .attr('type', 'button')
+          .attr('aria-label', `Spotlight ${d.user}`);
+
+        chip.append('span')
+          .attr('class', 'legend-chip-dot')
+          .style('background', color);
+
+        chip.append('span')
+          .text(d.user);
+
+        chip
+          .on('mouseenter', () => bubbleVis.spotlight(d.user))
+          .on('mouseleave', () => bubbleVis.resetSpotlight())
+          .on('click', function () {
+            const isActive = d3.select(this).classed('active');
+            legendContainer.selectAll('.legend-chip').classed('active', false);
+            if (!isActive) {
+              d3.select(this).classed('active', true);
+              bubbleVis.spotlight(d.user);
+            } else {
+              bubbleVis.resetSpotlight();
+            }
+          });
+      });
+    }
 
   }).catch(err => console.error('Error loading rq5_mortality_severity.csv:', err));
 
