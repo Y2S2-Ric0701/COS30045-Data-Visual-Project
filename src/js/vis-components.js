@@ -36,14 +36,15 @@
       this.rawData = data;
       this.displayData = [];
 
-      // Merge user config with conservative Apple/Tufte defaults
+      // Merge user config with conservative Apple/Tufte defaults (deep margin merge)
+      const defaultMargin = { top: 30, right: 90, bottom: 45, left: 120 };
+      const mergedMargin = Object.assign({}, defaultMargin, config.margin || {});
       this.config = Object.assign({
         width: 850,
         height: 380,
-        margin: { top: 30, right: 90, bottom: 45, left: 120 },
         duration: 750,
         ease: d3.easeCubicOut,
-      }, config);
+      }, config, { margin: mergedMargin });
 
       this.tooltip = BaseChart.getTooltip();
       this.initVis();
@@ -281,12 +282,19 @@
   // ═══════════════════════════════════════════════════════════════
   class LollipopChart extends BaseChart {
     constructor(parentElement, data, config = {}) {
-      super(parentElement, data, Object.assign({
+      const lollipopDefaults = {
         labelKey: 'label',
         valueKey: 'value',
         palette: ['#0072B2', '#E69F00', '#009E73', '#56B4E9', '#888888'],
-        xLabel: 'Hospitalised Cases',
-      }, config));
+        xLabel: 'Total Hospitalised Cases',
+        height: 420,
+        margin: { top: 25, right: 90, bottom: 45, left: 200 },
+      };
+      const mergedConfig = Object.assign({}, lollipopDefaults, config);
+      if (config.margin) {
+        mergedConfig.margin = Object.assign({}, lollipopDefaults.margin, config.margin);
+      }
+      super(parentElement, data, mergedConfig);
     }
 
     wrangleData(newData) {
@@ -310,9 +318,8 @@
 
       vis.yScale = d3.scaleBand()
         .domain(vis.displayData.map(d => d.label))
-        .range([0, innerHeight])
         .range([0, vis.innerHeight])
-        .padding(0.4);
+        .padding(0.35);
 
       vis.xScale = d3.scaleLinear()
         .domain([0, (d3.max(vis.displayData, d => d.value) || 10) * 1.15])
@@ -338,6 +345,17 @@
         .selectAll('text')
         .style('font-size', '11px')
         .style('fill', '#86868b');
+
+      vis.xAxisG.selectAll('.axis-title').data([vis.config.xLabel])
+        .join('text')
+        .attr('class', 'axis-title')
+        .attr('x', vis.innerWidth / 2)
+        .attr('y', 36)
+        .attr('text-anchor', 'middle')
+        .style('fill', '#86868b')
+        .style('font-size', '11px')
+        .style('font-weight', '500')
+        .text(d => d);
 
       // Stems (Lines)
       vis.plotG.selectAll('.lollipop-line')

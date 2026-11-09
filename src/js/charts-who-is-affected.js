@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
       valueKey: 'Sum(Hospitalisations)',
       xLabel: 'Total Hospitalised Cases (2011–2021)',
       palette: ['#0072B2', '#E69F00', '#009E73', '#56B4E9', '#888888'],
+      height: 440,
+      margin: { top: 25, right: 90, bottom: 45, left: 210 },
     });
   }).catch(err => console.error('Error loading rq1_road_user.csv:', err));
 
