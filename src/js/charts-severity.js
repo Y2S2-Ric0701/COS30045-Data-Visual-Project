@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
       labelKey: 'user',
       colorMap: userColors,
       height: 520,
-      margin: { top: 45, right: 60, bottom: 55, left: 65 },
+      margin: { top: 45, right: 95, bottom: 55, left: 65 },
     });
 
     // ── Interactive Segmented Control Filtering ──────────────────

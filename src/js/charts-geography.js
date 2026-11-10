@@ -99,6 +99,12 @@
         .style('font-size', '12px')
         .text('Hospitalised Injuries (2021)');
 
+      // Sequential gradient by volume (light = fewer, dark = more)
+      const [sMin, sMax] = d3.extent(data, d => d.cases);
+      const stateGradient = d3.scaleSequential()
+        .domain([sMin, sMax])
+        .interpolator(t => d3.interpolateBlues(0.4 + t * 0.5));
+
       // Bars
       const bars = g.selectAll('.bar-state')
         .data(data)
@@ -110,8 +116,7 @@
         .attr('height', y.bandwidth())
         .attr('rx', 4)
         .attr('width', 0)
-        .attr('fill', (d, i) => i === 0 ? '#0072B2' : (i < 3 ? '#56B4E9' : '#888888'))
-        .attr('opacity', (d, i) => i < 3 ? 0.95 : 0.55);
+        .attr('fill', d => stateGradient(d.cases));
 
       bars.transition()
         .duration(800)
@@ -221,6 +226,12 @@
         .style('font-size', '12px')
         .text('Total Hospitalised Cases (2011–2021)');
 
+      // Sequential gradient by volume (light = fewer, dark = more)
+      const [rMin, rMax] = d3.extent(data, d => d.cases);
+      const remGradient = d3.scaleSequential()
+        .domain([rMin, rMax])
+        .interpolator(t => d3.interpolateBlues(0.4 + t * 0.5));
+
       // Bars
       const bars = g.selectAll('.bar-rem')
         .data(data)
@@ -231,7 +242,7 @@
         .attr('x', 0)
         .attr('height', y.bandwidth())
         .attr('rx', 4)
-        .attr('fill', d => d.remoteness === 'Major Cities' ? '#0072B2' : (d.remoteness === 'Regional' ? '#E69F00' : '#D55E00'))
+        .attr('fill', d => remGradient(d.cases))
         .attr('width', 0)
         .transition()
         .duration(800)

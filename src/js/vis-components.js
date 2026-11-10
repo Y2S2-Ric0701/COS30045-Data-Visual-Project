@@ -143,7 +143,22 @@
         valueLabel: 'Hospitalised:',
         unit: '',
         valueFormatter: null,
+        gradient: false,        // true = sequential colour by value (no single focal bar)
       }, config));
+    }
+
+    /** Fill colour for a bar: colorMap > gradient > accent/baseline */
+    barFill(d) {
+      const vis = this;
+      if (vis.config.colorMap && vis.config.colorMap[d.label]) return vis.config.colorMap[d.label];
+      if (vis.config.gradient) return vis.gradientScale(d.value);
+      return d.label === vis.config.accentKey ? vis.config.accentColor : vis.config.baselineColor;
+    }
+
+    barOpacity(d) {
+      const vis = this;
+      if (vis.config.gradient) return 1;
+      return vis.config.accentKey ? (d.label === vis.config.accentKey ? 0.95 : 0.5) : 0.85;
     }
 
     wrangleData(newData) {
@@ -183,6 +198,13 @@
         .domain([0, (d3.max(vis.displayData, d => d.value) || 10) * 1.15])
         .nice()
         .range([0, vis.innerWidth]);
+
+      // Sequential gradient: light (smallest) → dark (largest); clamped so the
+      // lightest bar stays visible against the white card.
+      const [vMin, vMax] = d3.extent(vis.displayData, d => d.value);
+      vis.gradientScale = d3.scaleSequential()
+        .domain([vMin ?? 0, vMax ?? 1])
+        .interpolator(t => d3.interpolateBlues(0.4 + t * 0.5));
 
       // Gridlines
       vis.gridG.call(
@@ -229,10 +251,8 @@
             .attr('x', 0)
             .attr('height', vis.yScale.bandwidth())
             .attr('rx', 4)
-            .attr('fill', d => (vis.config.colorMap && vis.config.colorMap[d.label])
-              ? vis.config.colorMap[d.label]
-              : (d.label === vis.config.accentKey ? vis.config.accentColor : vis.config.baselineColor))
-            .attr('opacity', d => (vis.config.accentKey ? (d.label === vis.config.accentKey ? 0.95 : 0.5) : 0.85))
+            .attr('fill', d => vis.barFill(d))
+            .attr('opacity', d => vis.barOpacity(d))
             .attr('width', 0)
             .call(enter => enter.transition().duration(vis.config.duration).ease(vis.config.ease)
               .attr('width', d => vis.xScale(d.value))),
@@ -259,7 +279,7 @@
         })
         .on('mouseleave', function (event, d) {
           d3.select(this)
-            .attr('opacity', vis.config.accentKey ? (d.label === vis.config.accentKey ? 0.95 : 0.5) : 0.85)
+            .attr('opacity', vis.barOpacity(d))
             .attr('filter', null);
           vis.tooltip.classed('visible', false);
         });
@@ -594,6 +614,18 @@
           .style('font-size', '11.5px')
           .style('fill', '#1d1d1f')
           .text(d => d.label);
+
+        // Fit legend inside the plot frame: spread items evenly across innerWidth
+        const widths = [];
+        items.each(function () { widths.push(this.getBBox().width); });
+        const totalW = d3.sum(widths);
+        const gap = Math.max(8, (vis.innerWidth - totalW) / Math.max(1, widths.length - 1));
+        let cursor = 0;
+        items.attr('transform', (d, i) => {
+          const x = cursor;
+          cursor += widths[i] + gap;
+          return `translate(${x}, 0)`;
+        });
       }
     }
   }
@@ -823,18 +855,51 @@
     renderVis() {
       const vis = this;
 
-      vis.xScale = d3.scaleLinear()
-        .domain([0, (d3.max(vis.displayData, d => d.cases) || 120000) * 1.15])
-        .range([0, vis.innerWidth]);
+      // Log X: case volume spans two orders of magnitude (2k → 116k). A linear
+      // scale crushes the four low-volume cohorts into ~30px and they overlap.
+      vis.xScale = d3.scaleLog()
+        .domain([1000, 200000])
+        .range([0, vis.innerWidth])
+        .clamp(true);
 
       vis.yScale = d3.scaleLinear()
         .domain([0, (d3.max(vis.displayData, d => d.rate) || 25) * 1.15])
         .nice()
         .range([vis.innerHeight, 0]);
 
+      // True area encoding (r = 0 at value 0) so bubble area is proportional to stay length
       vis.rScale = d3.scaleSqrt()
         .domain([0, d3.max(vis.displayData, d => d.avgBedDays) || 10])
-        .range([6, 30]);
+        .range([0, 22]);
+
+      // ── Anti-collision layout ─────────────────────────────────────
+      // Bubbles that still overlap after the log transform are nudged apart
+      // with a collision force anchored to their true (x, y). A leader line
+      // and anchor dot keep the exact data position visible.
+      vis.displayData.forEach(d => {
+        d.tx = vis.xScale(d.cases);
+        d.ty = vis.yScale(d.rate);
+        d.r  = vis.rScale(d.avgBedDays);
+        d.x  = d.tx;
+        d.y  = d.ty;
+      });
+      const sim = d3.forceSimulation(vis.displayData)
+        .force('x', d3.forceX(d => d.tx).strength(0.4))
+        .force('y', d3.forceY(d => d.ty).strength(0.4))
+        .force('collide', d3.forceCollide(d => d.r + 2).strength(1).iterations(4))
+        .stop();
+      for (let i = 0; i < 300; i++) {
+        sim.tick();
+        vis.displayData.forEach(d => {
+          d.x = Math.max(d.r, Math.min(vis.innerWidth - d.r, d.x));
+          d.y = Math.max(d.r, Math.min(vis.innerHeight - d.r, d.y));
+        });
+      }
+      vis.displayData.forEach(d => {
+        d.px = d.x;
+        d.py = d.y;
+        d.displaced = Math.hypot(d.px - d.tx, d.py - d.ty) > 1.5;
+      });
 
       // Grid
       vis.gridG.call(
@@ -862,23 +927,30 @@
         .attr('stroke-width', 1.5)
         .attr('stroke-dasharray', '4 4');
 
-      // Reference line labels (clean & non-colliding)
-      vis.annotationsG.selectAll('.quad-y-label').data(['Avg Mortality: 6.0 / 1k'])
+      // Reference line labels live in the MARGINS (outside the plot area) so
+      // no bubble, label, filter state or hover can ever collide with them.
+      // Y reference: right margin, at the end of its line (two lines).
+      vis.annotationsG.selectAll('.quad-y-label').data([['Avg mortality', '6.0 / 1k']])
         .join('text')
         .attr('class', 'quad-y-label')
-        .attr('x', vis.innerWidth - 8)
-        .attr('y', vis.yScale(6.0) - 6)
-        .attr('text-anchor', 'end')
+        .attr('x', vis.innerWidth + 8)
+        .attr('y', vis.yScale(6.0) - 2)
+        .attr('text-anchor', 'start')
         .style('font-size', '10.5px')
         .style('font-weight', '500')
         .style('fill', '#94a3b8')
+        .selectAll('tspan').data(d => d).join('tspan')
+        .attr('x', vis.innerWidth + 8)
+        .attr('dy', (d, i) => i === 0 ? 0 : '1.2em')
         .text(d => d);
 
-      vis.annotationsG.selectAll('.quad-x-label').data(['50k Volume Threshold'])
+      // X reference: top margin, centred above its line.
+      vis.annotationsG.selectAll('.quad-x-label').data(['50k volume threshold'])
         .join('text')
         .attr('class', 'quad-x-label')
-        .attr('x', vis.xScale(50000) + 6)
-        .attr('y', 14)
+        .attr('x', vis.xScale(50000))
+        .attr('y', -8)
+        .attr('text-anchor', 'middle')
         .style('font-size', '10.5px')
         .style('font-weight', '500')
         .style('fill', '#94a3b8')
@@ -887,10 +959,12 @@
       // Axes
       vis.xAxisG
         .attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(vis.xScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d))
+        .call(d3.axisBottom(vis.xScale)
+          .tickValues([1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000])
+          .tickFormat(d => d >= 1000 ? `${d / 1000}k` : d))
         .selectAll('text').style('font-size', '11px').style('fill', '#86868b');
 
-      vis.xAxisG.selectAll('.axis-label').data(['Total Hospitalised Cases (2011–2019 Volume) \u2192'])
+      vis.xAxisG.selectAll('.axis-label').data(['Total Hospitalised Cases (2011–2019 Volume, log scale) \u2192'])
         .join('text')
         .attr('class', 'axis-label')
         .attr('x', vis.innerWidth / 2)
@@ -943,30 +1017,34 @@
       vis.crossBadgeY.append('text').attr('fill', '#ffffff').attr('font-size', '10px').attr('font-weight', '600').attr('text-anchor', 'end');
 
       // Landmark road users with direct, clean labels
+      // Offsets verified collision-free (label↔label and label↔bubble) on the log-x layout
       const LANDMARK_OFFSETS = {
         'Pedestrian':    { dx: 0,   dy: -10, anchor: 'middle', useYTop: true },
-        'Car driver':    { dx: -12, dy: 4,   anchor: 'end',    useYCenter: true },
-        'Motorcyclist':  { dx: 0,   dy: -10, anchor: 'middle', useYTop: true },
+        'Car driver':    { dx: -12, dy: 4,   anchor: 'end' },
+        'Motorcyclist':  { dx: -10, dy: 4,   anchor: 'end' },
         'Car passenger': { dx: 0,   dy: -10, anchor: 'middle', useYTop: true },
-        'Pedal cyclist': { dx: 14,  dy: 4,   anchor: 'start',  useYCenter: true }, // Right of bubble, well clear of X-axis!
+        'Pedal cyclist': { dx: 10,  dy: 4,   anchor: 'start' },
       };
 
-      // Clustered low-volume cohorts (individual positions for hover & filtered modes)
+      // Low-volume cohorts (labels revealed on hover & in filtered modes)
       const CLUSTER_OFFSETS = {
-        'Bus occupant':                 { dx: -18, dy: -8, anchor: 'end' },
-        'Pick-up truck or van occupant':{ dx: 14,  dy: -4, anchor: 'start' },
-        'Heavy transport driver':       { dx: -16, dy: 14, anchor: 'end' },
-        'Other or unknown':             { dx: 16,  dy: 12, anchor: 'start' },
+        'Bus occupant':                 { dx: -10, dy: 4,  anchor: 'end' },
+        'Pick-up truck or van occupant':{ dx: 10,  dy: 4,  anchor: 'start' },
+        'Heavy transport driver':       { dx: 0,   dy: 16, anchor: 'middle', useYBottom: true },
+        'Other or unknown':             { dx: 10,  dy: 4,  anchor: 'start' },
       };
 
       vis.LABEL_OFFSETS = Object.assign({}, LANDMARK_OFFSETS, CLUSTER_OFFSETS);
 
       // Cluster Callout Tag (shown only in "All" mode to prevent overlapping)
-      vis.annotationsG.selectAll('.cluster-tag').data(['\u25C4 Freight & Transport (4)'])
+      const clusterNodes = vis.displayData.filter(d => CLUSTER_OFFSETS[d.user]);
+      const clusterTagX = clusterNodes.length ? d3.min(clusterNodes, d => d.px - d.r) : 0;
+      const clusterTagY = clusterNodes.length ? d3.min(clusterNodes, d => d.py - d.r) - 8 : 0;
+      vis.annotationsG.selectAll('.cluster-tag').data(['\u25BE Low-volume cohorts (4) \u2022 hover to identify'])
         .join('text')
         .attr('class', 'cluster-tag')
-        .attr('x', vis.xScale(5500) + 12)
-        .attr('y', vis.yScale(6.5))
+        .attr('x', clusterTagX)
+        .attr('y', clusterTagY)
         .style('font-size', '10.5px')
         .style('font-weight', '500')
         .style('fill', '#64748b')
@@ -974,14 +1052,35 @@
         .text(d => d)
         .on('click', () => vis.filterByCohort('freight'));
 
+      // Leader lines + anchor dots for nudged bubbles (true data position)
+      vis.leaders = vis.plotG.selectAll('.bubble-leader')
+        .data(vis.displayData.filter(d => d.displaced), d => d.user)
+        .join('line')
+        .attr('class', 'bubble-leader')
+        .attr('x1', d => d.tx).attr('y1', d => d.ty)
+        .attr('x2', d => d.px).attr('y2', d => d.py)
+        .attr('stroke', d => vis.config.colorMap[d.user] || '#0072B2')
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.7)
+        .style('pointer-events', 'none');
+
+      vis.anchors = vis.plotG.selectAll('.bubble-anchor')
+        .data(vis.displayData.filter(d => d.displaced), d => d.user)
+        .join('circle')
+        .attr('class', 'bubble-anchor')
+        .attr('cx', d => d.tx).attr('cy', d => d.ty)
+        .attr('r', 2.5)
+        .attr('fill', d => vis.config.colorMap[d.user] || '#0072B2')
+        .style('pointer-events', 'none');
+
       // Bubbles
       vis.bubbles = vis.plotG.selectAll('.bubble')
         .data(vis.displayData, d => d.user)
         .join(
           enter => enter.append('circle')
             .attr('class', 'bubble')
-            .attr('cx', d => vis.xScale(d.cases))
-            .attr('cy', d => vis.yScale(d.rate))
+            .attr('cx', d => d.px)
+            .attr('cy', d => d.py)
             .attr('r', 0)
             .attr('fill', d => vis.config.colorMap[d.user] || '#0072B2')
             .attr('fill-opacity', 0.78)
@@ -991,9 +1090,9 @@
             .call(enter => enter.transition().duration(vis.config.duration)
               .attr('r', d => vis.rScale(d.avgBedDays))),
           update => update
-            .attr('cx', d => vis.xScale(d.cases))
-            .attr('cy', d => vis.yScale(d.rate))
-            .attr('r', d => vis.rScale(d.avgBedDays)),
+            .attr('cx', d => d.px)
+            .attr('cy', d => d.py)
+            .attr('r', d => d.r),
           exit => exit.remove()
         )
         .on('mouseenter', function (event, d) {
@@ -1014,19 +1113,8 @@
         .join(
           enter => enter.append('text')
             .attr('class', 'bubble-text')
-            .attr('x', d => {
-              const cfg = vis.LABEL_OFFSETS[d.user] || { dx: 0 };
-              const r = vis.rScale(d.avgBedDays);
-              return vis.xScale(d.cases) + cfg.dx + (cfg.anchor === 'end' && !cfg.leader ? -r : 0);
-            })
-            .attr('y', d => {
-              const cfg = vis.LABEL_OFFSETS[d.user] || { dy: -6 };
-              const r = vis.rScale(d.avgBedDays);
-              if (cfg.useYTop) return vis.yScale(d.rate) - r + cfg.dy;
-              if (cfg.useYBottom) return vis.yScale(d.rate) + r + cfg.dy;
-              if (cfg.useYCenter) return vis.yScale(d.rate) + cfg.dy;
-              return vis.yScale(d.rate) + cfg.dy;
-            })
+            .attr('x', d => vis.labelX(d))
+            .attr('y', d => vis.labelY(d))
             .attr('text-anchor', d => (vis.LABEL_OFFSETS[d.user] ? vis.LABEL_OFFSETS[d.user].anchor : 'middle'))
             .style('font-size', '11px')
             .style('font-weight', '600')
@@ -1041,22 +1129,30 @@
             .style('opacity', d => LANDMARK_OFFSETS[d.user] ? 1 : 0)
             .text(d => d.user),
           update => update
-            .attr('x', d => {
-              const cfg = vis.LABEL_OFFSETS[d.user] || { dx: 0 };
-              const r = vis.rScale(d.avgBedDays);
-              return vis.xScale(d.cases) + cfg.dx + (cfg.anchor === 'end' && !cfg.leader ? -r : 0);
-            })
-            .attr('y', d => {
-              const cfg = vis.LABEL_OFFSETS[d.user] || { dy: -6 };
-              const r = vis.rScale(d.avgBedDays);
-              if (cfg.useYTop) return vis.yScale(d.rate) - r + cfg.dy;
-              if (cfg.useYBottom) return vis.yScale(d.rate) + r + cfg.dy;
-              if (cfg.useYCenter) return vis.yScale(d.rate) + cfg.dy;
-              return vis.yScale(d.rate) + cfg.dy;
-            })
+            .attr('x', d => vis.labelX(d))
+            .attr('y', d => vis.labelY(d))
             .style('opacity', d => LANDMARK_OFFSETS[d.user] ? 1 : 0),
           exit => exit.remove()
         );
+    }
+
+    labelX(d) {
+      const cfg = this.LABEL_OFFSETS[d.user] || { dx: 0, anchor: 'middle' };
+      if (cfg.anchor === 'end') return d.px - d.r + cfg.dx;
+      if (cfg.anchor === 'start') return d.px + d.r + cfg.dx;
+      return d.px + cfg.dx;
+    }
+
+    labelY(d) {
+      const cfg = this.LABEL_OFFSETS[d.user] || { dy: -6 };
+      if (cfg.useYTop) return d.py - d.r + cfg.dy;
+      if (cfg.useYBottom) return d.py + d.r + cfg.dy;
+      return d.py + cfg.dy;
+    }
+
+    isAllowed(d) {
+      const allowed = this.getAllowedUsers();
+      return !allowed || allowed.includes(d.user);
     }
 
     /**
@@ -1067,21 +1163,29 @@
       const target = vis.displayData.find(d => d.user === userName);
       if (!target) return;
 
-      const cx = vis.xScale(target.cases);
-      const cy = vis.yScale(target.rate);
-      const r = vis.rScale(target.avgBedDays);
+      // Crosshairs project from the TRUE data position (not the nudged bubble)
+      const cx = target.tx;
+      const cy = target.ty;
 
-      // Spotlight target bubble and dim others
+      // Spotlight target bubble and dim others. Only the hovered bubble grows;
+      // cohorts hidden by the active filter keep their collapsed size.
       vis.plotG.selectAll('.bubble')
         .transition().duration(200)
-        .attr('fill-opacity', d => d.user === userName ? 0.96 : 0.08)
+        .attr('fill-opacity', d => d.user === userName ? 0.96 : (vis.isAllowed(d) ? 0.08 : 0.05))
         .attr('stroke-width', d => d.user === userName ? 4 : 1)
-        .attr('r', d => d.user === userName ? r * 1.15 : vis.rScale(d.avgBedDays));
+        .attr('r', d => {
+          if (d.user === userName) return d.r * 1.15;
+          return vis.isAllowed(d) ? d.r : 3;
+        });
 
-      // Emphasize label and dim others
+      vis.plotG.selectAll('.bubble-leader, .bubble-anchor')
+        .transition().duration(200)
+        .style('opacity', d => d.user === userName ? 1 : 0.1);
+
+      // Emphasize label and dim others (filtered-out labels stay hidden)
       vis.plotG.selectAll('.bubble-text')
         .transition().duration(200)
-        .style('opacity', d => d.user === userName ? 1 : 0.08)
+        .style('opacity', d => d.user === userName ? 1 : (vis.isAllowed(d) ? 0.08 : 0))
         .style('font-size', d => d.user === userName ? '12.5px' : '11px')
         .style('font-weight', d => d.user === userName ? '700' : '600');
 
@@ -1151,7 +1255,11 @@
         .transition().duration(250)
         .attr('fill-opacity', d => (!allowed || allowed.includes(d.user)) ? 0.78 : 0.05)
         .attr('stroke-width', 2)
-        .attr('r', d => (!allowed || allowed.includes(d.user)) ? vis.rScale(d.avgBedDays) : 3);
+        .attr('r', d => (!allowed || allowed.includes(d.user)) ? d.r : 3);
+
+      vis.plotG.selectAll('.bubble-leader, .bubble-anchor')
+        .transition().duration(250)
+        .style('opacity', d => (!allowed || allowed.includes(d.user)) ? 1 : 0);
 
       vis.plotG.selectAll('.bubble-text')
         .transition().duration(250)

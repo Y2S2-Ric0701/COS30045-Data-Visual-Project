@@ -53,8 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
       new Vis.BarChart('#chart-injury-count', changeData, {
         labelKey: 'user',
         valueKey: 'val2021',
-        accentKey: 'Pedal Cyclist',
-        accentColor: '#009E73',
+        gradient: true,
         xLabel: '2021 Final Counts (Ranked)',
       });
     }
