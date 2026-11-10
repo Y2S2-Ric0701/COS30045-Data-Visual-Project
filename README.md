@@ -9,7 +9,7 @@
 ## 🚀 Live Deployment
 
 <!-- Replace the placeholder URL once deployed -->
-🔗 **[View the project on Vercel](https://data-vis-project-2026-s2-group-9.vercel.app)**
+🔗 **[View the project on Vercel](https://cos30045-data-visual-project-src.vercel.app/)**
 
 ---
 
