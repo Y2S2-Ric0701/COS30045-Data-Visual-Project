@@ -13,6 +13,16 @@
 
 ---
 
+## Project Schedule
+**[Link to spreadsheet](https://swinburnesarawak-my.sharepoint.com/:x:/g/personal/100072258_students_swinburne_edu_my/IQA3ZuMv2flySJ9Yvy6gwQP7AaJ9KHYxvT6Z9abGFdHKlfg?e=q6GIGd)**
+
+---
+
+## UI/UX
+**[Miro](https://miro.com/app/board/uXjVHjSgSDE=/)**
+
+---
+
 ## 👥 Team Members
 
 | Name | Student ID | Role & Contribution |
