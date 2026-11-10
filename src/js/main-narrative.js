@@ -345,7 +345,6 @@ function initFilterControls() {
       btn.setAttribute('aria-selected', 'true');
 
       activeFilter = btn.getAttribute('data-filter') || 'all';
-      console.log(`[filters] Activated jurisdiction: ${activeFilter}`);
 
       // Re-render both charts dynamically with the new filter
       renderRegionalChart(rawDataset, activeFilter);
@@ -356,8 +355,6 @@ function initFilterControls() {
 
 /* ── DOM Initialisation ─────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('[main] Initialising Apple Design System Data Visualisation…');
-
   initTooltip();
   initFilterControls();
 

@@ -215,83 +215,91 @@
   font-weight: 600;
 }
 
-/* ── Interactive Bubble Legend Bar ──────────────────────────── */
-.interactive-bubble-legend {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 16px 20px !important;
-  margin-top: 22px !important;
-  background: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 16px !important;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+/* ── Reusable Chart Components (js/vis-components.js) ──────────
+   Scoped to svg.vis-chart so the homepage charts keep the generic
+   .tick text / .axis-label styles above. Dynamic styling (hover
+   fades, tooltip position, data colours) stays in the JS. */
+.vis-chart .tick text {
+  font-size: 11px;
+  fill: #86868b;
 }
 
-.interactive-legend-title {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
-  color: #64748b !important;
-  user-select: none !important;
-  text-align: center !important;
+.vis-chart .axis-category .tick text {
+  font-size: 12px;
+  font-weight: 500;
+  fill: #1d1d1f;
 }
 
-.interactive-legend-chips {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px 12px !important;
+.vis-chart .axis-label {
+  font-size: 12px;
+  fill: #86868b;
 }
 
-.legend-chip {
-  all: unset !important;
-  box-sizing: border-box !important;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  padding: 6px 14px !important;
-  border-radius: 999px !important;
-  font-family: var(--apple-font, sans-serif) !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  color: #1d1d1f !important;
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-  cursor: pointer !important;
-  transition: all 0.18s cubic-bezier(0.25, 0.1, 0.25, 1) !important;
-  user-select: none !important;
-  line-height: 1.2 !important;
+.vis-chart .axis-title {
+  font-size: 11px;
+  font-weight: 500;
+  fill: #86868b;
 }
 
-.legend-chip:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-  border-color: #cbd5e1 !important;
+.vis-chart .bar-label,
+.vis-chart .lollipop-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: #1d1d1f;
 }
 
-.legend-chip.active {
-  background: #1d1d1f !important;
-  color: #ffffff !important;
-  border-color: #1d1d1f !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+.vis-chart .legend-item text,
+.vis-chart .leg-item text {
+  font-size: 11.5px;
+  fill: #1d1d1f;
 }
 
-.legend-chip-dot {
-  display: inline-block !important;
-  width: 10px !important;
-  height: 10px !important;
-  border-radius: 50% !important;
-  flex-shrink: 0 !important;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+.vis-chart .break-label {
+  font-size: 9.5px;
+  fill: #64748b;
 }
 
-.legend-chip.active .legend-chip-dot {
-  box-shadow: 0 0 0 1.5px #ffffff !important;
+.vis-chart .chart-y-axis-title {
+  font-family: var(--apple-font, sans-serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  fill: #1d1d1f;
+}
+
+.vis-chart .quad-x-label,
+.vis-chart .quad-y-label {
+  font-size: 10.5px;
+  font-weight: 500;
+  fill: #94a3b8;
+}
+
+.vis-chart .cluster-tag {
+  font-size: 10.5px;
+  font-weight: 500;
+  fill: #64748b;
+  cursor: pointer;
+}
+
+/* Bubble labels: white halo keeps text legible over bubbles and gridlines */
+.vis-chart .bubble-text {
+  font-size: 11px;
+  font-weight: 600;
+  paint-order: stroke fill;
+  stroke: #ffffff;
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.vis-chart .bubble,
+.vis-chart .leg-item,
+.vis-chart .lollipop-hitbox {
+  cursor: pointer;
+}
+
+.vis-chart .crosshair-layer,
+.vis-chart .bubble-leader,
+.vis-chart .bubble-anchor {
+  pointer-events: none;
 }

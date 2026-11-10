@@ -87,6 +87,7 @@
       vis.svg = container.append('svg')
         .attr('viewBox', `0 0 ${vis.config.width} ${vis.config.height}`)
         .attr('preserveAspectRatio', 'xMidYMid meet')
+        .attr('class', 'vis-chart')   // scopes chart typography in css/visualisations.css
         .attr('role', 'img');
 
       vis.g = vis.svg.append('g')
@@ -217,18 +218,12 @@
         .attr('stroke-dasharray', '2 4');
 
       // Axes
-      vis.yAxisG.call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12))
-        .selectAll('text')
-        .style('font-size', '12px')
-        .style('font-weight', '500')
-        .style('fill', '#1d1d1f');
+      vis.yAxisG.classed('axis-category', true)
+        .call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12));
 
       vis.xAxisG
         .attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(vis.xScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d))
-        .selectAll('text')
-        .style('font-size', '11px')
-        .style('fill', '#86868b');
+        .call(d3.axisBottom(vis.xScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d));
 
       // Axis Label
       vis.xAxisG.selectAll('.axis-label').data([vis.config.xLabel])
@@ -237,8 +232,6 @@
         .attr('x', vis.innerWidth / 2)
         .attr('y', 38)
         .attr('text-anchor', 'middle')
-        .style('fill', '#86868b')
-        .style('font-size', '12px')
         .text(d => d);
 
       // Data Binding using D3 .join()
@@ -293,9 +286,6 @@
               .attr('class', 'bar-label')
               .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
               .attr('x', d => vis.xScale(d.value) + 8)
-              .style('font-size', '11px')
-              .style('font-weight', '600')
-              .style('fill', '#1d1d1f')
               .text(d => fmtVal(d.value)),
             update => update
               .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
@@ -363,18 +353,12 @@
         .attr('stroke', 'rgba(0,0,0,0.06)')
         .attr('stroke-dasharray', '2 4');
 
-      vis.yAxisG.call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12))
-        .selectAll('text')
-        .style('font-size', '12px')
-        .style('font-weight', '500')
-        .style('fill', '#1d1d1f');
+      vis.yAxisG.classed('axis-category', true)
+        .call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12));
 
       vis.xAxisG
         .attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(vis.xScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d))
-        .selectAll('text')
-        .style('font-size', '11px')
-        .style('fill', '#86868b');
+        .call(d3.axisBottom(vis.xScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d));
 
       vis.xAxisG.selectAll('.axis-title').data([vis.config.xLabel])
         .join('text')
@@ -382,9 +366,6 @@
         .attr('x', vis.innerWidth / 2)
         .attr('y', 36)
         .attr('text-anchor', 'middle')
-        .style('fill', '#86868b')
-        .style('font-size', '11px')
-        .style('font-weight', '500')
         .text(d => d);
 
       // Stems (Lines)
@@ -441,9 +422,6 @@
             .attr('class', 'lollipop-label')
             .attr('x', d => vis.xScale(d.value) + 12)
             .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
-            .style('font-size', '11px')
-            .style('font-weight', '600')
-            .style('fill', '#1d1d1f')
             .text(d => fmtComma(d.value)),
           update => update
             .attr('x', d => vis.xScale(d.value) + 12)
@@ -462,7 +440,6 @@
         .attr('width', vis.innerWidth)
         .attr('height', vis.yScale.bandwidth())
         .attr('fill', 'transparent')
-        .style('cursor', 'pointer')
         .on('mouseenter', function (event, d) {
           vis.tooltip.classed('visible', true)
             .html(`
@@ -531,18 +508,12 @@
 
       const series = stack(vis.displayData);
 
-      vis.yAxisG.call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12))
-        .selectAll('text')
-        .style('font-size', '12px')
-        .style('font-weight', '500')
-        .style('fill', '#1d1d1f');
+      vis.yAxisG.classed('axis-category', true)
+        .call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12));
 
       vis.xAxisG
         .attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(vis.xScale).ticks(5).tickFormat(d3.format('.0%')))
-        .selectAll('text')
-        .style('font-size', '11px')
-        .style('fill', '#86868b');
+        .call(d3.axisBottom(vis.xScale).ticks(5).tickFormat(d3.format('.0%')));
 
       // 50% benchmark
       vis.annotationsG.selectAll('.half-line').data([0.5])
@@ -611,8 +582,6 @@
         items.selectAll('text').data(d => [d])
           .join('text')
           .attr('x', 18).attr('y', 10)
-          .style('font-size', '11.5px')
-          .style('fill', '#1d1d1f')
           .text(d => d.label);
 
         // Fit legend inside the plot frame: spread items evenly across innerWidth
@@ -697,10 +666,9 @@
 
             grp.selectAll('text').data([b])
               .join('text')
+              .attr('class', 'break-label')
               .attr('x', vis.xScale(b.year) + 4)
               .attr('y', 14)
-              .style('font-size', '9.5px')
-              .style('fill', '#64748b')
               .text(b.label);
           });
       }
@@ -708,17 +676,11 @@
       // X-Axis
       vis.xAxisG
         .attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(vis.xScale).ticks(11).tickFormat(d3.format('d')))
-        .selectAll('text')
-        .style('font-size', '11px')
-        .style('fill', '#86868b');
+        .call(d3.axisBottom(vis.xScale).ticks(11).tickFormat(d3.format('d')));
 
       // Y-Axis
       vis.yAxisG
-        .call(d3.axisLeft(vis.yScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d))
-        .selectAll('text')
-        .style('font-size', '11px')
-        .style('fill', '#86868b');
+        .call(d3.axisLeft(vis.yScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d));
 
       // Line Generator
       const lineGen = (key) => d3.line()
@@ -774,7 +736,6 @@
         .join('g')
         .attr('class', 'leg-item')
         .attr('transform', (d, i) => `translate(${i * 135}, 0)`)
-        .style('cursor', 'pointer')
         .on('mouseenter', function (event, s) {
           vis.plotG.selectAll('.line-path').attr('opacity', 0.15);
           vis.plotG.select(`.line-${s.key.replace(/\s+/g, '-')}`).attr('opacity', 1).attr('stroke-width', 4);
@@ -791,8 +752,6 @@
       legItems.selectAll('text').data(d => [d])
         .join('text')
         .attr('x', 22).attr('y', 10)
-        .style('font-size', '11.5px')
-        .style('fill', '#1d1d1f')
         .text(d => d.label);
     }
   }
@@ -936,9 +895,6 @@
         .attr('x', vis.innerWidth + 8)
         .attr('y', vis.yScale(6.0) - 2)
         .attr('text-anchor', 'start')
-        .style('font-size', '10.5px')
-        .style('font-weight', '500')
-        .style('fill', '#94a3b8')
         .selectAll('tspan').data(d => d).join('tspan')
         .attr('x', vis.innerWidth + 8)
         .attr('dy', (d, i) => i === 0 ? 0 : '1.2em')
@@ -951,9 +907,6 @@
         .attr('x', vis.xScale(50000))
         .attr('y', -8)
         .attr('text-anchor', 'middle')
-        .style('font-size', '10.5px')
-        .style('font-weight', '500')
-        .style('fill', '#94a3b8')
         .text(d => d);
 
       // Axes
@@ -961,8 +914,7 @@
         .attr('transform', `translate(0,${vis.innerHeight})`)
         .call(d3.axisBottom(vis.xScale)
           .tickValues([1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000])
-          .tickFormat(d => d >= 1000 ? `${d / 1000}k` : d))
-        .selectAll('text').style('font-size', '11px').style('fill', '#86868b');
+          .tickFormat(d => d >= 1000 ? `${d / 1000}k` : d));
 
       vis.xAxisG.selectAll('.axis-label').data(['Total Hospitalised Cases (2011–2019 Volume, log scale) \u2192'])
         .join('text')
@@ -970,14 +922,10 @@
         .attr('x', vis.innerWidth / 2)
         .attr('y', 42)
         .attr('text-anchor', 'middle')
-        .style('fill', '#86868b')
-        .style('font-size', '12px')
-        .style('font-weight', '500')
         .text(d => d);
 
       vis.yAxisG
-        .call(d3.axisLeft(vis.yScale).ticks(6))
-        .selectAll('text').style('font-size', '11px').style('fill', '#86868b');
+        .call(d3.axisLeft(vis.yScale).ticks(6));
 
       // Horizontal Y-Axis Title at top-left (no rotation = zero tick collision!)
       vis.svg.selectAll('.chart-y-axis-title').data(['Deaths per 1,000 Cases \u2191'])
@@ -985,16 +933,11 @@
         .attr('class', 'chart-y-axis-title')
         .attr('x', vis.config.margin.left)
         .attr('y', vis.config.margin.top - 14)
-        .style('font-family', 'var(--apple-font, sans-serif)')
-        .style('font-size', '11.5px')
-        .style('font-weight', '600')
-        .style('fill', '#1d1d1f')
         .text(d => d);
 
       // Crosshair Projection Lines Layer
       vis.crosshairG = vis.g.append('g')
-        .attr('class', 'crosshair-layer')
-        .style('pointer-events', 'none');
+        .attr('class', 'crosshair-layer');
 
       vis.crossLineX = vis.crosshairG.append('line')
         .attr('stroke', '#64748b')
@@ -1045,10 +988,6 @@
         .attr('class', 'cluster-tag')
         .attr('x', clusterTagX)
         .attr('y', clusterTagY)
-        .style('font-size', '10.5px')
-        .style('font-weight', '500')
-        .style('fill', '#64748b')
-        .style('cursor', 'pointer')
         .text(d => d)
         .on('click', () => vis.filterByCohort('freight'));
 
@@ -1061,8 +1000,7 @@
         .attr('x2', d => d.px).attr('y2', d => d.py)
         .attr('stroke', d => vis.config.colorMap[d.user] || '#0072B2')
         .attr('stroke-width', 1)
-        .attr('stroke-opacity', 0.7)
-        .style('pointer-events', 'none');
+        .attr('stroke-opacity', 0.7);
 
       vis.anchors = vis.plotG.selectAll('.bubble-anchor')
         .data(vis.displayData.filter(d => d.displaced), d => d.user)
@@ -1070,8 +1008,7 @@
         .attr('class', 'bubble-anchor')
         .attr('cx', d => d.tx).attr('cy', d => d.ty)
         .attr('r', 2.5)
-        .attr('fill', d => vis.config.colorMap[d.user] || '#0072B2')
-        .style('pointer-events', 'none');
+        .attr('fill', d => vis.config.colorMap[d.user] || '#0072B2');
 
       // Bubbles
       vis.bubbles = vis.plotG.selectAll('.bubble')
@@ -1086,7 +1023,6 @@
             .attr('fill-opacity', 0.78)
             .attr('stroke', d => vis.config.colorMap[d.user] || '#0072B2')
             .attr('stroke-width', 2)
-            .style('cursor', 'pointer')
             .call(enter => enter.transition().duration(vis.config.duration)
               .attr('r', d => vis.rScale(d.avgBedDays))),
           update => update
@@ -1116,15 +1052,7 @@
             .attr('x', d => vis.labelX(d))
             .attr('y', d => vis.labelY(d))
             .attr('text-anchor', d => (vis.LABEL_OFFSETS[d.user] ? vis.LABEL_OFFSETS[d.user].anchor : 'middle'))
-            .style('font-size', '11px')
-            .style('font-weight', '600')
-            .style('fill', d => vis.config.colorMap[d.user] || '#1d1d1f')
-            .style('paint-order', 'stroke fill')
-            .style('stroke', '#ffffff')
-            .style('stroke-width', '3.5px')
-            .style('stroke-linejoin', 'round')
-            .style('stroke-linecap', 'round')
-            .style('pointer-events', 'none')
+            .style('fill', d => vis.config.colorMap[d.user] || '#1d1d1f')   // data-driven
             // In "All" mode, only show the 5 landmark labels directly; cluster cohorts are revealed on hover or in filtered mode!
             .style('opacity', d => LANDMARK_OFFSETS[d.user] ? 1 : 0)
             .text(d => d.user),

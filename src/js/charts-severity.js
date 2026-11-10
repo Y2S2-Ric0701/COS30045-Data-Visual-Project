@@ -80,22 +80,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ── Interactive Segmented Control Filtering ──────────────────
+    // Chip appearance (hover / active) is defined in css/base.css.
     const filterBtns = document.querySelectorAll('#severity-filter-control .filter-btn');
     filterBtns.forEach(btn => {
       btn.addEventListener('click', function () {
         filterBtns.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        const filter = this.getAttribute('data-filter');
-
-        // Reset active chips on cohort switch
-        const chips = d3.selectAll('#bubble-interactive-legend .legend-chip');
-        chips.classed('active', false)
-          .style('background', '#ffffff')
-          .style('color', '#1d1d1f')
-          .style('border-color', '#e2e8f0')
-          .style('box-shadow', '0 1px 3px rgba(0, 0, 0, 0.05)');
-
-        bubbleVis.filterByCohort(filter);
+        // Reset any locked chip on cohort switch
+        d3.selectAll('#bubble-interactive-legend .legend-chip').classed('active', false);
+        bubbleVis.filterByCohort(this.getAttribute('data-filter'));
       });
     });
 
@@ -104,107 +97,48 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!legendContainer.empty()) {
       legendContainer.selectAll('*').remove();
 
-      // Legend Header Label
       legendContainer.append('div')
         .attr('class', 'interactive-legend-title')
         .html('Interactive Cohort Spotlight &bull; Hover or Click to Lock Crosshairs');
 
       const chipsWrapper = legendContainer.append('div')
-        .attr('class', 'interactive-legend-chips')
-        .style('display', 'flex')
-        .style('flex-wrap', 'wrap')
-        .style('align-items', 'center')
-        .style('justify-content', 'center')
-        .style('gap', '8px 12px');
+        .attr('class', 'interactive-legend-chips');
 
       // Sort road users by clinical mortality rate descending (matching Fig 5.1 order)
       const sortedUsers = [...formatted].sort((a, b) => b.rate - a.rate);
 
-      sortedUsers.forEach(d => {
-        const color = userColors[d.user] || '#0072B2';
-        const chip = chipsWrapper.append('button')
-          .datum(d)
-          .attr('class', 'legend-chip')
-          .attr('type', 'button')
-          .attr('aria-label', `Spotlight ${d.user}`)
-          .style('all', 'unset')
-          .style('box-sizing', 'border-box')
-          .style('cursor', 'pointer')
-          .style('display', 'inline-flex')
-          .style('align-items', 'center')
-          .style('gap', '8px')
-          .style('padding', '6px 14px')
-          .style('border-radius', '999px')
-          .style('background', '#ffffff')
-          .style('border', '1px solid #e2e8f0')
-          .style('box-shadow', '0 1px 3px rgba(0, 0, 0, 0.05)')
-          .style('font-family', '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif')
-          .style('font-size', '12px')
-          .style('font-weight', '500')
-          .style('color', '#1d1d1f')
-          .style('line-height', '1.2')
-          .style('transition', 'all 0.18s cubic-bezier(0.25, 0.1, 0.25, 1)');
+      const chips = chipsWrapper.selectAll('.legend-chip')
+        .data(sortedUsers)
+        .join('button')
+        .attr('class', 'legend-chip')
+        .attr('type', 'button')
+        .attr('aria-label', d => `Spotlight ${d.user}`);
 
-        chip.append('span')
-          .attr('class', 'legend-chip-dot')
-          .style('display', 'inline-block')
-          .style('width', '10px')
-          .style('height', '10px')
-          .style('border-radius', '50%')
-          .style('background-color', color)
-          .style('box-shadow', '0 0 0 1px rgba(0, 0, 0, 0.08)')
-          .style('flex-shrink', '0');
+      chips.append('span')
+        .attr('class', 'legend-chip-dot')
+        .style('background-color', d => userColors[d.user] || '#0072B2');
 
-        chip.append('span')
-          .attr('class', 'legend-chip-label')
-          .text(d.user);
+      chips.append('span')
+        .attr('class', 'legend-chip-label')
+        .text(d => d.user);
 
-        chip
-          .on('mouseenter', function () {
-            if (!d3.select(this).classed('active')) {
-              d3.select(this)
-                .style('transform', 'translateY(-1px)')
-                .style('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.08)')
-                .style('border-color', '#cbd5e1');
-            }
+      chips
+        .on('mouseenter', (event, d) => bubbleVis.spotlight(d.user))
+        .on('mouseleave', () => {
+          const locked = chipsWrapper.select('.legend-chip.active');
+          if (!locked.empty()) bubbleVis.spotlight(locked.datum().user);
+          else bubbleVis.resetSpotlight();
+        })
+        .on('click', function (event, d) {
+          const wasActive = this.classList.contains('active');
+          chips.classed('active', false);
+          if (!wasActive) {
+            d3.select(this).classed('active', true);
             bubbleVis.spotlight(d.user);
-          })
-          .on('mouseleave', function () {
-            if (!d3.select(this).classed('active')) {
-              d3.select(this)
-                .style('transform', 'none')
-                .style('box-shadow', '0 1px 3px rgba(0, 0, 0, 0.05)')
-                .style('border-color', '#e2e8f0');
-            }
-            const activeChip = chipsWrapper.select('.legend-chip.active');
-            if (!activeChip.empty()) {
-              bubbleVis.spotlight(activeChip.datum().user);
-            } else {
-              bubbleVis.resetSpotlight();
-            }
-          })
-          .on('click', function () {
-            const isCurrentlyActive = d3.select(this).classed('active');
-            chipsWrapper.selectAll('.legend-chip')
-              .classed('active', false)
-              .style('background', '#ffffff')
-              .style('color', '#1d1d1f')
-              .style('border-color', '#e2e8f0')
-              .style('box-shadow', '0 1px 3px rgba(0, 0, 0, 0.05)');
-
-            if (!isCurrentlyActive) {
-              d3.select(this)
-                .classed('active', true)
-                .style('background', '#1d1d1f')
-                .style('color', '#ffffff')
-                .style('border-color', '#1d1d1f')
-                .style('box-shadow', '0 2px 8px rgba(0, 0, 0, 0.2)');
-              bubbleVis.spotlight(d.user);
-            } else {
-              bubbleVis.resetSpotlight();
-            }
-          });
-      });
+          } else {
+            bubbleVis.resetSpotlight();
+          }
+        });
     }
 
   }).catch(err => console.error('Error loading rq5_mortality_severity.csv:', err));
