@@ -37,12 +37,6 @@ function loadHospitalisationData(path) {
   const csvPath = path || 'data/sample_hospitalisation_data.csv';
 
   return d3.csv(csvPath, rowConverter)
-    .then(function (data) {
-      console.log(
-        `[load-data] Loaded ${data.length} rows from "${csvPath}".`
-      );
-      return data;
-    })
     .catch(function (error) {
       console.error(`[load-data] Failed to load "${csvPath}":`, error);
       throw error;

@@ -1,0 +1,13 @@
+"Road user","Female+Mean(Sum(Hospitalisations))","Male+Mean(Sum(Hospitalisations))"
+"Motorcyclist",9629,82691
+"Car driver",64966,70092
+"Pedal cyclist",16218,59140
+"Car passenger",31864,21376
+"Pedestrian",12382,16149
+"Car unknown position",4251,4584
+"Heavy transport driver",124,4490
+"Other or unknown",2251,4095
+"Pick-up truck or van occupant",595,2392
+"Bus occupant",1618,965
+"Heavy transport unknown position",44,400
+"Heavy transport passenger",164,389

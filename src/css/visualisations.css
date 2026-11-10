@@ -214,3 +214,92 @@
   color: #ff9f0a; /* Apple system warm orange highlight */
   font-weight: 600;
 }
+
+/* ── Reusable Chart Components (js/vis-components.js) ──────────
+   Scoped to svg.vis-chart so the homepage charts keep the generic
+   .tick text / .axis-label styles above. Dynamic styling (hover
+   fades, tooltip position, data colours) stays in the JS. */
+.vis-chart .tick text {
+  font-size: 11px;
+  fill: #86868b;
+}
+
+.vis-chart .axis-category .tick text {
+  font-size: 12px;
+  font-weight: 500;
+  fill: #1d1d1f;
+}
+
+.vis-chart .axis-label {
+  font-size: 12px;
+  fill: #86868b;
+}
+
+.vis-chart .axis-title {
+  font-size: 11px;
+  font-weight: 500;
+  fill: #86868b;
+}
+
+.vis-chart .bar-label,
+.vis-chart .lollipop-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: #1d1d1f;
+}
+
+.vis-chart .legend-item text,
+.vis-chart .leg-item text {
+  font-size: 11.5px;
+  fill: #1d1d1f;
+}
+
+.vis-chart .break-label {
+  font-size: 9.5px;
+  fill: #64748b;
+}
+
+.vis-chart .chart-y-axis-title {
+  font-family: var(--apple-font, sans-serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  fill: #1d1d1f;
+}
+
+.vis-chart .quad-x-label,
+.vis-chart .quad-y-label {
+  font-size: 10.5px;
+  font-weight: 500;
+  fill: #94a3b8;
+}
+
+.vis-chart .cluster-tag {
+  font-size: 10.5px;
+  font-weight: 500;
+  fill: #64748b;
+  cursor: pointer;
+}
+
+/* Bubble labels: white halo keeps text legible over bubbles and gridlines */
+.vis-chart .bubble-text {
+  font-size: 11px;
+  font-weight: 600;
+  paint-order: stroke fill;
+  stroke: #ffffff;
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.vis-chart .bubble,
+.vis-chart .leg-item,
+.vis-chart .lollipop-hitbox {
+  cursor: pointer;
+}
+
+.vis-chart .crosshair-layer,
+.vis-chart .bubble-leader,
+.vis-chart .bubble-anchor {
+  pointer-events: none;
+}
