@@ -679,10 +679,10 @@ button.legend-chip.active .legend-chip-dot {
 
 /* ── Apple Minimalist Footer ────────────────────────────────── */
 .site-footer {
-  margin-top: 48px;
+  margin-top: 64px;
   background: var(--apple-bg);
   border-top: 1px solid var(--apple-hairline);
-  padding: 32px 0 48px 0;
+  padding: 40px 0 32px 0;
   font-size: 12px;
   color: var(--apple-text-secondary);
   line-height: 1.6;
@@ -691,34 +691,69 @@ button.legend-chip.active .legend-chip-dot {
 .footer-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 28px;
 }
 
 .footer-references-title {
   font-weight: 600;
   color: var(--apple-text-primary);
-  margin-bottom: 8px;
-  font-size: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  letter-spacing: -0.01em;
 }
 
 .footer-ordered-list {
-  padding-left: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  counter-reset: ref;
 }
 
 .footer-ordered-list li {
-  color: var(--apple-text-secondary);
+  counter-increment: ref;
+  position: relative;
+  background: var(--apple-surface);
+  border: 1px solid var(--apple-card-border);
+  border-radius: 12px;
+  padding: 16px 16px 16px 44px;
+  color: var(--apple-text-tertiary);
+}
+
+.footer-ordered-list li::before {
+  content: counter(ref);
+  position: absolute;
+  left: 14px;
+  top: 16px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--apple-blue-subtle);
+  color: var(--apple-blue);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .footer-ordered-list strong {
   color: var(--apple-text-primary);
+  font-weight: 600;
 }
 
 .footer-ordered-list a {
+  display: block;
+  margin-top: 8px;
   color: var(--apple-blue);
-  margin-left: 4px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.footer-ordered-list a:hover {
+  text-decoration: underline;
 }
 
 .footer-divider {
@@ -741,7 +776,7 @@ button.legend-chip.active .legend-chip-dot {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px 8px;
 }
 
 .meta-dot {
@@ -749,8 +784,28 @@ button.legend-chip.active .legend-chip-dot {
 }
 
 .footer-deployment-link a {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 980px;
+  background: var(--apple-blue-subtle);
   color: var(--apple-blue);
   font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.footer-deployment-link a:hover {
+  background: rgba(0, 113, 227, 0.16);
+}
+
+@media (max-width: 860px) {
+  .footer-ordered-list {
+    grid-template-columns: 1fr;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 /* ── Responsive Breakpoints ─────────────────────────────────── */
