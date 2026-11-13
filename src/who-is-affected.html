@@ -46,7 +46,14 @@
           <div>
             <div class="section-kicker">Figure 1.1 &bull; Age Distribution</div>
             <h2 class="chart-card-title">Hospitalised Road Crash Injuries by Age Group</h2>
-            <p class="chart-card-desc">Total cumulative hospitalisations (2011–2021) highlighting working-age adults (40–64 years) bearing the highest overall volume.</p>
+            <p class="chart-card-desc">Total cumulative hospitalisations (2011–2021) highlighting working-age adults (40–64 years) bearing the highest overall volume. Darker blue = more hospitalisations.</p>
+          </div>
+          <div class="sort-control">
+            <span class="sort-control-label" id="age-sort-label">Sort by:</span>
+            <div class="apple-segmented-control" id="age-sort-control" role="group" aria-labelledby="age-sort-label">
+              <button class="filter-btn active" data-sort="age" aria-pressed="true">Age group</button>
+              <button class="filter-btn" data-sort="total" aria-pressed="false">Total number</button>
+            </div>
           </div>
         </div>
         <div class="responsive-svg-container" id="chart-age-group">

@@ -23,6 +23,18 @@
   const fmtDec1    = d3.format('.1f');
   const fmtDec2    = d3.format('.2f');
 
+  // ── Shared bar gradient (light = fewer, dark = more) ─────────
+  // Every single-series bar chart uses this so the colour story is
+  // consistent site-wide. The range is clamped so the smallest bar is
+  // still clearly visible on the white card.
+  const BAR_GRADIENT_RANGE = [0.3, 1.0];
+  function barGradient(domain, range = BAR_GRADIENT_RANGE) {
+    const [lo, hi] = range;
+    return d3.scaleSequential()
+      .domain(domain)
+      .interpolator(t => d3.interpolateBlues(lo + t * (hi - lo)));
+  }
+
   // ═══════════════════════════════════════════════════════════════
   // 1. BASE CLASS: BaseChart (Lifecycle & SVG Container Manager)
   // ═══════════════════════════════════════════════════════════════
@@ -81,6 +93,8 @@
       }
       container.selectAll('*').remove();
 
+      vis.fitLeftMargin();
+
       vis.innerWidth  = Math.max(0, vis.config.width - vis.config.margin.left - vis.config.margin.right);
       vis.innerHeight = Math.max(0, vis.config.height - vis.config.margin.top - vis.config.margin.bottom);
 
@@ -101,6 +115,35 @@
       vis.xAxisG       = vis.g.append('g').attr('class', 'x-axis');
       vis.yAxisG       = vis.g.append('g').attr('class', 'y-axis');
       vis.legendG      = vis.svg.append('g').attr('class', 'legend-layer');
+    }
+
+    /**
+     * Widen the left margin when the longest category label (e.g. "Heavy
+     * transport driver") would otherwise be cut off at the edge of the SVG.
+     * Only applies to charts with category labels on the y-axis.
+     */
+    fitLeftMargin() {
+      const vis = this;
+      const key = vis.config.labelKey || vis.config.categoryKey;
+      if (!vis.config.autoFitLabels || !key || !Array.isArray(vis.rawData) || !vis.rawData.length) return;
+
+      // Measure with the same CSS as the real axis labels (.vis-chart .axis-category text)
+      const probe = d3.select('body').append('svg')
+        .attr('class', 'vis-chart')
+        .style('position', 'absolute').style('visibility', 'hidden').style('left', '-9999px');
+      const tick = probe.append('g').attr('class', 'axis-category').append('g').attr('class', 'tick');
+      let maxW = 0;
+      vis.rawData.forEach(d => {
+        const t = tick.append('text').text(String(d[key] ?? ''));
+        maxW = Math.max(maxW, t.node().getComputedTextLength());
+      });
+      probe.remove();
+
+      // tick padding (12) + breathing room; slack covers the web font loading late
+      const needed = Math.ceil(maxW) + 28;
+      if (needed > vis.config.margin.left) {
+        vis.config.margin = Object.assign({}, vis.config.margin, { left: needed });
+      }
     }
 
     /**
@@ -144,7 +187,9 @@
         valueLabel: 'Hospitalised:',
         unit: '',
         valueFormatter: null,
+        autoFitLabels: true,
         gradient: false,        // true = sequential colour by value (no single focal bar)
+        gradientRange: BAR_GRADIENT_RANGE, // portion of d3.interpolateBlues used (wider = more contrast)
       }, config));
     }
 
@@ -177,6 +222,7 @@
       if (vis.config.sortDescending !== false) {
         vis.displayData.sort((a, b) => b.value - a.value);
       }
+      // sortDescending === false keeps the data's own order (e.g. youngest → oldest age group)
 
       vis.totalSum = d3.sum(vis.displayData, d => d.value);
       vis.renderVis();
@@ -203,9 +249,7 @@
       // Sequential gradient: light (smallest) → dark (largest); clamped so the
       // lightest bar stays visible against the white card.
       const [vMin, vMax] = d3.extent(vis.displayData, d => d.value);
-      vis.gradientScale = d3.scaleSequential()
-        .domain([vMin ?? 0, vMax ?? 1])
-        .interpolator(t => d3.interpolateBlues(0.4 + t * 0.5));
+      vis.gradientScale = barGradient([vMin ?? 0, vMax ?? 1], vis.config.gradientRange);
 
       // Gridlines
       vis.gridG.call(
@@ -219,6 +263,7 @@
 
       // Axes
       vis.yAxisG.classed('axis-category', true)
+        .transition().duration(vis.config.duration)
         .call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12));
 
       vis.xAxisG
@@ -288,9 +333,10 @@
               .attr('x', d => vis.xScale(d.value) + 8)
               .text(d => fmtVal(d.value)),
             update => update
-              .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
-              .attr('x', d => vis.xScale(d.value) + 8)
-              .text(d => fmtVal(d.value)),
+              .text(d => fmtVal(d.value))
+              .call(u => u.transition().duration(vis.config.duration)
+                .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
+                .attr('x', d => vis.xScale(d.value) + 8)),
             exit => exit.remove()
           );
       }
@@ -308,6 +354,7 @@
         palette: ['#0072B2', '#E69F00', '#009E73', '#56B4E9', '#888888'],
         xLabel: 'Total Hospitalised Cases',
         height: 420,
+        autoFitLabels: true,
         margin: { top: 25, right: 90, bottom: 45, left: 200 },
       };
       const mergedConfig = Object.assign({}, lollipopDefaults, config);
@@ -465,6 +512,7 @@
   class StackedBarChart extends BaseChart {
     constructor(parentElement, data, config = {}) {
       super(parentElement, data, Object.assign({
+        autoFitLabels: true,
         categoryKey: 'user',
         seriesKeys: [],
         colorMap: {},
@@ -609,7 +657,10 @@
         series: [],
         breaks: [],
         yLabel: 'Annual Hospitalisations',
-      }, config));
+      }, config, {
+        // Legend sits at y≈15; keep the plot (and its top "16k" tick) clear of it
+        margin: Object.assign({ top: 56 }, config.margin || {}),
+      }));
     }
 
     wrangleData(newData) {
@@ -1228,6 +1279,7 @@
 
   // ── Global Export Namespace ──────────────────────────────────
   global.Vis = {
+    barGradient,
     BaseChart,
     BarChart,
     LollipopChart,

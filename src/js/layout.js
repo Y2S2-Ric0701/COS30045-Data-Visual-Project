@@ -33,7 +33,11 @@ function renderNav(activeKey) {
         <span class="apple-brand-badge">COS30045</span>
         <span class="apple-brand-title">Road Crash Analytics</span>
       </a>
-      <div class="apple-nav-links">${links}</div>
+      <button class="apple-nav-toggle" type="button" aria-label="Open menu"
+              aria-expanded="false" aria-controls="site-nav-links">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="apple-nav-links" id="site-nav-links">${links}</div>
     </div>
   </nav>`;
 }
@@ -97,4 +101,18 @@ function renderFooter() {
 
   if (navSlot) navSlot.outerHTML = renderNav(activeKey);
   if (footerSlot) footerSlot.outerHTML = renderFooter();
+
+  // Mobile / tablet menu toggle
+  const nav = document.querySelector('.apple-nav');
+  const toggle = nav && nav.querySelector('.apple-nav-toggle');
+  if (toggle) {
+    const setOpen = open => {
+      nav.classList.toggle('nav-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    };
+    toggle.addEventListener('click', () => setOpen(!nav.classList.contains('nav-open')));
+    nav.querySelectorAll('.apple-nav-links a').forEach(a => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+  }
 })();
