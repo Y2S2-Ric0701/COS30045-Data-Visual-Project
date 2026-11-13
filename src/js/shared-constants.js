@@ -80,6 +80,26 @@ const COLORS = {
 };
 
 /**
+ * Australian state & territory abbreviations → full names.
+ * Used to explain jurisdiction codes to readers unfamiliar with Australia.
+ */
+const STATE_NAMES = {
+  NSW: 'New South Wales',
+  VIC: 'Victoria',
+  QLD: 'Queensland',
+  WA:  'Western Australia',
+  SA:  'South Australia',
+  TAS: 'Tasmania',
+  ACT: 'Australian Capital Territory',
+  NT:  'Northern Territory',
+};
+
+/** "NSW" → "NSW (New South Wales)"; unknown codes are returned unchanged. */
+function stateLabel(code) {
+  return STATE_NAMES[code] ? `${code} (${STATE_NAMES[code]})` : code;
+}
+
+/**
  * D3 margin convention
  * Provides consistent padding around the plot area for axes and labels.
  */

@@ -15,6 +15,13 @@
       .attr('aria-live', 'polite');
   }
 
+  // Full names so readers never have to remember the abbreviations
+  const STATE_NAMES = {
+    NSW: 'New South Wales', VIC: 'Victoria', QLD: 'Queensland', WA: 'Western Australia',
+    SA: 'South Australia', TAS: 'Tasmania', ACT: 'Australian Capital Territory', NT: 'Northern Territory',
+  };
+  const stateLabel = code => STATE_NAMES[code] ? `${STATE_NAMES[code]} (${code})` : code;
+
   const fmtComma = d3.format(',');
   const fmtPercent = d3.format('.1%');
   const fmtDec1 = d3.format('.1f');
@@ -39,9 +46,10 @@
 
       const totalCases = +row2021.Total || d3.sum(data, d => d.cases);
 
-      const margin = { top: 25, right: 90, bottom: 45, left: 65 };
+      // Wide left margin: labels read "Australian Capital Territory (ACT)"
+      const margin = { top: 25, right: 110, bottom: 45, left: 250 };
       const width = 850;
-      const height = 360;
+      const height = 380;
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -75,9 +83,9 @@
       // Y-axis
       g.append('g')
         .attr('class', 'y-axis')
-        .call(d3.axisLeft(y).tickSize(0).tickPadding(10))
+        .call(d3.axisLeft(y).tickSize(0).tickPadding(10).tickFormat(stateLabel))
         .selectAll('text')
-        .style('font-size', '12px')
+        .style('font-size', '13.5px')
         .style('font-weight', '600')
         .style('fill', '#1d1d1f');
 
@@ -101,9 +109,7 @@
 
       // Sequential gradient by volume (light = fewer, dark = more)
       const [sMin, sMax] = d3.extent(data, d => d.cases);
-      const stateGradient = d3.scaleSequential()
-        .domain([sMin, sMax])
-        .interpolator(t => d3.interpolateBlues(0.4 + t * 0.5));
+      const stateGradient = Vis.barGradient([sMin, sMax]);
 
       // Bars
       const bars = g.selectAll('.bar-state')
@@ -140,7 +146,7 @@
         .on('mouseenter', function (event, d) {
           tooltip.classed('visible', true)
             .html(`
-              <div class="tooltip-title">${d.state} (2021)</div>
+              <div class="tooltip-title">${stateLabel(d.state)}, 2021</div>
               <div class="tooltip-row"><span>Admissions:</span> <span class="tooltip-val">${fmtComma(d.cases)}</span></div>
               <div class="tooltip-row"><span>National Share:</span> <span class="tooltip-accent">${fmtPercent(d.cases / totalCases)}</span></div>
             `);
@@ -228,9 +234,7 @@
 
       // Sequential gradient by volume (light = fewer, dark = more)
       const [rMin, rMax] = d3.extent(data, d => d.cases);
-      const remGradient = d3.scaleSequential()
-        .domain([rMin, rMax])
-        .interpolator(t => d3.interpolateBlues(0.4 + t * 0.5));
+      const remGradient = Vis.barGradient([rMin, rMax]);
 
       // Bars
       const bars = g.selectAll('.bar-rem')
@@ -383,6 +387,64 @@
         item.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 5).attr('y2', 5).attr('stroke', s.color).attr('stroke-width', 3);
         item.append('text').attr('x', 20).attr('y', 9).style('font-size', '11px').style('fill', '#1d1d1f').text(s.key);
       });
+
+      // ── Hover read-out: nearest year → guide line, dots and all values ──
+      const focus = g.append('g').attr('class', 'trend-focus').style('display', 'none')
+        .style('pointer-events', 'none');
+
+      const guide = focus.append('line')
+        .attr('y1', 0).attr('y2', innerHeight)
+        .attr('stroke', '#475569').attr('stroke-width', 1).attr('stroke-dasharray', '3 3');
+
+      const focusDots = focus.selectAll('circle')
+        .data(topStates)
+        .join('circle')
+        .attr('r', 5.5)
+        .attr('fill', s => s.color)
+        .attr('stroke', '#ffffff')
+        .attr('stroke-width', 2);
+
+      const bisectYear = d3.bisector(d => d.year).center;
+
+      function showYear(event) {
+        const [mx] = d3.pointer(event, g.node());
+        const d = parsed[bisectYear(parsed, x.invert(mx))];
+        if (!d) return;
+        const cx = x(d.year);
+
+        focus.style('display', null);
+        guide.attr('x1', cx).attr('x2', cx);
+        focusDots.attr('cx', cx).attr('cy', s => y(d[s.key]));
+
+        // Highest value first so the list matches the line order on screen
+        const rows = [...topStates].sort((a, b) => d[b.key] - d[a.key]).map(s => `
+          <div class="tooltip-row">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.color};margin-right:6px;"></span>${s.key} – ${STATE_NAMES[s.key]}</span>
+            <span class="tooltip-val">${fmtComma(d[s.key])}</span>
+          </div>`).join('');
+
+        tooltip.classed('visible', true)
+          .html(`<div class="tooltip-title">${d.year} hospitalisations</div>${rows}`);
+
+        const tipW = tooltip.node().offsetWidth;
+        const left = (event.clientX + 16 + tipW > window.innerWidth - 8)
+          ? event.pageX - 16 - tipW
+          : event.pageX + 16;
+        tooltip.style('left', `${Math.max(8, left)}px`).style('top', `${event.pageY - 28}px`);
+      }
+
+      // Transparent overlay captures mouse + touch across the whole plot
+      g.append('rect')
+        .attr('class', 'trend-hover-overlay')
+        .attr('width', innerWidth)
+        .attr('height', innerHeight)
+        .attr('fill', 'transparent')
+        .style('cursor', 'crosshair')
+        .on('pointerenter pointermove', showYear)
+        .on('pointerleave', () => {
+          focus.style('display', 'none');
+          tooltip.classed('visible', false);
+        });
     });
   }
 

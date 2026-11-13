@@ -33,7 +33,11 @@ function renderNav(activeKey) {
         <span class="apple-brand-badge">COS30045</span>
         <span class="apple-brand-title">Road Crash Analytics</span>
       </a>
-      <div class="apple-nav-links">${links}</div>
+      <button class="apple-nav-toggle" type="button" aria-label="Open menu"
+              aria-expanded="false" aria-controls="site-nav-links">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="apple-nav-links" id="site-nav-links">${links}</div>
     </div>
   </nav>`;
 }
@@ -97,4 +101,82 @@ function renderFooter() {
 
   if (navSlot) navSlot.outerHTML = renderNav(activeKey);
   if (footerSlot) footerSlot.outerHTML = renderFooter();
+
+  // Mobile / tablet menu toggle
+  const nav = document.querySelector('.apple-nav');
+  const toggle = nav && nav.querySelector('.apple-nav-toggle');
+  if (toggle) {
+    const setOpen = open => {
+      nav.classList.toggle('nav-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    };
+    toggle.addEventListener('click', () => setOpen(!nav.classList.contains('nav-open')));
+    nav.querySelectorAll('.apple-nav-links a').forEach(a => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+  }
+
+  initJumpHighlight();
 })();
+
+/* ── Jump highlight ──────────────────────────────────────────────
+   When a link scrolls the page to a section (#key-statistics, #filters,
+   #age-group, …) the destination glows blue for 1 second once the scroll
+   has finished, so the reader knows exactly where to look. Also runs when
+   arriving from another page with a #hash in the URL. */
+const JUMP_HIGHLIGHT_MS = 1000;
+
+/** Prefer the visible card inside a section (sections themselves have no box). */
+function jumpHighlightTarget(el) {
+  if (el.classList.contains('apple-section')) {
+    const card = el.querySelector(':scope > .apple-card, :scope > .apple-chart-card, :scope > .filter-wrapper');
+    if (card) return card;
+  }
+  return el;
+}
+
+/** Wait until the (smooth) scroll stops moving, then call done(). */
+function afterScrollSettles(done) {
+  let lastY = window.scrollY;
+  let still = 0;
+  const started = performance.now();
+  (function check() {
+    const y = window.scrollY;
+    still = Math.abs(y - lastY) < 1 ? still + 1 : 0;
+    lastY = y;
+    // ~5 still frames ≈ scroll finished; give up waiting after 2.5 s
+    if (still >= 5 || performance.now() - started > 2500) done();
+    else requestAnimationFrame(check);
+  })();
+}
+
+function flashElement(el) {
+  const target = jumpHighlightTarget(el);
+  target.classList.remove('jump-highlight');
+  void target.offsetWidth;               // restart the animation if clicked twice
+  target.classList.add('jump-highlight');
+  clearTimeout(target._jumpTimer);
+  target._jumpTimer = setTimeout(() => target.classList.remove('jump-highlight'), JUMP_HIGHLIGHT_MS);
+}
+
+function highlightHash(hash) {
+  if (!hash || hash.length < 2) return;
+  let el;
+  try { el = document.querySelector(decodeURIComponent(hash)); } catch (e) { return; }
+  if (el) afterScrollSettles(() => flashElement(el));
+}
+
+function initJumpHighlight() {
+  // Same-page links: <a href="#section">
+  document.addEventListener('click', e => {
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+    highlightHash(link.getAttribute('href'));
+  });
+
+  // Arriving from another page (e.g. injury-severity.html#mortality-risk).
+  // Charts load asynchronously and change the page height, so wait for load.
+  if (location.hash) {
+    window.addEventListener('load', () => highlightHash(location.hash), { once: true });
+  }
+}

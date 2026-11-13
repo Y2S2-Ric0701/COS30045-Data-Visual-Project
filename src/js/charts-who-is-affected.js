@@ -9,14 +9,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Figure 1.1: Hospitalisations by Age Group ─────────────────
   d3.csv('data/rq1_age_group.csv').then(function (rawData) {
-    new Vis.BarChart('#chart-age-group', rawData, {
+    const ageChart = new Vis.BarChart('#chart-age-group', rawData, {
+      sortDescending: false,   // start in natural age order (youngest → oldest)
       labelKey: 'Age group',
       valueKey: 'Sum(Hospitalisations)',
-      accentKey: '40-64',
-      accentColor: '#0072B2',
-      baselineColor: '#888888',
+      // Sequential light→dark blue by volume: every bar gets its own clearly
+      // distinguishable shade, and the darkest bar (40–64) is still the focus.
+      gradient: true,
       xLabel: 'Total Hospitalised Cases (2011–2021)',
     });
+
+    // Sort toggle: "Age group" (youngest → oldest) or "Total number" (most → fewest)
+    const sortButtons = document.querySelectorAll('#age-sort-control .filter-btn');
+    sortButtons.forEach(btn => btn.addEventListener('click', () => {
+      sortButtons.forEach(b => {
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+      ageChart.config.sortDescending = btn.dataset.sort === 'total';
+      ageChart.wrangleData();
+    }));
   }).catch(err => console.error('Error loading rq1_age_group.csv:', err));
 
   // ── Figure 1.2: Gender Disparity by Road User Type ─────────────
