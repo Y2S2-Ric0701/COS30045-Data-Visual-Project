@@ -216,6 +216,20 @@ The y-axis labels now read **"Victoria (VIC)"**, **"Australian Capital Territory
 the tooltip title matches. The left margin was widened to fit them. Figure 3.3's hover tooltip uses the
 same name list (`STATE_NAMES` in `charts-geography.js`).
 
+### 16. "Look here" highlight after a jump link
+
+When a link scrolls the page to a section, the destination glows blue for **1 second** once the
+scroll stops, so the reader knows where to look.
+- **Where it works:** every page. That includes the Overview chips (Key Statistics, Compare States, Policy
+  Insights), the "Change ↑" badges, the section chips on the question pages, and links arriving from
+  another page, such as `injury-severity.html#mortality-risk` from the summary charts.
+- **What glows:** the visible card inside the section (chart card, filter box), not the empty wrapper
+  around it.
+- **Reduced motion:** for readers who have turned on reduced motion in their system settings, a steady
+  outline shows for the same second, without the pulse.
+- **Code:** `initJumpHighlight()` in `src/js/layout.js` and `.jump-highlight` in `src/css/base.css`. The
+  script waits for the smooth scroll to finish before starting the glow.
+
 ---
 
 ## Files changed
@@ -230,7 +244,7 @@ same name list (`STATE_NAMES` in `charts-geography.js`).
 | `src/css/visualisations.css` | Chart text sizes, axis sub-labels, mobile chart scrolling |
 | `src/js/shared-constants.js` | `STATE_NAMES`, `stateLabel()` |
 | `src/js/main-narrative.js` | Responsive Overview charts, gradient/filter colouring, dynamic legend, tooltip edge handling, callout bug fix |
-| `src/js/layout.js` | Mobile menu button |
+| `src/js/layout.js` | Mobile menu button, jump-link highlight |
 | `src/js/vis-components.js` | `Vis.barGradient()`, configurable `gradientRange`, `fitLeftMargin()` label auto-fit, line chart top margin, animated re-sort |
 | `src/js/charts-who-is-affected.js` | Figure 1.1 uses the gradient and has the sort switch |
 | `src/js/charts-severity.js` | Figures 5.1 and 5.2 use the gradient |

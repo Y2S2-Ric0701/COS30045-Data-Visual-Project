@@ -1056,6 +1056,37 @@ button.legend-chip:focus-visible,
   outline-offset: 2px;
 }
 
+/* ── Jump highlight: 1-second "look here" glow after a jump link ── */
+@keyframes jump-highlight-pulse {
+  0%   { outline-color: rgba(0, 113, 227, 0);    box-shadow: 0 0 0 0 rgba(0, 113, 227, 0); }
+  20%  { outline-color: rgba(0, 113, 227, 1);    box-shadow: 0 0 0 10px rgba(0, 113, 227, 0.22); }
+  70%  { outline-color: rgba(0, 113, 227, 0.9);  box-shadow: 0 0 0 6px rgba(0, 113, 227, 0.14); }
+  100% { outline-color: rgba(0, 113, 227, 0);    box-shadow: 0 0 0 0 rgba(0, 113, 227, 0); }
+}
+
+.jump-highlight {
+  outline: 3px solid rgba(0, 113, 227, 0);
+  outline-offset: 4px;
+  animation: jump-highlight-pulse 1s ease-out forwards;
+}
+
+/* Sections without their own card (e.g. Key Statistics) still get rounded corners */
+.apple-section.jump-highlight {
+  border-radius: var(--apple-radius-lg);
+  outline-offset: 12px;   /* room between the glow and the heading text */
+}
+
+/* Reduced-motion users: steady outline for the same 1 second, no pulsing */
+@media (prefers-reduced-motion: reduce) {
+  .jump-highlight {
+    animation: none;
+    outline-color: var(--apple-blue);
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 /* ── Mobile / tablet menu button (hidden on desktop) ────────── */
 .apple-nav-toggle {
   display: none;
