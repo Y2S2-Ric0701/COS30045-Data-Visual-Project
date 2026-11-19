@@ -26,7 +26,9 @@ document.addEventListener('DOMContentLoaded', function () {
       yLabel: 'Annual Hospitalisations',
     });
 
-    // ── Figure 2.2: 10-Year Net Change (2011 vs 2021) ─────────────
+    // ── Figure 2.2: 10-Year Change per Road User (2011 → 2021) ───
+    // Dumbbell: grey dot = 2011, blue dot = 2021; the joining line is the
+    // change, coloured warm for an increase and green for a decrease.
     const row2011 = rawData.find(d => +d['Calendar year'] === 2011);
     const row2021 = rawData.find(d => +d['Calendar year'] === 2021);
 
@@ -39,22 +41,19 @@ document.addEventListener('DOMContentLoaded', function () {
         { key: 'Pedestrian',    label: 'Pedestrian' },
       ];
 
-      const changeData = targetKeys.map(k => {
-        const val11 = +row2011[k.key] || 0;
-        const val21 = +row2021[k.key] || 0;
-        const diff = val21 - val11;
-        return {
-          user: k.label,
-          shift: val11 > 0 ? Math.round((diff / val11) * 1000) / 10 : 0, // e.g. +51.4%
-          val2021: val21,
-        };
-      });
+      const changeData = targetKeys.map(k => ({
+        user: k.label,
+        val2011: +row2011[k.key] || 0,
+        val2021: +row2021[k.key] || 0,
+      }));
 
-      new Vis.BarChart('#chart-injury-count', changeData, {
+      new Vis.DumbbellChart('#chart-injury-count', changeData, {
         labelKey: 'user',
-        valueKey: 'val2021',
-        gradient: true,
-        xLabel: '2021 Final Counts (Ranked)',
+        startKey: 'val2011',
+        endKey: 'val2021',
+        startLabel: '2011',
+        endLabel: '2021',
+        xLabel: 'Annual Hospitalisations',
       });
     }
 

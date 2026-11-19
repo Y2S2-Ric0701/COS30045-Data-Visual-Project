@@ -41,11 +41,14 @@
         An interactive empirical exploration into national road trauma patterns,
         injury severity trajectories, and jurisdictional distributions across Australia.
       </p>
-      <div class="hero-chips">
-        <span class="hero-chip">AIHW &amp; BITRE Official Data</span>
-        <span class="hero-chip">2015 &ndash; 2023 Reporting Window</span>
-        <span class="hero-chip chip-accent">Munzner &amp; Tufte Visual Encoding</span>
-      </div>
+      <nav class="hero-chips" aria-label="Jump to section">
+        <a href="#key-statistics" class="hero-chip">Key Statistics &darr;</a>
+        <a href="#explore" class="hero-chip">Compare States &darr;</a>
+        <a href="#conclusion" class="hero-chip">Policy Insights &darr;</a>
+      </nav>
+      <p class="hero-meta">
+        Data: <a href="#citations">AIHW &amp; BITRE</a> &bull; Reporting window 2015&ndash;2023
+      </p>
     </div>
   </header>
 
@@ -120,7 +123,7 @@
           <div class="card-eyebrow">NATIONAL ADMISSIONS (2023)</div>
           <div class="callout-number" id="callout-total">20,135</div>
           <div class="callout-footer">
-            <span class="trend-badge trend-up">+5.1%</span>
+            <span class="trend-badge trend-up" id="callout-change">+5.1%</span>
             <span class="callout-label">vs. previous period</span>
           </div>
         </div>
@@ -128,6 +131,7 @@
         <div class="callout-card">
           <div class="card-eyebrow">HIGH-CONCENTRATION REGION</div>
           <div class="callout-number" id="callout-trend">NSW &amp; VIC</div>
+          <p class="callout-sub">New South Wales &amp; Victoria</p>
           <div class="callout-footer">
             <span class="trend-badge trend-neutral">61.4%</span>
             <span class="callout-label">of all national hospital admissions</span>
@@ -145,23 +149,52 @@
       </div>
     </section>
 
+    <!-- ═══ Explore by Jurisdiction: one filter drives Figure 1 AND Figure 2 ═══ -->
+    <div class="explore-group" id="explore">
+    <div class="section-header-compact explore-group-header">
+      <div class="section-kicker">Interactive &bull; Figures 1 &amp; 2</div>
+      <h2 class="section-heading">Compare States and Territories</h2>
+    </div>
+
     <!-- ── Filters (Apple iOS Segmented Control) ─────────────── -->
     <section id="filters" class="apple-section">
       <div class="filter-wrapper">
         <div class="filter-label-wrap">
-          <span class="filter-headline">Filter by Jurisdiction:</span>
-          <span class="filter-subheadline">Select a state or territory to highlight specific regional trajectories</span>
+          <span class="filter-headline">Filter by Jurisdiction &mdash; updates Figure 1 and Figure 2 below</span>
+          <span class="filter-subheadline">
+            Australia is divided into six states and two territories (together called
+            &ldquo;jurisdictions&rdquo;). Select one to highlight it in Figure 1 and to show only
+            its numbers in Figure 2.
+          </span>
         </div>
-        <div id="filters-container" class="apple-segmented-control" role="tablist">
-          <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">All States</button>
-          <button class="filter-btn" data-filter="NSW" role="tab" aria-selected="false">NSW</button>
-          <button class="filter-btn" data-filter="VIC" role="tab" aria-selected="false">VIC</button>
-          <button class="filter-btn" data-filter="QLD" role="tab" aria-selected="false">QLD</button>
-          <button class="filter-btn" data-filter="WA" role="tab" aria-selected="false">WA</button>
-          <button class="filter-btn" data-filter="SA" role="tab" aria-selected="false">SA</button>
-          <button class="filter-btn" data-filter="TAS" role="tab" aria-selected="false">TAS</button>
-          <button class="filter-btn" data-filter="ACT" role="tab" aria-selected="false">ACT</button>
-          <button class="filter-btn" data-filter="NT" role="tab" aria-selected="false">NT</button>
+        <div id="filters-container" class="apple-segmented-control jurisdiction-control" role="tablist">
+          <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">
+            <span class="filter-code">All</span><span class="filter-name">All of Australia</span>
+          </button>
+          <button class="filter-btn" data-filter="NSW" role="tab" aria-selected="false">
+            <span class="filter-code">NSW</span><span class="filter-name">New South Wales</span>
+          </button>
+          <button class="filter-btn" data-filter="VIC" role="tab" aria-selected="false">
+            <span class="filter-code">VIC</span><span class="filter-name">Victoria</span>
+          </button>
+          <button class="filter-btn" data-filter="QLD" role="tab" aria-selected="false">
+            <span class="filter-code">QLD</span><span class="filter-name">Queensland</span>
+          </button>
+          <button class="filter-btn" data-filter="WA" role="tab" aria-selected="false">
+            <span class="filter-code">WA</span><span class="filter-name">Western Australia</span>
+          </button>
+          <button class="filter-btn" data-filter="SA" role="tab" aria-selected="false">
+            <span class="filter-code">SA</span><span class="filter-name">South Australia</span>
+          </button>
+          <button class="filter-btn" data-filter="TAS" role="tab" aria-selected="false">
+            <span class="filter-code">TAS</span><span class="filter-name">Tasmania</span>
+          </button>
+          <button class="filter-btn" data-filter="ACT" role="tab" aria-selected="false">
+            <span class="filter-code">ACT</span><span class="filter-name">Australian Capital Territory</span>
+          </button>
+          <button class="filter-btn" data-filter="NT" role="tab" aria-selected="false">
+            <span class="filter-code">NT</span><span class="filter-name">Northern Territory</span>
+          </button>
         </div>
       </div>
     </section>
@@ -172,15 +205,15 @@
         <div class="chart-card-header">
           <div>
             <div class="section-kicker">Figure 1 • Empirical Distribution</div>
+            <a href="#filters" class="filter-scope" data-filter-scope>Showing: <strong class="filter-scope-value">All of Australia</strong> <span class="filter-scope-change">Change &uarr;</span></a>
             <h2 class="chart-card-title">Total Hospitalised Injuries by Jurisdiction</h2>
             <p class="chart-card-desc">
-              Comparative volume across Australian states with pre-attentive emphasis
-              applied to the leading jurisdiction following the <em>Muted Baseline + Bold Accent</em> rule.
+              Comparative volume across Australian states and territories. Darker blue means more
+              hospitalisations. Selecting a jurisdiction in the filter highlights it in orange.
             </p>
           </div>
           <div class="chart-legend-box" id="chart-1-legend">
-            <span class="legend-chip"><span class="swatch swatch-accent"></span> Focal Insight (Highest)</span>
-            <span class="legend-chip"><span class="swatch swatch-baseline"></span> Baseline Jurisdictions</span>
+            <span class="legend-chip">Fewer <span class="swatch swatch-gradient"></span> More hospitalisations</span>
           </div>
         </div>
 
@@ -196,10 +229,11 @@
         <div class="chart-card-header">
           <div>
             <div class="section-kicker">Figure 2 • Severity Stratification</div>
+            <a href="#filters" class="filter-scope" data-filter-scope>Showing: <strong class="filter-scope-value">All of Australia</strong> <span class="filter-scope-change">Change &uarr;</span></a>
             <h2 class="chart-card-title">Hospitalisation Trends by Injury Severity</h2>
             <p class="chart-card-desc">
-              National distribution across Minor, Serious, and Critical trauma categories
-              encoded using an accessible, color-blind safe palette (Munzner, 2014).
+              Admissions split into Minor, Serious and Critical injuries for 2015, 2019 and 2023.
+              Shows the whole country, or only the jurisdiction selected in the filter.
             </p>
           </div>
           <div class="chart-legend-box" id="chart-2-legend">
@@ -214,6 +248,7 @@
         </div>
       </div>
     </section>
+    </div><!-- /.explore-group -->
 
     <!-- ── Narrative Conclusion (Apple Card) ─────────────────── -->
     <section id="conclusion" class="apple-section">
@@ -222,25 +257,46 @@
         <h2 class="apple-card-title">Implications for Australia's National Road Safety Strategy</h2>
         <p class="apple-card-text">
           The analysis demonstrates persistent clustering of hospitalised trauma in the
-          most populous eastern seaboard states (NSW, VIC, QLD), where serious and critical
+          most populous eastern seaboard states (New South Wales, Victoria and Queensland), where serious and critical
           injuries represent over 40% of admissions. While absolute fatality counts have
           stabilized due to vehicular crash protection, non-fatal hospitalisations remain elevated.
         </p>
-        <div class="conclusion-highlights">
-          <div class="highlight-item">
-            <span class="highlight-icon">✦</span>
-            <div>
-              <strong>Targeted Vulnerable Road User Infrastructure:</strong>
-              Separated cycling corridors and pedestrian crossings significantly reduce high-severity impacts.
+        <div class="insight-list">
+          <!-- Insight 1: one number, one sentence, one action, one chart -->
+          <article class="insight-row">
+            <div class="insight-text">
+              <div class="insight-kicker">Vulnerable road users</div>
+              <div class="insight-number">4&times;</div>
+              <p class="insight-headline">
+                Once in hospital, <strong>pedestrians are about 4 times more likely to die</strong>
+                than car drivers.
+              </p>
+              <p class="insight-action"><span aria-hidden="true">&rarr;</span> Policy: safer crossings and lower speeds where people walk.</p>
             </div>
-          </div>
-          <div class="highlight-item">
-            <span class="highlight-icon">✦</span>
-            <div>
-              <strong>Regional Emergency Response Timing:</strong>
-              Critical-injury recovery outcomes depend heavily on rapid transit to trauma centers in non-metro areas.
+            <figure class="summary-chart">
+              <figcaption class="summary-chart-title">Deaths per 1,000 hospitalised cases (2011&ndash;2019)</figcaption>
+              <div class="summary-chart-svg" id="summary-chart-road-users"></div>
+              <p class="summary-chart-source">Source: AIHW &bull; <a href="injury-severity.html#mortality-risk">See Figure 5.1</a></p>
+            </figure>
+          </article>
+
+          <!-- Insight 2 -->
+          <article class="insight-row">
+            <div class="insight-text">
+              <div class="insight-kicker">Regional areas</div>
+              <div class="insight-number">+23%</div>
+              <p class="insight-headline">
+                People injured in <strong>regional areas have a 23% higher death rate</strong>
+                in hospital than people in major cities.
+              </p>
+              <p class="insight-action"><span aria-hidden="true">&rarr;</span> Policy: faster transfer to trauma centres outside the cities.</p>
             </div>
-          </div>
+            <figure class="summary-chart">
+              <figcaption class="summary-chart-title">Deaths per 1,000 hospitalised cases (2011&ndash;2021)</figcaption>
+              <div class="summary-chart-svg" id="summary-chart-remoteness"></div>
+              <p class="summary-chart-source">Source: AIHW &bull; <a href="geographic-distribution.html#metro-regional">See Figure 3.2</a></p>
+            </figure>
+          </article>
         </div>
       </div>
     </section>
@@ -303,6 +359,7 @@
   <script src="js/shared-constants.js"></script>
   <script src="js/load-data.js"></script>
   <script src="js/main-narrative.js"></script>
+  <script src="js/summary-charts.js"></script>
 
 </body>
 </html>

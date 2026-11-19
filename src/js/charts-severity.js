@@ -40,9 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     new Vis.BarChart('#chart-mortality-risk', formatted, {
       labelKey: 'user',
       valueKey: 'rate',
-      accentKey: 'Pedestrian',
-      accentColor: '#D55E00',
-      baselineColor: '#888888',
+      gradient: true,
       xLabel: 'Deaths per 1,000 Hospitalised Cases (2011–2019 Baseline)',
       valueLabel: 'Mortality Rate:',
       unit: ' deaths / 1k',
@@ -56,9 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
     new Vis.BarChart('#chart-length-of-stay', formatted, {
       labelKey: 'user',
       valueKey: 'avgBedDays',
-      accentKey: 'Pedestrian',
-      accentColor: '#D55E00',
-      baselineColor: '#888888',
+      gradient: true,
       xLabel: 'Average Inpatient Bed Days per Hospitalised Case',
       valueLabel: 'Average Stay:',
       unit: ' days',

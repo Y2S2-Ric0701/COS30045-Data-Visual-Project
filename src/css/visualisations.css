@@ -25,7 +25,7 @@
 /* ── Axis Styling (Apple Minimalist / Tufte High Data-Ink) ──── */
 .tick text {
   font-family: var(--apple-font);
-  font-size: 11px;
+  font-size: 15px;
   fill: var(--apple-text-secondary);
   font-weight: 400;
   letter-spacing: -0.01em;
@@ -51,8 +51,8 @@
 /* ── Axis Labels ────────────────────────────────────────────── */
 .axis-label {
   font-family: var(--apple-font);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   fill: var(--apple-text-tertiary);
   text-anchor: middle;
   letter-spacing: -0.01em;
@@ -70,8 +70,8 @@
 /* Apple-style callout annotation badge */
 .annotation-text {
   font-family: var(--apple-font);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   fill: var(--apple-accent);
   letter-spacing: -0.01em;
 }
@@ -169,14 +169,14 @@
 .tooltip {
   position: absolute;
   pointer-events: none;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: rgba(29, 29, 31, 0.88); /* Translucent Apple Dark Glass */
   backdrop-filter: saturate(180%) blur(16px);
   -webkit-backdrop-filter: saturate(180%) blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
   font-family: var(--apple-font);
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.45;
   border-radius: var(--apple-radius-md);
   box-shadow: var(--apple-shadow-popover);
@@ -192,7 +192,7 @@
 
 .tooltip-title {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 16px;
   margin-bottom: 3px;
   color: #ffffff;
 }
@@ -220,61 +220,61 @@
    .tick text / .axis-label styles above. Dynamic styling (hover
    fades, tooltip position, data colours) stays in the JS. */
 .vis-chart .tick text {
-  font-size: 11px;
-  fill: #86868b;
+  font-size: 13px;
+  fill: #55555a;
 }
 
 .vis-chart .axis-category .tick text {
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 500;
   fill: #1d1d1f;
 }
 
 .vis-chart .axis-label {
-  font-size: 12px;
-  fill: #86868b;
+  font-size: 13.5px;
+  fill: #55555a;
 }
 
 .vis-chart .axis-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
-  fill: #86868b;
+  fill: #55555a;
 }
 
 .vis-chart .bar-label,
 .vis-chart .lollipop-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   fill: #1d1d1f;
 }
 
 .vis-chart .legend-item text,
 .vis-chart .leg-item text {
-  font-size: 11.5px;
+  font-size: 13.5px;
   fill: #1d1d1f;
 }
 
 .vis-chart .break-label {
-  font-size: 9.5px;
+  font-size: 11px;
   fill: #64748b;
 }
 
 .vis-chart .chart-y-axis-title {
   font-family: var(--apple-font, sans-serif);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   fill: #1d1d1f;
 }
 
 .vis-chart .quad-x-label,
 .vis-chart .quad-y-label {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
-  fill: #94a3b8;
+  fill: #64748b;
 }
 
 .vis-chart .cluster-tag {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
   fill: #64748b;
   cursor: pointer;
@@ -282,7 +282,7 @@
 
 /* Bubble labels: white halo keeps text legible over bubbles and gridlines */
 .vis-chart .bubble-text {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 600;
   paint-order: stroke fill;
   stroke: #ffffff;
@@ -302,4 +302,40 @@
 .vis-chart .bubble-leader,
 .vis-chart .bubble-anchor {
   pointer-events: none;
+}
+
+/* Phones: Overview charts render at true pixel size, so trim axis text a
+   little so the eight state codes fit side by side */
+@media (max-width: 600px) {
+  .tick text { font-size: 13px; }
+  #chart-1 .tick text { font-size: 12px; }
+  .axis-label { font-size: 14px; }
+}
+
+/* ── Small screens: keep component charts legible ──────────────
+   Charts built by vis-components.js use a fixed 850px viewBox. On narrow
+   screens they would shrink until the text is unreadable, so give them a
+   minimum width and let the reader swipe sideways instead. */
+@media (max-width: 760px) {
+  .responsive-svg-container:has(> svg.vis-chart) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .responsive-svg-container > svg.vis-chart {
+    min-width: 680px;
+  }
+  .responsive-svg-container:has(> svg.vis-chart)::before {
+    content: "\2194  Swipe sideways to see the full chart";
+    position: sticky;
+    left: 0;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--apple-text-secondary);
+  }
+  .tooltip {
+    white-space: normal;
+    max-width: calc(100vw - 24px);
+  }
 }
