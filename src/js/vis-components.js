@@ -12,6 +12,8 @@
    - LineChart: Multi-series trajectories with break annotations.
    - BubbleChart: Multi-dimensional scatter/bubble component.
    - HeatmapChart: 2D correlation matrix with sequential luminance.
+   - DumbbellChart: Before → after change per category.
+   - DonutChart: Part-to-whole for a few categories.
    ═══════════════════════════════════════════════════════════════ */
 
 (function (global) {
@@ -298,7 +300,9 @@
             .call(update => update.transition().duration(vis.config.duration)
               .attr('y', d => vis.yScale(d.label))
               .attr('height', vis.yScale.bandwidth())
-              .attr('width', d => vis.xScale(d.value))),
+              .attr('width', d => vis.xScale(d.value))
+              .attr('fill', d => vis.barFill(d))
+              .attr('opacity', d => vis.barOpacity(d))),
           exit => exit.remove()
         )
         .on('mouseenter', function (event, d) {
@@ -1277,6 +1281,213 @@
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // 7. SUBCLASS: DumbbellChart (Before → After change per category)
+  // Each row joins a "start" dot to an "end" dot, so the line length
+  // is the size of the change and the label gives the % change.
+  // ═══════════════════════════════════════════════════════════════
+  class DumbbellChart extends BaseChart {
+    constructor(parentElement, data, config = {}) {
+      super(parentElement, data, Object.assign({
+        labelKey: 'label',
+        startKey: 'start',
+        endKey: 'end',
+        startLabel: 'Start',
+        endLabel: 'End',
+        startColor: '#94a3b8',
+        endColor: '#0072B2',
+        upColor: '#D55E00',     // more injuries = worse → warm colour
+        downColor: '#009E73',   // fewer injuries = better → green
+        xLabel: 'Hospitalisations',
+        autoFitLabels: true,
+        height: 360,
+      }, config, {
+        margin: Object.assign({ top: 50, right: 90, bottom: 50, left: 140 }, config.margin || {}),
+      }));
+    }
+
+    wrangleData(newData) {
+      if (newData) this.rawData = newData;
+      const vis = this;
+      vis.displayData = vis.rawData.map(d => {
+        const start = +d[vis.config.startKey] || 0;
+        const end = +d[vis.config.endKey] || 0;
+        return { label: String(d[vis.config.labelKey]), start, end, change: start ? (end - start) / start : 0 };
+      }).sort((a, b) => b.change - a.change);   // biggest increase at the top
+      vis.renderVis();
+    }
+
+    renderVis() {
+      const vis = this;
+      const c = vis.config;
+      const fmtChange = d => `${d.change >= 0 ? '+' : '−'}${fmtPercent(Math.abs(d.change))}`;
+
+      vis.yScale = d3.scaleBand().domain(vis.displayData.map(d => d.label)).range([0, vis.innerHeight]).padding(0.5);
+      vis.xScale = d3.scaleLinear()
+        .domain([0, d3.max(vis.displayData, d => Math.max(d.start, d.end)) * 1.08]).nice()
+        .range([0, vis.innerWidth]);
+
+      vis.gridG.call(d3.axisBottom(vis.xScale).ticks(6).tickSize(vis.innerHeight).tickFormat(''))
+        .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
+      vis.gridG.select('.domain').remove();
+
+      vis.yAxisG.classed('axis-category', true)
+        .call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12))
+        .call(g => g.select('.domain').remove());
+
+      vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
+        .call(d3.axisBottom(vis.xScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d));
+      vis.xAxisG.selectAll('.axis-label').data([c.xLabel]).join('text')
+        .attr('class', 'axis-label').attr('x', vis.innerWidth / 2).attr('y', 40)
+        .attr('text-anchor', 'middle').text(d => d);
+
+      const cy = d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2;
+      const rows = vis.plotG.selectAll('.dumbbell-row').data(vis.displayData, d => d.label).join('g')
+        .attr('class', 'dumbbell-row');
+
+      rows.selectAll('*').remove();
+      rows.append('line')
+        .attr('x1', d => vis.xScale(d.start)).attr('x2', d => vis.xScale(d.end))
+        .attr('y1', cy).attr('y2', cy)
+        .attr('stroke', d => d.change >= 0 ? c.upColor : c.downColor)
+        .attr('stroke-width', 4).attr('stroke-opacity', 0.45).attr('stroke-linecap', 'round');
+      rows.append('circle').attr('cx', d => vis.xScale(d.start)).attr('cy', cy).attr('r', 7)
+        .attr('fill', c.startColor).attr('stroke', '#ffffff').attr('stroke-width', 2);
+      rows.append('circle').attr('cx', d => vis.xScale(d.end)).attr('cy', cy).attr('r', 8)
+        .attr('fill', c.endColor).attr('stroke', '#ffffff').attr('stroke-width', 2);
+      rows.append('text').attr('class', 'bar-label')
+        .attr('x', d => vis.xScale(Math.max(d.start, d.end)) + 14).attr('y', d => cy(d) + 4)
+        .style('fill', d => d.change >= 0 ? c.upColor : c.downColor)
+        .text(fmtChange);
+
+      // Wide invisible hit area per row so the tooltip is easy to trigger
+      rows.append('rect')
+        .attr('x', -vis.config.margin.left).attr('width', vis.innerWidth + vis.config.margin.left)
+        .attr('y', d => vis.yScale(d.label) - vis.yScale.step() * vis.yScale.paddingInner() / 2)
+        .attr('height', vis.yScale.step()).attr('fill', 'transparent')
+        .on('mouseenter', function (event, d) {
+          d3.select(this.parentNode).select('line').attr('stroke-opacity', 0.9);
+          vis.tooltip.classed('visible', true).html(`
+            <div class="tooltip-title">${d.label}</div>
+            <div class="tooltip-row"><span>${c.startLabel}:</span> <span class="tooltip-val">${fmtComma(d.start)}</span></div>
+            <div class="tooltip-row"><span>${c.endLabel}:</span> <span class="tooltip-val">${fmtComma(d.end)}</span></div>
+            <div class="tooltip-row"><span>Change:</span> <span class="tooltip-accent">${d.end - d.start >= 0 ? '+' : '−'}${fmtComma(Math.abs(d.end - d.start))} (${fmtChange(d)})</span></div>
+          `);
+        })
+        .on('mousemove', event => vis.tooltip.style('left', `${event.pageX + 14}px`).style('top', `${event.pageY - 28}px`))
+        .on('mouseleave', function () {
+          d3.select(this.parentNode).select('line').attr('stroke-opacity', 0.45);
+          vis.tooltip.classed('visible', false);
+        });
+
+      // Legend (top-left): start dot, end dot
+      vis.legendG.attr('transform', `translate(${vis.config.margin.left}, 18)`).selectAll('*').remove();
+      [[c.startLabel, c.startColor], [c.endLabel, c.endColor]].forEach(([label, color], i) => {
+        const item = vis.legendG.append('g').attr('transform', `translate(${i * 90}, 0)`);
+        item.append('circle').attr('cx', 6).attr('cy', 6).attr('r', 6).attr('fill', color);
+        item.append('text').attr('x', 18).attr('y', 10).attr('class', 'legend-text')
+          .style('font-size', '12px').style('fill', '#1d1d1f').text(label);
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 8. SUBCLASS: DonutChart (Part-to-whole for a few categories)
+  // Donut on the left with the total in the centre; a value table on
+  // the right doubles as the legend so no label has to fit in a slice.
+  // ═══════════════════════════════════════════════════════════════
+  class DonutChart extends BaseChart {
+    constructor(parentElement, data, config = {}) {
+      super(parentElement, data, Object.assign({
+        labelKey: 'label',
+        valueKey: 'value',
+        colorMap: {},
+        descMap: {},            // optional one-line explanation per category
+        extraRows: null,        // d => [[label, value], …] extra tooltip rows
+        centerLabel: 'Total',
+        height: 380,
+      }, config, { margin: { top: 20, right: 20, bottom: 20, left: 20 } }));
+    }
+
+    wrangleData(newData) {
+      if (newData) this.rawData = newData;
+      const vis = this;
+      vis.displayData = vis.rawData.map(d => ({
+        label: String(d[vis.config.labelKey]), value: +d[vis.config.valueKey] || 0, raw: d,
+      }));
+      vis.total = d3.sum(vis.displayData, d => d.value);
+      vis.renderVis();
+    }
+
+    renderVis() {
+      const vis = this;
+      const c = vis.config;
+      const r = Math.min(vis.innerHeight / 2, 170);
+      const cx = r + 10, cyy = vis.innerHeight / 2;
+      const color = d => c.colorMap[d.label] || '#94a3b8';
+
+      vis.plotG.selectAll('*').remove();
+      vis.annotationsG.selectAll('*').remove();
+
+      const pie = d3.pie().value(d => d.value).sort(null).padAngle(0.012);
+      const arc = d3.arc().innerRadius(r * 0.6).outerRadius(r).cornerRadius(3);
+      const arcHover = d3.arc().innerRadius(r * 0.6).outerRadius(r + 8).cornerRadius(3);
+      const donut = vis.plotG.append('g').attr('transform', `translate(${cx},${cyy})`);
+
+      const showTip = (event, d) => {
+        const extra = c.extraRows ? c.extraRows(d.raw).map(([k, v]) =>
+          `<div class="tooltip-row"><span>${k}:</span> <span class="tooltip-val">${v}</span></div>`).join('') : '';
+        vis.tooltip.classed('visible', true).html(`
+          <div class="tooltip-title">${d.label}</div>
+          <div class="tooltip-row"><span>Hospitalised:</span> <span class="tooltip-val">${fmtComma(d.value)}</span></div>
+          <div class="tooltip-row"><span>Share:</span> <span class="tooltip-accent">${fmtPercent(d.value / vis.total)}</span></div>
+          ${extra}`);
+      };
+      const moveTip = event => vis.tooltip.style('left', `${event.pageX + 14}px`).style('top', `${event.pageY - 28}px`);
+      const highlight = (label, on) => {
+        donut.selectAll('path').attr('d', p => (on && p.data.label === label ? arcHover : arc)(p))
+          .attr('opacity', p => (!on || p.data.label === label) ? 1 : 0.45);
+      };
+
+      donut.selectAll('path').data(pie(vis.displayData)).join('path')
+        .attr('d', arc).attr('fill', p => color(p.data)).attr('stroke', '#ffffff').attr('stroke-width', 1.5)
+        .style('cursor', 'pointer')
+        .on('mouseenter', (event, p) => { highlight(p.data.label, true); showTip(event, p.data); })
+        .on('mousemove', moveTip)
+        .on('mouseleave', () => { highlight(null, false); vis.tooltip.classed('visible', false); });
+
+      // Share labels on slices big enough to hold them
+      donut.selectAll('.slice-pct').data(pie(vis.displayData).filter(p => p.endAngle - p.startAngle > 0.35)).join('text')
+        .attr('class', 'slice-pct').attr('transform', p => `translate(${d3.arc().innerRadius(r * 0.8).outerRadius(r * 0.8).centroid(p)})`)
+        .attr('text-anchor', 'middle').attr('dy', '0.35em').style('pointer-events', 'none')
+        .style('font-size', '13px').style('font-weight', '700').style('fill', '#ffffff')
+        .text(p => fmtPercent(p.data.value / vis.total));
+
+      donut.append('text').attr('text-anchor', 'middle').attr('y', -6)
+        .style('font-size', '26px').style('font-weight', '700').style('fill', '#1d1d1f').text(fmtComma(vis.total));
+      donut.append('text').attr('text-anchor', 'middle').attr('y', 16)
+        .style('font-size', '12px').style('fill', '#55555a').text(c.centerLabel);
+
+      // Value table / legend on the right
+      const tx = cx + r + 50, rowH = 64;
+      const table = vis.annotationsG.append('g')
+        .attr('transform', `translate(${tx},${cyy - (vis.displayData.length * rowH) / 2 + 14})`);
+      const rows = table.selectAll('g').data(vis.displayData).join('g')
+        .attr('transform', (d, i) => `translate(0,${i * rowH})`).style('cursor', 'pointer')
+        .on('mouseenter', (event, d) => { highlight(d.label, true); showTip(event, d); })
+        .on('mousemove', moveTip)
+        .on('mouseleave', () => { highlight(null, false); vis.tooltip.classed('visible', false); });
+      rows.append('rect').attr('x', -6).attr('y', -18).attr('width', vis.innerWidth - tx + 6).attr('height', rowH - 6)
+        .attr('fill', 'transparent');
+      rows.append('rect').attr('y', -11).attr('width', 12).attr('height', 12).attr('rx', 3).attr('fill', color);
+      rows.append('text').attr('x', 20).attr('y', 0)
+        .style('font-size', '14px').style('font-weight', '600').style('fill', '#1d1d1f')
+        .text(d => `${d.label}  ·  ${fmtComma(d.value)} (${fmtPercent(d.value / vis.total)})`);
+      rows.append('text').attr('x', 20).attr('y', 19)
+        .style('font-size', '12px').style('fill', '#55555a').text(d => c.descMap[d.label] || '');
+    }
+  }
+
   // ── Global Export Namespace ──────────────────────────────────
   global.Vis = {
     barGradient,
@@ -1286,6 +1497,8 @@
     StackedBarChart,
     LineChart,
     BubbleChart,
+    DumbbellChart,
+    DonutChart,
   };
 
 })(typeof window !== 'undefined' ? window : this);

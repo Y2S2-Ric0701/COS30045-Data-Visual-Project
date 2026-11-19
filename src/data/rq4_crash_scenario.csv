@@ -1,0 +1,5 @@
+scenario,hospitalisations,cases,died_cases,bed_days
+Traffic,410884,413013,2129,2018891
+Non-traffic,169963,170235,272,583473
+Unknown traffic,63848,64016,168,281918
+Other transport,18328,18374,46,76797

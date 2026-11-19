@@ -546,6 +546,37 @@ a.hero-chip:hover {
   color: var(--apple-text-primary);
 }
 
+/* Year range slider (Figure 1.1) */
+.year-slider {
+  margin: 0 0 8px;
+}
+
+.year-slider-value {
+  color: var(--apple-blue);
+}
+
+#age-year-slider svg {
+  display: block;
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  touch-action: pan-y;  /* horizontal finger drags move the buttons; vertical still scrolls */
+}
+
+/* Apple-style thumb: white circle, soft layered shadow, grows slightly while held */
+#age-year-slider .year-knob-thumb {
+  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.12)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.16));
+  transition: transform var(--apple-transition-fast);
+}
+#age-year-slider .year-knob:active .year-knob-thumb {
+  transform: scale(1.1);
+}
+#age-year-slider .year-knob:focus { outline: none; }
+#age-year-slider .year-knob:focus-visible .year-knob-ring {
+  stroke: rgba(0, 113, 227, 0.45);
+  stroke-width: 4;
+}
+
 .apple-segmented-control {
   display: inline-flex;
   align-self: flex-start;

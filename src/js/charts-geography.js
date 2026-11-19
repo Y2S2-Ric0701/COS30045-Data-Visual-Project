@@ -27,139 +27,153 @@
   const fmtDec1 = d3.format('.1f');
 
   // ═══════════════════════════════════════════════════════════════
-  // FIGURE 3.1: State and Territory Comparison (2021 Volume)
+  // FIGURE 3.1: State and Territory Heat Map (2021 Volume)
+  // Choropleth: each state is shaded by its 2021 hospitalisations
+  // (light blue = fewer, dark blue = more), using the site-wide gradient.
   // ═══════════════════════════════════════════════════════════════
-  function renderStateChart(containerId, dataPath) {
+  function renderStateChart(containerId, dataPath, geoPath) {
     const container = d3.select(containerId);
     if (container.empty()) return;
     container.selectAll('*').remove();
 
-    d3.csv(dataPath).then(function (rawData) {
+    Promise.all([d3.csv(dataPath), d3.json(geoPath)]).then(function ([rawData, geo]) {
       const row2021 = rawData.find(d => +d.year === 2021);
       if (!row2021) return;
 
-      const states = ['VIC', 'QLD', 'NSW', 'WA', 'SA', 'TAS', 'NT', 'ACT'];
-      const data = states.map(st => ({
-        state: st,
-        cases: +row2021[st] || 0,
-      })).sort((a, b) => b.cases - a.cases);
+      const cases = new Map(Object.keys(STATE_NAMES).map(st => [st, +row2021[st] || 0]));
+      const totalCases = +row2021.Total || d3.sum([...cases.values()]);
+      const rank = new Map([...cases.entries()].sort((a, b) => b[1] - a[1]).map(([st], i) => [st, i + 1]));
 
-      const totalCases = +row2021.Total || d3.sum(data, d => d.cases);
-
-      // Wide left margin: labels read "Australian Capital Territory (ACT)"
-      const margin = { top: 25, right: 110, bottom: 45, left: 250 };
       const width = 850;
-      const height = 380;
-      const innerWidth = width - margin.left - margin.right;
-      const innerHeight = height - margin.top - margin.bottom;
+      const height = 600;
+      const mapBox = [[20, 20], [700, 530]];   // leaves room on the right for the ACT call-out
 
       const svg = container.append('svg')
         .attr('viewBox', `0 0 ${width} ${height}`)
         .attr('preserveAspectRatio', 'xMidYMid meet')
         .attr('role', 'img')
-        .attr('aria-label', 'Bar chart of 2021 hospitalisations by Australian state and territory');
+        .attr('aria-label', 'Heat map of Australia: 2021 hospitalisations by state and territory. ' +
+          [...cases.entries()].sort((a, b) => b[1] - a[1])
+            .map(([st, v]) => `${STATE_NAMES[st]} ${fmtComma(v)}`).join(', '));
 
-      const g = svg.append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
+      const projection = d3.geoMercator().fitExtent(mapBox, geo);
+      const path = d3.geoPath(projection);
 
-      const y = d3.scaleBand()
-        .domain(data.map(d => d.state))
-        .range([0, innerHeight])
-        .padding(0.28);
+      const [cMin, cMax] = d3.extent([...cases.values()]);
+      const color = Vis.barGradient([cMin, cMax]);
+      // White text on the darker half of the scale, dark text on the lighter half
+      const textOn = v => ((v - cMin) / (cMax - cMin || 1)) > 0.45 ? '#ffffff' : '#1d1d1f';
 
-      const x = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.cases) * 1.15])
-        .nice()
-        .range([0, innerWidth]);
+      const statesG = svg.append('g').attr('class', 'map-states');
 
-      // Grid
-      g.append('g')
-        .attr('class', 'grid')
-        .call(d3.axisBottom(x).ticks(6).tickSize(innerHeight).tickFormat(''))
-        .selectAll('line')
-        .attr('stroke', 'rgba(0,0,0,0.06)')
-        .attr('stroke-dasharray', '2 4');
+      const showTip = (event, d) => {
+        const st = d.properties.code;
+        const v = cases.get(st);
+        tooltip.classed('visible', true).html(`
+          <div class="tooltip-title">${stateLabel(st)}, 2021</div>
+          <div class="tooltip-row"><span>Admissions:</span> <span class="tooltip-val">${fmtComma(v)}</span></div>
+          <div class="tooltip-row"><span>National Share:</span> <span class="tooltip-accent">${fmtPercent(v / totalCases)}</span></div>
+          <div class="tooltip-row"><span>Rank:</span> <span class="tooltip-val">${rank.get(st)} of 8</span></div>
+        `);
+      };
+      const moveTip = event => {
+        tooltip.style('left', `${event.pageX + 14}px`).style('top', `${event.pageY - 28}px`);
+      };
+      const hideTip = () => tooltip.classed('visible', false);
 
-      // Y-axis
-      g.append('g')
-        .attr('class', 'y-axis')
-        .call(d3.axisLeft(y).tickSize(0).tickPadding(10).tickFormat(stateLabel))
-        .selectAll('text')
-        .style('font-size', '13.5px')
-        .style('font-weight', '600')
-        .style('fill', '#1d1d1f');
-
-      // X-axis
-      g.append('g')
-        .attr('class', 'x-axis')
-        .attr('transform', `translate(0,${innerHeight})`)
-        .call(d3.axisBottom(x).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d))
-        .selectAll('text')
-        .style('font-size', '11px')
-        .style('fill', '#86868b');
-
-      g.append('text')
-        .attr('class', 'axis-label')
-        .attr('x', innerWidth / 2)
-        .attr('y', innerHeight + 38)
-        .attr('text-anchor', 'middle')
-        .style('fill', '#86868b')
-        .style('font-size', '12px')
-        .text('Hospitalised Injuries (2021)');
-
-      // Sequential gradient by volume (light = fewer, dark = more)
-      const [sMin, sMax] = d3.extent(data, d => d.cases);
-      const stateGradient = Vis.barGradient([sMin, sMax]);
-
-      // Bars
-      const bars = g.selectAll('.bar-state')
-        .data(data)
-        .enter()
-        .append('rect')
-        .attr('class', 'bar bar-state')
-        .attr('y', d => y(d.state))
-        .attr('x', 0)
-        .attr('height', y.bandwidth())
-        .attr('rx', 4)
-        .attr('width', 0)
-        .attr('fill', d => stateGradient(d.cases));
-
-      bars.transition()
-        .duration(800)
-        .ease(d3.easeCubicOut)
-        .attr('width', d => x(d.cases));
-
-      // Labels
-      g.selectAll('.label-state')
-        .data(data)
-        .enter()
-        .append('text')
-        .attr('y', d => y(d.state) + y.bandwidth() / 2 + 4)
-        .attr('x', d => x(d.cases) + 8)
-        .style('font-size', '11px')
-        .style('font-weight', '600')
-        .style('fill', '#1d1d1f')
-        .text(d => `${fmtComma(d.cases)} (${fmtPercent(d.cases / totalCases)})`);
-
-      // Tooltip
-      bars
-        .on('mouseenter', function (event, d) {
-          tooltip.classed('visible', true)
-            .html(`
-              <div class="tooltip-title">${stateLabel(d.state)}, 2021</div>
-              <div class="tooltip-row"><span>Admissions:</span> <span class="tooltip-val">${fmtComma(d.cases)}</span></div>
-              <div class="tooltip-row"><span>National Share:</span> <span class="tooltip-accent">${fmtPercent(d.cases / totalCases)}</span></div>
-            `);
+      statesG.selectAll('path')
+        .data(geo.features)
+        .join('path')
+        .attr('class', 'map-state')
+        .attr('d', path)
+        .attr('fill', d => color(cases.get(d.properties.code)))
+        .attr('stroke', '#ffffff')
+        .attr('stroke-width', 1.2)
+        .attr('stroke-linejoin', 'round')
+        .attr('tabindex', 0)
+        .attr('aria-label', d => `${stateLabel(d.properties.code)}: ${fmtComma(cases.get(d.properties.code))} hospitalisations in 2021`)
+        .style('cursor', 'pointer')
+        .on('mouseenter focus', function (event, d) {
+          d3.select(this).raise().attr('stroke', '#1d1d1f').attr('stroke-width', 2);
+          labelsG.raise();
+          showTip(event, d);
+          if (event.type === 'focus') {
+            const [x, y] = path.centroid(d);
+            const box = svg.node().getBoundingClientRect();
+            const k = box.width / width;
+            tooltip.style('left', `${box.left + window.scrollX + x * k + 14}px`)
+              .style('top', `${box.top + window.scrollY + y * k - 28}px`);
+          }
         })
-        .on('mousemove', function (event) {
-          tooltip
-            .style('left', `${event.pageX + 14}px`)
-            .style('top', `${event.pageY - 28}px`);
-        })
-        .on('mouseleave', function () {
-          tooltip.classed('visible', false);
+        .on('mousemove', moveTip)
+        .on('mouseleave blur', function () {
+          d3.select(this).attr('stroke', '#ffffff').attr('stroke-width', 1.2);
+          hideTip();
         });
-    });
+
+      // ── Labels: abbreviation + count + share inside each state ──
+      // Mainland centroids land off-centre for a few states, so nudge them.
+      // ACT and VIC are too small to hold the text, so they get call-out
+      // lines into the open space east of the coast; TAS is labelled beside the island.
+      const nudge = { NSW: [-12, 8], QLD: [10, 25], WA: [0, 10], SA: [0, -15], NT: [0, 0] };
+      const callouts = { ACT: -14, VIC: 40 };   // vertical offset of the call-out text from the centroid
+      const labelsG = svg.append('g').attr('class', 'map-labels').style('pointer-events', 'none');
+
+      const twoLineLabel = (x, y, anchor, fill, st, v) => {
+        const t = labelsG.append('text').attr('text-anchor', anchor).attr('fill', fill);
+        t.append('tspan').attr('x', x).attr('y', y - 4)
+          .style('font-size', '15px').style('font-weight', '700').text(st);
+        t.append('tspan').attr('x', x).attr('dy', 17)
+          .style('font-size', '12.5px').style('font-weight', '600')
+          .text(`${fmtComma(v)} · ${fmtPercent(v / totalCases)}`);
+      };
+
+      geo.features.forEach(f => {
+        const st = f.properties.code;
+        const v = cases.get(st);
+        const [cx, cy] = path.centroid(f);
+
+        if (st in callouts) {
+          const tx = 745, ty = cy + callouts[st];
+          labelsG.append('path')
+            .attr('d', `M${cx},${cy} L${cx + 30},${ty} L${tx - 6},${ty}`)
+            .attr('fill', 'none').attr('stroke', '#1d1d1f').attr('stroke-width', 1);
+          labelsG.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 3.5)
+            .attr('fill', '#1d1d1f').attr('stroke', '#ffffff').attr('stroke-width', 1.5);
+          twoLineLabel(tx, ty + 1, 'start', '#1d1d1f', st, v);
+          return;
+        }
+        if (st === 'TAS') {
+          const [[, y0], [x1, y1]] = path.bounds(f);
+          twoLineLabel(x1 + 12, (y0 + y1) / 2, 'start', '#1d1d1f', st, v);
+          return;
+        }
+        const [dx, dy] = nudge[st] || [0, 0];
+        twoLineLabel(cx + dx, cy + dy, 'middle', textOn(v), st, v);
+      });
+
+      // ── Legend: continuous gradient bar with tick values ──
+      const legendW = 320;
+      const legendX = (mapBox[0][0] + mapBox[1][0]) / 2 - legendW / 2;
+      const legendY = 552;
+      const gradId = 'state-heat-gradient';
+      const grad = svg.append('defs').append('linearGradient').attr('id', gradId);
+      d3.range(0, 1.01, 0.1).forEach(t => {
+        grad.append('stop').attr('offset', `${t * 100}%`).attr('stop-color', color(cMin + t * (cMax - cMin)));
+      });
+
+      const legend = svg.append('g').attr('class', 'map-legend').attr('transform', `translate(${legendX},${legendY})`);
+      legend.append('text').attr('x', legendW / 2).attr('y', -8).attr('text-anchor', 'middle')
+        .style('font-size', '12px').style('fill', '#55555a')
+        .text('Hospitalised injuries, 2021 (darker = more)');
+      legend.append('rect').attr('width', legendW).attr('height', 12).attr('rx', 3).attr('fill', `url(#${gradId})`);
+      const lx = d3.scaleLinear().domain([cMin, cMax]).range([0, legendW]);
+      legend.append('g').attr('transform', 'translate(0,12)')
+        .call(d3.axisBottom(lx).tickValues([cMin, (cMin + cMax) / 2, cMax]).tickSize(5)
+          .tickFormat(d => fmtComma(Math.round(d))))
+        .call(g => g.select('.domain').remove())
+        .selectAll('text').style('font-size', '11px').style('fill', '#55555a');
+    }).catch(err => console.error('Error loading Figure 3.1 data:', err));
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -452,7 +466,7 @@
   // INITIALIZE ON DOM READY
   // ═══════════════════════════════════════════════════════════════
   document.addEventListener('DOMContentLoaded', function () {
-    renderStateChart('#chart-state-territory', 'data/rq3_states.csv');
+    renderStateChart('#chart-state-territory', 'data/rq3_states.csv', 'data/australia_states.geojson');
     renderRemotenessChart('#chart-metro-regional', 'data/rq3_remoteness.csv');
     renderStateTrendsChart('#chart-geographic-distribution', 'data/rq3_states.csv');
   });

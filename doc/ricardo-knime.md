@@ -1,8 +1,8 @@
 # Changes on `ricardo-knime`: readability, colour, responsive and summary update
 
 This file lists what changed on the site in this round, why it changed, and where the code is.
-It covers four rounds of feedback: readability and responsiveness; chart interaction and colour;
-the Overview page structure and summary charts; and a final clarity pass.
+It covers five rounds of feedback: readability and responsiveness; chart interaction and colour;
+the Overview page structure and summary charts; a clarity pass; and new chart types and filters.
 
 ---
 
@@ -90,8 +90,8 @@ solid colour (orange `#D55E00`) and every other bar fades out.
 |---|---|---|
 | Overview Fig. 1: Injuries by Jurisdiction | Orange top bar + grey bars | Gradient. A filtered state turns solid orange and the others fade |
 | 1.1 Age Group | Gradient (round 1) | Same gradient range as all the others |
-| 2.2 Injury Count | Gradient (narrow range) | Shared higher-contrast gradient |
-| 3.1 State and Territory | Gradient (narrow range) | Shared higher-contrast gradient |
+| 2.2 Injury Count | Gradient (narrow range) | Shared higher-contrast gradient (replaced by a dumbbell chart in round 5, item 21) |
+| 3.1 State and Territory | Gradient (narrow range) | Shared higher-contrast gradient (now a heat map, round 5, item 17) |
 | 3.2 Metro vs Regional | Gradient (narrow range) | Shared higher-contrast gradient |
 | 5.1 Mortality Rate | Orange Pedestrian bar + grey bars | Gradient (Pedestrian is still the darkest) |
 | 5.2 Length of Stay | Orange Pedestrian bar + grey bars | Gradient |
@@ -212,6 +212,8 @@ A **Sort by: Age group | Total number** switch was added above the chart.
 
 ### 15. Figure 3.1: abbreviations shown with full names
 
+*Superseded in round 5: Figure 3.1 is now a map (item 17). The full names moved into its tooltip.*
+
 The y-axis labels now read **"Victoria (VIC)"**, **"Australian Capital Territory (ACT)"** and so on, and
 the tooltip title matches. The left margin was widened to fit them. Figure 3.3's hover tooltip uses the
 same name list (`STATE_NAMES` in `charts-geography.js`).
@@ -230,6 +232,112 @@ scroll stops, so the reader knows where to look.
 - **Code:** `initJumpHighlight()` in `src/js/layout.js` and `.jump-highlight` in `src/css/base.css`. The
   script waits for the smooth scroll to finish before starting the glow.
 
+## Round 5: New chart types and year filters
+
+### 17. Figure 3.1: heat map of Australia
+
+**Before:** a bar chart of 2021 hospitalisations by state and territory.
+
+**After:** a choropleth map in which each state and territory is shaded by its 2021 count (light blue =
+fewer, dark blue = more), using the shared `Vis.barGradient()` scale.
+- **Labels:** each state shows its code, count and national share. ACT and VIC are too small for text, so
+  they get a call-out line into the sea east of the coast. The TAS label sits beside the island.
+- **Legend:** a gradient bar under the map, from 710 (NT) to 11,130 (VIC).
+- **Hover or Tab key:** the tooltip shows the full name, count, national share and rank out of 8.
+- **Map file:** `src/data/australia_states.geojson` (129 KB). It is a public Australian states GeoJSON,
+  simplified, with offshore islands such as Lord Howe removed so the map isn't stretched.
+- **Caveat for the report:** the map shades raw counts, so states with more people look darker. A rate
+  per 100,000 people would be fairer, but the dataset has no population figures.
+
+### 18. Figure 1.1: drag buttons to filter by years
+
+A simple range slider sits under the Sort switch: **"Years: 2011–2021"**, a track with two round buttons,
+and the year labels underneath.
+- **Drag a button** to move that end of the range. The buttons snap to whole years, and one can't be
+  dragged past the other.
+- **One year only:** drag either button onto the other one, for example the end button onto 2011.
+- **Moving a single year:** when both buttons sit on the same year they act as one button, so one drag
+  moves the view straight from 2011 to 2013, with no 2011–2013 step in between.
+- **Click the track or a year label** to move the nearer button there. From "2013 only", clicking 2016
+  widens the range to 2013–2016.
+- **Keyboard:** Tab to a button, then ← → moves it one year, and Home / End jump to 2011 / 2021. If a move
+  would cross the other button, both move together. Screen readers announce each button as a slider.
+- **Live update:** the age chart, the "Years:" label and the x-axis title change while dragging.
+- **Apple-style look:** the buttons copy the macOS / iOS slider: a plain white circle with a soft shadow
+  that grows slightly while held, on a thin light-grey track with the selected range in Apple system blue
+  (`--apple-blue`, #0071e3). A blue ring shows which button has keyboard focus.
+- **Data:** `src/data/rq1_age_group_by_year.csv`, from Table 3 (age group by year) of the AIHW workbook.
+  All years together match the old totals exactly. The readout total is 1 lower than the age-group sum
+  because one 2014 case has an unknown age.
+- **Chart type:** still a bar chart. A filter shows one period at a time, and comparing 7 age groups at
+  one point in time is what bars do best. To show change across years, a line chart or an age × year
+  heatmap would be better.
+- **History:** a year dropdown came first, then a drag-across timeline (D3 brush), then a slider with
+  mini bars, a hint line and a reset button. It was cut down to just the slider and year labels so it
+  reads at a glance.
+
+### 19. Chart type check: 9 types across the five question pages
+
+| Question | Figures | Chart types |
+|---|---|---|
+| Q1 Who | 1.1, 1.2, 1.3 | Bar (with year range slider), stacked bar, lollipop |
+| Q2 Trends | 2.1, 2.2, 2.3 | Multi-line, **dumbbell** (new), stacked bar |
+| Q3 Where | 3.1, 3.2, 3.3 | **Choropleth map** (new), bar, multi-line |
+| Q4 Crash | 4.1, 4.2, 4.3 | 100% stacked bar, heatmap, **donut** (new) |
+| Q5 Severity | 5.1, 5.2, 5.3 | Bar, bar, bubble |
+
+The nine types are bar, stacked bar, lollipop, line, choropleth map, heatmap, bubble, dumbbell and donut.
+
+### 20. Figure 4.3 was a copy of Figure 4.1, now a donut chart of crash scenario
+
+**Before:** `charts-characteristics.js` drew the Figure 4.1 counterparty chart a second time as a
+placeholder, even though the caption promised "traffic vs non-traffic".
+
+**After:** a donut chart of where the 663,023 transport crash cases (2011–2021) happened, from the
+"Cause of injury" column of the AIHW raw sheet (`src/data/rq4_crash_scenario.csv`):
+
+| Scenario | Cases | Share | Meaning (AIHW data dictionary) |
+|---|---|---|---|
+| Traffic | 410,884 | 62.0% | On a public road. This is the data every other figure uses |
+| Non-traffic | 169,963 | 25.6% | Road vehicle crash off a public road |
+| Unknown traffic | 63,848 | 9.6% | Road setting not recorded |
+| Other transport | 18,328 | 2.8% | Water, air and other transport (ICD V90–V99) |
+
+- **Total in the centre,** with a value table on the right that doubles as the legend.
+- **Hover** a slice or a table row: it shows deaths per 1,000 cases and average bed days.
+- **Point for the report:** the site covers public-road crashes only, which is about 62% of transport
+  crash hospitalisations.
+
+### 21. Figure 2.2: dumbbell chart, 2011 vs 2021
+
+**Before:** the caption said "counts and rates over time", and the code worked out the % change, but the
+chart only plotted 2021 counts.
+
+**After:** each road user has a grey dot for 2011 and a blue dot for 2021, joined by a line. The label gives
+the % change, orange for an increase and green for a decrease, and rows are sorted by change:
+pedal cyclists +51.4%, car drivers +21.7%, motorcyclists +17.4%, car passengers −7.4%, pedestrians −15.3%.
+Hovering shows both counts and the change.
+
+### 22. Figure 4.2: tidier heatmap and clearer wording
+
+- **Title:** "Counterparty" → **"What Each Road User Collided With"**.
+- **Description:** explains that each row adds to 100%, and states the two main findings: pedestrians were
+  almost always hit by a car, ute or van (88%), and over 40% of motorcyclist and cyclist injuries involved
+  no other vehicle.
+- **Column headers:** moved to the top, horizontal and in plain words ("Car, ute or van", "Fixed object
+  (tree, pole)", "Not recorded"). Before, they were tilted labels under the chart.
+- **Cases column:** each row shows its total number of cases on the right.
+- **Largest share outlined:** the biggest cell in each row has a dark outline, so the main pattern stands out.
+- **0% cells:** show "–" in grey instead of "0%" in a coloured cell.
+- **Hover:** the row and column stay bright and the other cells fade. The tooltip gives the share and the
+  approximate number of cases.
+- **Legend:** a "Share of row" gradient bar (0–90%) and a key for the outline.
+
+### 23. Bug fixed: bar colours now update with new data
+
+`BarChart.renderVis()` only set bar colours when a bar was first drawn. After a filter changed the values,
+the old shades stayed. The update step now sets `fill` and `opacity` too.
+
 ---
 
 ## Files changed
@@ -238,14 +346,21 @@ scroll stops, so the reader knows where to look.
 |---|---|
 | `src/index.html` | Jurisdiction filter with full names, callout caption, legend, chart descriptions, explore panel, "Showing" badges, hero jump links, summary charts and rewritten policy text |
 | `src/js/summary-charts.js` | **New.** Evidence charts for Summary Insights & Policy (one chart per insight) |
-| `src/who-is-affected.html` | Figure 1.1 description and sort switch |
-| `src/geographic-distribution.html` | Figure 3.1 description, Figure 3.3 hover hint |
-| `src/css/base.css` | Font sizes, text contrast, jurisdiction grid, mobile menu, breakpoints, gradient swatch |
+| `src/who-is-affected.html` | Figure 1.1 description, sort switch and year range slider |
+| `src/geographic-distribution.html` | Figure 3.1 title and description (heat map), Figure 3.3 hover hint |
+| `src/trends-over-time.html` | Figure 2.2 title and description (dumbbell) |
+| `src/crash-characteristics.html` | Figure 4.2 title and description, Figure 4.3 description |
+| `src/css/base.css` | Font sizes, text contrast, jurisdiction grid, mobile menu, breakpoints, gradient swatch, year range slider |
 | `src/css/visualisations.css` | Chart text sizes, axis sub-labels, mobile chart scrolling |
 | `src/js/shared-constants.js` | `STATE_NAMES`, `stateLabel()` |
 | `src/js/main-narrative.js` | Responsive Overview charts, gradient/filter colouring, dynamic legend, tooltip edge handling, callout bug fix |
 | `src/js/layout.js` | Mobile menu button, jump-link highlight |
-| `src/js/vis-components.js` | `Vis.barGradient()`, configurable `gradientRange`, `fitLeftMargin()` label auto-fit, line chart top margin, animated re-sort |
-| `src/js/charts-who-is-affected.js` | Figure 1.1 uses the gradient and has the sort switch |
+| `src/js/vis-components.js` | `Vis.barGradient()`, configurable `gradientRange`, `fitLeftMargin()` label auto-fit, line chart top margin, animated re-sort, bar colours update with new data, new `DumbbellChart` and `DonutChart` |
+| `src/js/charts-who-is-affected.js` | Figure 1.1 uses the gradient, sort switch and two-knob year range slider |
 | `src/js/charts-severity.js` | Figures 5.1 and 5.2 use the gradient |
-| `src/js/charts-geography.js` | Shared gradient for 3.1 and 3.2, full-name labels for 3.1, hover read-out for 3.3 |
+| `src/js/charts-geography.js` | Figure 3.1 heat map, shared gradient for 3.2, hover read-out for 3.3 |
+| `src/js/charts-trends.js` | Figure 2.2 dumbbell chart |
+| `src/js/charts-characteristics.js` | Figure 4.2 rebuilt heatmap, Figure 4.3 donut chart |
+| `src/data/australia_states.geojson` | **New.** State and territory boundaries for the Figure 3.1 map |
+| `src/data/rq1_age_group_by_year.csv` | **New.** Age group by year (AIHW Table 3) for the Figure 1.1 year slider |
+| `src/data/rq4_crash_scenario.csv` | **New.** Traffic / non-traffic / unknown / other transport totals for Figure 4.3 |
