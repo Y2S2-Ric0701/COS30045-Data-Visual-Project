@@ -18,7 +18,7 @@ Key: ✅ keep · ⚠️ keep but fix · 🔀 merge or replace
 |---|---|---|---|---|
 | **Q1 Who** |||||
 | 1.1 | Bar | **Age group** × count | 2011–2021, any range | Year slider, sort |
-| 1.2 | Stacked bar | **Road user** × **Gender** | 2011–2021 total | – |
+| 1.2 | Stacked bar | **Road user** × **Gender** | 2011–2021 total | Add Year slider |
 | 1.3 | Lollipop | **Road user** × count | 2011–2021 total | – |
 | **Q2 Trends** |||||
 | 2.1 | Multi-line | **Year** × **Road user** | 2011–2021 by year | – |
@@ -158,3 +158,30 @@ deaths for every combination. That supports, for example:
    3.3 into the map with a year slider.
 4. **Add a gender or age trend** in place of 2.3, so every core variable appears over time.
 5. **Optional:** a rate per 100,000 people on the map (needs ABS population data).
+
+
+
+Things to take note: 
+Every chart logic has to link to each other. Why I want to present this chart? What is it I'm trying to present. I have to make it clear to observer why the analysis matter so that can take note. The analysis has to be human, simple and straight forward yet carry very important analysis.
+1. Figure 2.1: Why is the line labelling important? What do you want to tell the user? 
+2. Figure 2.2: Delete the "and rates over time". Can we do Pie Chart?
+3. Figure 2.3: Make it to Stack area chart.
+4. Figure 4.1: As a human, I don't understand what the graph trying to convery. Every chart has to have a direction of explaining. Can consider remove/merge to other chart. Every chart has to have great disctintion to other graph.
+5. Figure 4.3: Useless. Delete
+
+Figure 3.1: Can add filter to change map view or bar chart view. Add a filter to filter by years also
+Figure 3.3: Why the graph only four states? Every bar in each questions has to show coloration between each other 
+Figure 1.2: Need to mention the dataset show the whole year present in dataset
+Figure 2.1: Include every road user.
+Figure 5.1: Why the dataset only show up to 2019, explain in the web.
+Figure 5.3 As a human, I don’t really understand the purpose of this graph. Is the size of the bubble means anything? Have to state clearly.
+Figure 1.1: When I click one of the graph, it should change the global filter also.
+Overview figure 1: Why is there 2023?
+Overview figure 2: Unless the graph shows only 3 years, change to line chart.
+Summary figure 2: The graph in the summary figure 2 should add to either question 3 or 5 so user can refer to that next.
+
+
+The dataset presentation is not consistent. 
+Your new thinking algorithm: When you think, each thinking has to come up with a purpose. Ask yourself why you think that way, why you want to show this graph, why is it relevant, why should the audience know this, what is the takeaway?
+Each explanation has to have a point. You cannot just blindly present the data without explaining your intention of presenting.
+Add a next and back button at the bottom of each page.

@@ -1,216 +1,146 @@
 /* ═══════════════════════════════════════════════════════════════
-   charts-who-is-affected.js – Page Controller for Question 1
+   charts-who-is-affected.js – Question 1: Who ends up in hospital?
    COS30045 Data Visualisation Project
-   Pattern: Object-Oriented Component Instantiation
+
+   1.1 Which road users are hurt most?   (lollipop, click = filter)
+   1.2 Are men and women hurt differently? (% men per road user)
+   1.3 Which age is most at risk?         (per year of age / total)
+   All three follow the filter bar (road user + years).
    ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
-  // ── Figure 1.1: Hospitalisations by Age Group (drag to filter years) ──
-  // Source: AIHW publication, Table 3 (age group by calendar year).
-  // A range slider with two draggable buttons (start / end year) sits above
-  // the chart; the chart sums only the years between the buttons.
-  d3.csv('data/rq1_age_group_by_year.csv').then(function (rawData) {
-    const ageOrder = [];
-    rawData.forEach(d => { if (!ageOrder.includes(d['Age group'])) ageOrder.push(d['Age group']); });
-    const years = [...new Set(rawData.map(d => +d.year))].sort((a, b) => a - b);
-    const firstYear = years[0];
-    const lastYear = years[years.length - 1];
+  const fmt = d3.format(',');
+  const pct0 = d3.format('.0%');
 
-    function ageDataFor([y0, y1]) {
-      const rows = rawData.filter(d => +d.year >= y0 && +d.year <= y1);
-      const totals = d3.rollup(rows, v => d3.sum(v, d => +d.Hospitalisations), d => d['Age group']);
-      return ageOrder.map(age => ({ 'Age group': age, Hospitalisations: totals.get(age) || 0 }));
+  // AIHW age groups cover different numbers of years
+  const AGE_ORDER = ['0-7', '8-16', '17-25', '26-39', '40-64', '65-74', '75+'];
+  const AGE_WIDTH = { '0-7': 8, '8-16': 9, '17-25': 9, '26-39': 14, '40-64': 25, '65-74': 10, '75+': null };
+  const ageLabel = a => a.replace('-', '–');
+  let ageMode = 'perYear';
+
+  const highlightOf = state => (state.roadUser === 'all' ? null : state.roadUser);
+  const clickRoadUser = d => GlobalFilter.toggleRoadUser(d.key);
+
+  Promise.all([SiteData.roadUsers(), SiteData.sexes(), SiteData.ages()]).then(function ([userRows, sexRows, ageRows]) {
+
+    // ── Data for each figure ─────────────────────────────────────
+    function roadUserData(years) {
+      const sums = SiteData.sumBy(SiteData.inYears(userRows, years), d => d.road_user, ['hospitalisations']);
+      return ROAD_USERS.map(r => ({
+        key: r.key, label: r.plural, value: (sums.get(r.key) || {}).hospitalisations || 0,
+      }));
     }
-    const rangeText = ([y0, y1]) => (y0 === y1 ? `${y0}` : `${y0}–${y1}`);
 
-    const ageChart = new Vis.BarChart('#chart-age-group', ageDataFor([firstYear, lastYear]), {
-      sortDescending: false,   // start in natural age order (youngest → oldest)
-      labelKey: 'Age group',
-      valueKey: 'Hospitalisations',
-      // Sequential light→dark blue by volume: every bar gets its own clearly
-      // distinguishable shade, and the darkest bar (40–64) is still the focus.
-      gradient: true,
-      xLabel: `Total Hospitalised Cases (${firstYear}–${lastYear})`,
-    });
-
-    // ── Year range slider: two draggable buttons on a track ──
-    // • Drag a button to move that end of the range.
-    // • When both buttons sit on the same year they act as one button, so a
-    //   single drag moves the one-year view (2011 → 2013 in one go).
-    // • Click the track or a year label to move the nearer button there
-    //   (from 2013 only, clicking 2016 widens it to 2013–2016).
-    const W = 760, H = 66;
-    const m = { top: 4, right: 22, bottom: 4, left: 22 };
-    const iw = W - m.left - m.right;
-    const trackY = 20;
-    const KNOB_R = 14;          // Apple-style thumb: 28px white circle
-
-    const svg = d3.select('#age-year-slider').append('svg').attr('viewBox', `0 0 ${W} ${H}`);
-    const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
-
-    const x = d3.scalePoint().domain(years).range([0, iw]);
-    const yearAt = px => years.reduce((best, y) => Math.abs(x(y) - px) < Math.abs(x(best) - px) ? y : best, firstYear);
-    const inRange = (yr, r) => yr >= r[0] && yr <= r[1];
-
-    // Track + click target (track and labels)
-    g.append('line').attr('x1', 0).attr('x2', iw).attr('y1', trackY).attr('y2', trackY)
-      .attr('stroke', '#e5e5ea').attr('stroke-width', 4).attr('stroke-linecap', 'round');
-    const fill = g.append('line').attr('y1', trackY).attr('y2', trackY)
-      .attr('stroke', '#0071e3').attr('stroke-width', 4).attr('stroke-linecap', 'round');
-    const tickLabels = g.selectAll('.year-tick').data(years).join('text')
-      .attr('class', 'year-tick')
-      .attr('x', d => x(d)).attr('y', trackY + 38)
-      .attr('text-anchor', 'middle').style('font-size', '13px')
-      .text(d => d);
-    g.append('rect')
-      .attr('x', -m.left).attr('y', 0).attr('width', W).attr('height', H - m.top)
-      .attr('fill', 'transparent').style('cursor', 'pointer')
-      .on('click', function (event) {
-        const yr = yearAt(d3.pointer(event, g.node())[0]);
-        // Move whichever button is nearer; on a tie (stacked) pick by side
-        const [a, b] = current;
-        const useStart = yr < a || (yr <= b && Math.abs(yr - a) < Math.abs(yr - b));
-        apply(useStart ? [yr, b] : [a, yr]);
+    function genderData(years) {
+      const sel = SiteData.inYears(sexRows, years).filter(d => d.sex === 'Male' || d.sex === 'Female');
+      const sums = SiteData.sumBy(sel, d => `${d.road_user}|${d.sex}`, ['hospitalisations']);
+      const get = (ru, sex) => (sums.get(`${ru}|${sex}`) || {}).hospitalisations || 0;
+      const data = ROAD_USERS.map(r => {
+        const men = get(r.key, 'Male'), women = get(r.key, 'Female');
+        return { key: r.key, label: r.plural, men, women, value: men + women ? men / (men + women) : null };
       });
-
-    // The two buttons (drawn after the click target so they sit on top)
-    const knobs = g.selectAll('.year-knob').data([0, 1]).join('g')
-      .attr('class', 'year-knob')
-      .attr('tabindex', 0)
-      .attr('role', 'slider')
-      .attr('aria-valuemin', firstYear)
-      .attr('aria-valuemax', lastYear)
-      .attr('aria-label', i => i === 0 ? 'Start year for Figure 1.1' : 'End year for Figure 1.1')
-      .style('cursor', 'grab');
-    knobs.append('circle').attr('class', 'year-knob-ring').attr('r', KNOB_R + 4).attr('fill', 'transparent');
-    knobs.append('circle').attr('class', 'year-knob-thumb').attr('r', KNOB_R)
-      .attr('fill', '#ffffff')
-      .attr('stroke', 'rgba(0,0,0,0.04)').attr('stroke-width', 0.5);
-
-    let current = [firstYear, lastYear];
-
-    function paint(range) {
-      fill.attr('x1', x(range[0])).attr('x2', x(range[1]));
-      tickLabels.style('fill', d => inRange(d, range) ? '#1d1d1f' : '#94a3b8')
-        .style('font-weight', d => (d === range[0] || d === range[1]) ? '700' : '400');
-      knobs.attr('transform', i => `translate(${x(range[i])},${trackY})`)
-        .attr('aria-valuenow', i => range[i])
-        .attr('aria-valuetext', i => String(range[i]));
+      const allMen = d3.sum(data, d => d.men), all = allMen + d3.sum(data, d => d.women);
+      return { data, overall: all ? allMen / all : 0 };
     }
 
-    function apply(range) {
-      paint(range);
-      if (range[0] === current[0] && range[1] === current[1]) return;
-      current = range;
-      const n = range[1] - range[0] + 1;
-      document.getElementById('age-year-readout').textContent = rangeText(range);
-      ageChart.config.xLabel = `${n > 1 ? 'Total ' : ''}Hospitalised Cases (${rangeText(range)})`;
-      ageChart.wrangleData(ageDataFor(range));
+    function ageData(years, roadUser) {
+      const sel = SiteData.ofRoadUser(SiteData.inYears(ageRows, years), roadUser);
+      const sums = SiteData.sumBy(sel, d => d.age_group, ['hospitalisations']);
+      return AGE_ORDER.map(a => {
+        const total = (sums.get(a) || {}).hospitalisations || 0;
+        const width = AGE_WIDTH[a];
+        return {
+          key: a, label: ageLabel(a), total, width,
+          value: ageMode === 'perYear' ? (width ? total / width : null) : total,
+        };
+      });
     }
 
-    // Drag: stacked buttons move together; otherwise each moves its own end
-    let together = false;
-    knobs.call(d3.drag()
-      .container(g.node())
-      .on('start', function () {
-        together = current[0] === current[1];
-        d3.select(this).raise().style('cursor', 'grabbing');
-      })
-      .on('drag', function (event, i) {
-        const yr = yearAt(event.x);
-        if (together) return apply([yr, yr]);
-        const r = [...current];
-        r[i] = i === 0 ? Math.min(yr, current[1]) : Math.max(yr, current[0]);
-        apply(r);
-      })
-      .on('end', function () { d3.select(this).style('cursor', 'grab'); }));
+    const initial = GlobalFilter.get();
 
-    // Keyboard: ←/→ moves the focused button one year; Home/End jump to the ends.
-    // If the move would cross the other button (e.g. both on one year), both move.
-    knobs.on('keydown', function (event, i) {
-      const keys = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 };
-      let yr;
-      if (event.key in keys) yr = current[i] + keys[event.key];
-      else if (event.key === 'Home') yr = firstYear;
-      else if (event.key === 'End') yr = lastYear;
-      else return;
-      event.preventDefault();
-      yr = Math.max(firstYear, Math.min(lastYear, yr));
-      const crosses = i === 0 ? yr > current[1] : yr < current[0];
-      if (crosses) return apply([yr, yr]);
-      apply(i === 0 ? [yr, current[1]] : [current[0], yr]);
+    // ── Figure 1.1: Which road users are hurt most? ──────────────
+    const roadChart = new Vis.LollipopChart('#chart-road-user-type', roadUserData(initial.years), {
+      labelKey: 'label',
+      valueKey: 'value',
+      minValue: 0,
+      showShare: true,
+      height: 470,
+      margin: { top: 25, right: 130, bottom: 50, left: 200 },
+      gradient: true,          // one blue: darker = more cases
+      xLabel: `Hospitalised, ${rangeText(initial.years)}`,
+      onClick: clickRoadUser,
     });
 
-    paint(current);
+    // ── Figure 1.2: Are men and women hurt differently? ──────────
+    const g0 = genderData(initial.years);
+    const genderChart = new Vis.RankedBarChart('#chart-gender', g0.data, {
+      xMin: 0,
+      xMax: 1,
+      tickFormat: pct0,
+      xLabel: 'Share of patients who are men',
+      valueText: d => `${pct0(d.value)} men`,
+      margin: { top: 40, right: 110, bottom: 54, left: 200 },
+      rowHeight: 42,
+      onClick: clickRoadUser,
+      tooltip: d => [d.label, [
+        ['Men:', fmt(d.men)],
+        ['Women:', fmt(d.women)],
+        ['Share who are men:', pct0(d.value), true],
+      ]],
+      ariaLabel: data => 'Share of patients who are men: ' +
+        data.map(d => `${d.label} ${pct0(d.value)}`).join(', '),
+    });
 
-    // Sort toggle: "Age group" (youngest → oldest) or "Total number" (most → fewest)
-    const sortButtons = document.querySelectorAll('#age-sort-control .filter-btn');
-    sortButtons.forEach(btn => btn.addEventListener('click', () => {
-      sortButtons.forEach(b => {
+    // ── Figure 1.3: Which age is most at risk? ───────────────────
+    const ageChart = new Vis.RankedBarChart('#chart-age-group', ageData(initial.years, initial.roadUser), {
+      sort: 'none',
+      margin: { top: 24, right: 230, bottom: 54, left: 90 },
+      rowHeight: 46,
+      nullText: 'n/a: no upper age, so it cannot be divided',
+      tooltip: d => [`Age ${d.label}`, [
+        ['Hospitalised:', fmt(d.total)],
+        ['Ages in the group:', d.width ? `${d.width}` : 'open-ended'],
+        ['Per year of age:', d.width ? fmt(Math.round(d.total / d.width)) : 'n/a', true],
+      ]],
+    });
+
+    function renderAge(state) {
+      const perYear = ageMode === 'perYear';
+      ageChart.config.valueText = d => (perYear ? `${fmt(Math.round(d.value))} per year of age` : fmt(d.value));
+      ageChart.config.xLabel = perYear
+        ? `Hospitalised per year of age, ${rangeText(state.years)}`
+        : `Total hospitalised, ${rangeText(state.years)}`;
+      ageChart.config.emptyText = 'No cases for this selection';
+      ageChart.wrangleData(ageData(state.years, state.roadUser));
+    }
+
+    const modeButtons = document.querySelectorAll('#age-mode-control .filter-btn');
+    modeButtons.forEach(btn => btn.addEventListener('click', () => {
+      modeButtons.forEach(b => {
         b.classList.toggle('active', b === btn);
         b.setAttribute('aria-pressed', String(b === btn));
       });
-      ageChart.config.sortDescending = btn.dataset.sort === 'total';
-      ageChart.wrangleData();
+      ageMode = btn.dataset.mode;
+      renderAge(GlobalFilter.get());
     }));
-  }).catch(err => console.error('Error loading rq1_age_group.csv:', err));
 
-  // ── Figure 1.2: Gender Disparity by Road User Type ─────────────
-  d3.csv('data/rq1_gender_male.csv').then(function (rawData) {
-    const targetUsers = [
-      'Motorcyclist',
-      'Car driver',
-      'Pedal cyclist',
-      'Car passenger',
-      'Pedestrian',
-      'Heavy transport driver',
-      'Bus occupant'
-    ];
+    // ── Every figure follows the filter bar ──────────────────────
+    GlobalFilter.subscribe(state => {
+      roadChart.config.highlight = highlightOf(state);
+      roadChart.config.xLabel = `Hospitalised, ${rangeText(state.years)}`;
+      roadChart.wrangleData(roadUserData(state.years));
 
-    const formattedData = rawData
-      .filter(d => targetUsers.includes(d['Road user']))
-      .map(d => ({
-        user: d['Road user'],
-        Male: +d['Male+Mean(Sum(Hospitalisations))'] || 0,
-        Female: +d['Female+Mean(Sum(Hospitalisations))'] || 0,
-      }));
+      const g = genderData(state.years);
+      genderChart.config.highlight = highlightOf(state);
+      genderChart.config.refLines = [
+        { value: 0.5, label: 'Even split', anchor: 'end' },
+        { value: g.overall, label: `All road users: ${pct0(g.overall)}`, anchor: 'start' },
+      ];
+      genderChart.wrangleData(g.data);
 
-    new Vis.StackedBarChart('#chart-gender', formattedData, {
-      categoryKey: 'user',
-      seriesKeys: ['Male', 'Female'],
-      colorMap: {
-        Male: '#0072B2',
-        Female: '#CC79A7',
-      },
-      legendItems: [
-        { label: 'Male Hospitalisations', color: '#0072B2' },
-        { label: 'Female Hospitalisations', color: '#CC79A7' },
-      ],
+      renderAge(state);
     });
-  }).catch(err => console.error('Error loading rq1_gender_male.csv:', err));
-
-  // ── Figure 1.3: Hospitalisations by Road User Type ─────────────
-  d3.csv('data/rq1_road_user.csv').then(function (rawData) {
-    new Vis.LollipopChart('#chart-road-user-type', rawData, {
-      labelKey: 'Road user',
-      valueKey: 'Sum(Hospitalisations)',
-      xLabel: 'Total Hospitalised Cases (2011–2021)',
-      height: 440,
-      margin: { top: 25, right: 90, bottom: 45, left: 210 },
-      colorMap: {
-        'Car driver': '#0072B2',
-        'Motorcyclist': '#E69F00',
-        'Pedal cyclist': '#009E73',
-        'Car passenger': '#56B4E9',
-        'Pedestrian': '#D55E00',
-        'Other or unknown': '#94a3b8',
-        'Heavy transport driver': '#64748b',
-        'Pick-up truck or van occupant': '#94a3b8',
-        'Bus occupant': '#94a3b8',
-      },
-    });
-  }).catch(err => console.error('Error loading rq1_road_user.csv:', err));
-
+  }).catch(err => console.error('Error loading the Q1 data (data/q1_who/):', err));
 });

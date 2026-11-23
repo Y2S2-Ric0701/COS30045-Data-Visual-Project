@@ -13,7 +13,7 @@
 (function () {
   'use strict';
 
-  const ROAD_USERS = ['Pedestrian', 'Car passenger', 'Car driver', 'Motorcyclist', 'Pedal cyclist'];
+  const TOP_USERS = ['Pedestrian', 'Car passenger', 'Car driver', 'Motorcyclist', 'Pedal cyclist'];
 
   let roadUserData = null;
   let remotenessData = null;
@@ -121,20 +121,21 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    Promise.all([
-      d3.csv('data/rq5_mortality_severity.csv'),
-      d3.csv('data/rq3_remoteness.csv'),
-    ]).then(([rq5, rq3]) => {
-      roadUserData = rq5
-        .filter(d => ROAD_USERS.includes(d['Road user']))
-        .map(d => ({ label: d['Road user'], value: +d.Deaths_per_1000 }))
+    // Same data and years (2011–2019) as Figures 5.1 and 3.2
+    Promise.all([SiteData.severity(), SiteData.remoteness()]).then(([severity, remoteness]) => {
+      const years = [PERIOD.first, PERIOD.lastDeath];
+      const rate = o => (o.deaths / o.cases) * 1000;
+
+      const byUser = SiteData.sumBy(SiteData.inYears(severity, years), d => d.road_user, ['cases', 'deaths']);
+      roadUserData = TOP_USERS
+        .map(k => ({ label: roadUserPlural(k), value: rate(byUser.get(k)) }))
         .sort((a, b) => b.value - a.value);
 
-      // Keep the natural metro → remote order (it is an ordered category)
-      remotenessData = rq3.map(d => ({
-        label: d.remoteness,
-        deaths: +d.deaths_per_1000,
-        days: +d.avg_bed_days,
+      // Keep the natural city → remote order (it is an ordered category)
+      const byArea = SiteData.sumBy(SiteData.inYears(remoteness, years), d => d.remoteness, ['cases', 'deaths']);
+      remotenessData = ['Major Cities', 'Regional', 'Remote'].map(a => ({
+        label: a === 'Major Cities' ? 'Major cities' : a,
+        deaths: rate(byArea.get(a)),
       }));
 
       renderAll();

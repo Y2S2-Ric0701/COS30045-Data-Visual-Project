@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Question 2: How have hospitalised road crash injuries changed between 2011 and 2021? – Hospitalised Injuries from Road Crashes in Australia" />
+  <meta name="description" content="Question 2: Are hospitalised road crash injuries in Australia getting better or worse? – Hospitalised Injuries from Road Crashes in Australia" />
 
-  <title>Q2: How have hospitalised road crash injuries changed between 2011 and 2021? | Road Crash Analytics</title>
+  <title>Q2: Is it getting better or worse? | Road Crash Analytics</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,65 +25,89 @@
   <header class="apple-hero">
     <div class="container hero-container">
       <div class="hero-eyebrow">
-        <span>Research Question 2</span>
+        <span>Question 2 of 5</span>
       </div>
-      <h1 class="hero-title">How have hospitalised road crash injuries changed between 2011 and 2021?</h1>
-      <p class="hero-subtitle">Tracking the trajectory of road crash hospitalisations across a decade.</p>
+      <h1 class="hero-title">Is it getting better or worse?</h1>
+      <p class="hero-subtitle">Question 1 showed who ends up in hospital. This page asks whether that number rose or fell between 2011 and 2021, and for which road users.</p>
+      <p class="hero-bridge">Short answer: <strong>worse overall</strong>, mostly because of <strong>cyclists</strong>.</p>
       <div class="hero-chips">
-        <a href="#year" class="hero-chip">Year</a>
-        <a href="#injury-count" class="hero-chip">Injury Count</a>
-        <a href="#demographic-trends" class="hero-chip">Demographic Trends</a>
+        <a href="#total" class="hero-chip">Did the total go up?</a>
+        <a href="#by-group" class="hero-chip">Which groups rose or fell?</a>
+        <a href="#change" class="hero-chip">Who changed most?</a>
       </div>
     </div>
   </header>
 
+  <!-- Filter bar for every chart on this page (js/global-filter.js) -->
+  <div id="global-filter"></div>
+
   <main class="container">
 
-    <!-- ── Figure 2.1: Year ── -->
-    <section id="year" class="apple-section">
+    <!-- ── Figure 2.1: The total ── -->
+    <section id="total" class="apple-section">
       <div class="apple-chart-card">
         <div class="chart-card-header">
           <div>
-            <div class="section-kicker">Figure 2.1 &bull; Year</div>
-            <h2 class="chart-card-title">Year</h2>
-            <p class="chart-card-desc">Annual change in hospitalised injuries, 2011&ndash;2021.</p>
+            <div class="section-kicker">Figure 2.1 &bull; The total</div>
+            <h2 class="chart-card-title">Did the total go up?</h2>
+            <p class="chart-card-answer">Yes. Hospital cases rose from 34,033 in 2011 to 39,505 in 2021, up 16%. <span class="answer-note">(This sentence describes all road users, 2011–2021.)</span></p>
+            <p class="chart-card-why"><strong>Why it matters:</strong> Australia's road safety strategy aims to <strong>cut</strong> serious injuries, so a rising total means that goal is not being met. The coloured layers show which road users the extra cases came from.</p>
+            <p class="figure-scope" data-road-user="highlight" data-years="trend"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-year">
+        <div class="responsive-svg-container" id="chart-total">
           <!-- D3 SVG injected here -->
         </div>
+        <div id="chips-total"></div>
+        <p class="chart-note">The black line is the total for all road users. The dip in 2020 coincides with the COVID-19 lockdowns, when people travelled less.</p>
       </div>
     </section>
 
-    <!-- ── Figure 2.2: Injury Count ── -->
-    <section id="injury-count" class="apple-section">
+    <!-- ── Figure 2.2: Each road user over time ── -->
+    <section id="by-group" class="apple-section">
       <div class="apple-chart-card">
         <div class="chart-card-header">
           <div>
-            <div class="section-kicker">Figure 2.2 &bull; Injury Count</div>
-            <h2 class="chart-card-title">Injury Count: 2011 vs 2021</h2>
-            <p class="chart-card-desc">How each road user group's yearly hospitalisations changed over the decade. Grey dot = 2011, blue dot = 2021; the label shows the % change (orange = increase, green = decrease).</p>
+            <div class="section-kicker">Figure 2.2 &bull; Each road user</div>
+            <h2 class="chart-card-title">Which groups are rising, and which are falling?</h2>
+            <p class="chart-card-answer">Cyclists rose the most (+51%), then car drivers (+22%). Pedestrians fell (−15%). <span class="answer-note">(This sentence describes 2011–2021.)</span></p>
+            <p class="chart-card-why"><strong>Why it matters:</strong> one total can hide groups moving in opposite directions. The label at the end of each line gives its <strong>name and its change</strong> over the selected years, so you can read the answer without a legend. The dashed lines mark two changes in how hospitals counted patients; a dip right after one is partly a counting change, not fewer crashes.</p>
+            <p class="figure-scope" data-road-user="highlight" data-years="trend"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-injury-count">
+        <div class="responsive-svg-container" id="chart-by-group">
           <!-- D3 SVG injected here -->
         </div>
+        <div id="chips-by-group"></div>
+        <p class="chart-note">Hover to read every group's value for a year; click a line (or a chip) to follow that road user. Buses, trucks, and utes or vans have only a few hundred cases a year, so their lines sit near the bottom.</p>
       </div>
     </section>
 
-    <!-- ── Figure 2.3: Demographic Trends ── -->
-    <section id="demographic-trends" class="apple-section">
+    <!-- ── Figure 2.3: Change ranked ── -->
+    <section id="change" class="apple-section">
       <div class="apple-chart-card">
         <div class="chart-card-header">
           <div>
-            <div class="section-kicker">Figure 2.3 &bull; Demographic Trends</div>
-            <h2 class="chart-card-title">Demographic Trends</h2>
-            <p class="chart-card-desc">How trends differ across age, gender and road user groups.</p>
+            <div class="section-kicker">Figure 2.3 &bull; Change ranked</div>
+            <h2 class="chart-card-title">Who changed the most?</h2>
+            <p class="chart-card-answer">Cyclists (+51%) and ute or van occupants (+38%) grew fastest. Bus occupants (−21%), pedestrians and truck occupants (both −15%) fell. <span class="answer-note">(This sentence describes 2011 to 2021.)</span></p>
+            <p class="chart-card-why"><strong>Why it matters:</strong> this is Figure 2.2 boiled down to one number per group, so the winners and losers are easy to rank. <strong>Orange = more injuries (worse), green = fewer (better).</strong></p>
+            <p class="figure-scope" data-road-user="highlight" data-years="change"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-demographic-trends">
+        <div class="responsive-svg-container" id="chart-change">
           <!-- D3 SVG injected here -->
         </div>
+        <p class="chart-note">Change from the first to the last year chosen in the filter bar. Small groups have few cases, so a change of a few dozen patients shows up as a large percentage; hover a bar to see the real numbers.</p>
+      </div>
+    </section>
+
+    <!-- ── What this page tells us ── -->
+    <section class="apple-section">
+      <div class="apple-card page-summary">
+        <div class="section-kicker">What we learned</div>
+        <p class="apple-card-text">Road injuries are <strong>going up (+16%)</strong>, and the groups behind the rise are <strong>cyclists and car drivers</strong>. Pedestrian injuries are falling.</p>
+        <p class="apple-card-text text-secondary">Next, we look at where in Australia these injuries happen, and whether the place makes them more dangerous.</p>
       </div>
     </section>
 
@@ -94,7 +118,11 @@
 
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/shared-constants.js"></script>
+  <script src="js/site-data.js"></script>
+  <script src="js/global-filter.js"></script>
   <script src="js/vis-components.js"></script>
+  <script src="js/vis-story-charts.js"></script>
   <script src="js/charts-trends.js"></script>
 
 </body>

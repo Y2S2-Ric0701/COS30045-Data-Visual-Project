@@ -339,3 +339,37 @@
     max-width: calc(100vw - 24px);
   }
 }
+
+/* ── Story charts (js/vis-story-charts.js) ─────────────────────── */
+.vis-chart .empty-msg { font-size: 16px; font-weight: 600; fill: #55555a; }
+.vis-chart .ref-label { font-size: 12.5px; font-weight: 600; fill: #1d1d1f; }
+.vis-chart .year-band-label { font-size: 12px; font-weight: 600; fill: #0071e3; }
+.vis-chart .total-label {
+  font-size: 14px; font-weight: 700; fill: #1d1d1f;
+  paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round;
+}
+.vis-chart .area-end-label,
+.vis-chart .trend-end-label { font-size: 13.5px; font-weight: 600; }
+.vis-chart .trend-end-change { font-weight: 700; }
+.vis-chart .break-label { font-size: 12px; fill: #475569; }
+.vis-chart .pair-value { font-size: 12.5px; font-weight: 600; fill: #64748b; }
+.vis-chart .pair-value-b { font-size: 13.5px; font-weight: 700; }
+.vis-chart .pair-ratio { font-size: 17px; font-weight: 700; }
+.vis-chart .pair-ratio-head { font-size: 12px; font-weight: 600; fill: #55555a; }
+.vis-chart .pair-legend-text { font-size: 13px; fill: #1d1d1f; }
+.vis-chart .rbar-hit:focus,
+.vis-chart .lollipop-hitbox:focus,
+.vis-chart .pair-hit:focus { outline: none; }
+.vis-chart .rbar-hit:focus-visible,
+.vis-chart .lollipop-hitbox:focus-visible,
+.vis-chart .pair-hit:focus-visible { fill: rgba(0, 113, 227, 0.08); stroke: rgba(0, 113, 227, 0.5); }
+.tip-swatch {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px;
+}
+.vis-chart .rbar-label,
+.vis-chart .ref-label,
+.vis-chart .trend-end-label,
+.vis-chart .area-end-label,
+.vis-chart .pair-value {
+  paint-order: stroke fill; stroke: #ffffff; stroke-width: 3.5px; stroke-linejoin: round;
+}

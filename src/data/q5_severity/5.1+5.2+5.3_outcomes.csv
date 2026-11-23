@@ -1,0 +1,100 @@
+year,road_user,hospitalisations,cases,deaths,bed_days
+2011,Bus occupant,214,215,1,755
+2011,Car driver,10948,11029,81,48223
+2011,Car passenger,4853,4900,47,22132
+2011,Motorcyclist,7565,7599,34,37740
+2011,Other or not recorded,1499,1508,9,6754
+2011,Pedal cyclist,5391,5407,16,15294
+2011,Pedestrian,2754,2822,68,21233
+2011,Truck occupant,562,563,1,2564
+2011,Ute or van occupant,247,251,4,1264
+2012,Bus occupant,217,217,0,889
+2012,Car driver,10806,10885,79,47741
+2012,Car passenger,4738,4782,44,20944
+2012,Motorcyclist,7728,7774,46,37675
+2012,Other or not recorded,1458,1462,4,6549
+2012,Pedal cyclist,5621,5630,9,15749
+2012,Pedestrian,2672,2731,59,19336
+2012,Truck occupant,511,512,1,2432
+2012,Ute or van occupant,273,277,4,1466
+2013,Bus occupant,226,226,0,978
+2013,Car driver,10942,11003,61,42684
+2013,Car passenger,4828,4858,30,19941
+2013,Motorcyclist,8018,8054,36,37724
+2013,Other or not recorded,1354,1363,9,5716
+2013,Pedal cyclist,6262,6277,15,17344
+2013,Pedestrian,2657,2718,61,18513
+2013,Truck occupant,484,487,3,2542
+2013,Ute or van occupant,230,231,1,1353
+2014,Bus occupant,289,291,2,1484
+2014,Car driver,11122,11191,69,42332
+2014,Car passenger,4625,4661,36,19867
+2014,Motorcyclist,8334,8361,27,36490
+2014,Other or not recorded,1236,1241,5,4734
+2014,Pedal cyclist,6636,6652,16,17507
+2014,Pedestrian,2554,2611,57,18077
+2014,Truck occupant,480,480,0,2568
+2014,Ute or van occupant,239,241,2,1101
+2015,Bus occupant,246,248,2,1467
+2015,Car driver,12163,12247,84,58428
+2015,Car passenger,4958,4991,33,24706
+2015,Motorcyclist,8298,8341,43,45145
+2015,Other or not recorded,1315,1323,8,7304
+2015,Pedal cyclist,6716,6728,12,19062
+2015,Pedestrian,2627,2686,59,22644
+2015,Truck occupant,510,512,2,2953
+2015,Ute or van occupant,249,249,0,1380
+2016,Bus occupant,283,289,6,1871
+2016,Car driver,13194,13284,90,69889
+2016,Car passenger,5103,5139,36,27116
+2016,Motorcyclist,8526,8562,36,53443
+2016,Other or not recorded,1428,1440,12,9227
+2016,Pedal cyclist,6904,6919,15,20732
+2016,Pedestrian,2743,2813,70,30773
+2016,Truck occupant,484,487,3,3856
+2016,Ute or van occupant,298,298,0,2250
+2017,Bus occupant,265,270,5,1577
+2017,Car driver,13267,13331,64,64017
+2017,Car passenger,5102,5131,29,25044
+2017,Motorcyclist,8739,8765,26,52923
+2017,Other or not recorded,1377,1383,6,10714
+2017,Pedal cyclist,7076,7085,9,21615
+2017,Pedestrian,2714,2773,59,31780
+2017,Truck occupant,528,531,3,3105
+2017,Ute or van occupant,271,272,1,1845
+2018,Bus occupant,247,249,2,1509
+2018,Car driver,13595,13648,53,63980
+2018,Car passenger,5206,5240,34,26852
+2018,Motorcyclist,8623,8651,28,51307
+2018,Other or not recorded,1467,1472,5,12035
+2018,Pedal cyclist,6959,6973,14,20834
+2018,Pedestrian,2661,2716,55,26722
+2018,Truck occupant,553,558,5,3580
+2018,Ute or van occupant,279,280,1,1895
+2019,Bus occupant,255,255,0,933
+2019,Car driver,13482,13545,63,61838
+2019,Car passenger,4989,5025,36,24360
+2019,Motorcyclist,8924,8954,30,53986
+2019,Other or not recorded,1417,1420,3,11195
+2019,Pedal cyclist,7302,7310,8,22900
+2019,Pedestrian,2713,2763,50,28697
+2019,Truck occupant,524,526,2,3590
+2019,Ute or van occupant,260,262,2,1390
+2020,Bus occupant,173,173,,845
+2020,Car driver,12217,12243,,55181
+2020,Car passenger,4344,4355,,23555
+2020,Motorcyclist,8684,8698,,47748
+2020,Other or not recorded,1313,1317,,9412
+2020,Pedal cyclist,8332,8342,,24699
+2020,Pedestrian,2103,2126,,21672
+2020,Truck occupant,500,500,,3145
+2020,Ute or van occupant,300,300,,1536
+2021,Bus occupant,169,169,,753
+2021,Car driver,13327,13327,,61404
+2021,Car passenger,4495,4495,,21470
+2021,Motorcyclist,8883,8883,,49921
+2021,Other or not recorded,1318,1318,,11042
+2021,Pedal cyclist,8163,8163,,26765
+2021,Pedestrian,2334,2334,,22733
+2021,Truck occupant,475,475,,2871
+2021,Ute or van occupant,341,341,,1975

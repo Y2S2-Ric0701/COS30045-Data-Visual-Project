@@ -10,15 +10,50 @@
      <script src="js/layout.js"></script>
    ═══════════════════════════════════════════════════════════════ */
 
-// Single source of truth for page links – add/rename pages here only
+// Single source of truth for page links – add/rename pages here only.
+// The order is the order of the story; Back / Next buttons follow it.
 const NAV_PAGES = [
-  { key: 'home',      href: 'index.html',                  label: 'Overview' },
-  { key: 'who',       href: 'who-is-affected.html',        label: 'Who' },
-  { key: 'trends',    href: 'trends-over-time.html',       label: 'Trends' },
-  { key: 'where',     href: 'geographic-distribution.html', label: 'Where' },
-  { key: 'crash',     href: 'crash-characteristics.html',  label: 'Crash Factors' },
-  { key: 'severity',  href: 'injury-severity.html',        label: 'Severity' },
+  { key: 'home',     href: 'index.html',                   label: 'Overview',
+    step: 'Overview',   question: 'Who gets hurt, and who gets hurt worst?' },
+  { key: 'who',      href: 'who-is-affected.html',         label: 'Who',
+    step: 'Question 1', question: 'Who ends up in hospital?' },
+  { key: 'trends',   href: 'trends-over-time.html',        label: 'Trends',
+    step: 'Question 2', question: 'Is it getting better or worse?' },
+  { key: 'where',    href: 'geographic-distribution.html', label: 'Where',
+    step: 'Question 3', question: 'Where does it happen?' },
+  { key: 'crash',    href: 'crash-characteristics.html',   label: 'Crash Factors',
+    step: 'Question 4', question: 'What did they crash into?' },
+  { key: 'severity', href: 'injury-severity.html',         label: 'Severity',
+    step: 'Question 5', question: 'Who is hurt the worst?' },
 ];
+
+/** Back / Next buttons at the bottom of every page, in story order */
+function renderStepper(activeKey) {
+  const i = NAV_PAGES.findIndex(p => p.key === activeKey);
+  if (i < 0) return '';
+  const prev = NAV_PAGES[i - 1];
+  // After the last question, "Next" returns to the Overview's summary
+  const next = NAV_PAGES[i + 1] ||
+    { href: 'index.html#conclusion', step: 'Summary', question: 'What should change? Back to the Overview' };
+  const link = (p, dir) => {
+    const arrow = `<span class="stepper-arrow" aria-hidden="true">${dir === 'prev' ? '&larr;' : '&rarr;'}</span>`;
+    const text = `
+        <span class="stepper-text">
+          <span class="stepper-step"><span class="stepper-word">${dir === 'prev' ? 'Back' : 'Next'} &middot; </span>${p.step}</span>
+          <span class="stepper-question">${p.question}</span>
+        </span>`;
+    return `
+      <a class="stepper-link stepper-${dir}" href="${p.href}"
+         aria-label="${dir === 'prev' ? 'Back' : 'Next'}: ${p.step}, ${p.question}">
+        ${dir === 'prev' ? arrow + text : text + arrow}
+      </a>`;
+  };
+  return `
+  <nav class="page-stepper container" aria-label="Previous and next page">
+    ${prev ? link(prev, 'prev') : '<span class="stepper-spacer"></span>'}
+    ${link(next, 'next')}
+  </nav>`;
+}
 
 function renderNav(activeKey) {
   const links = NAV_PAGES.map(p => {
@@ -101,6 +136,9 @@ function renderFooter() {
 
   if (navSlot) navSlot.outerHTML = renderNav(activeKey);
   if (footerSlot) footerSlot.outerHTML = renderFooter();
+
+  const main = document.querySelector('main');
+  if (main) main.insertAdjacentHTML('afterend', renderStepper(activeKey));
 
   // Mobile / tablet menu toggle
   const nav = document.querySelector('.apple-nav');

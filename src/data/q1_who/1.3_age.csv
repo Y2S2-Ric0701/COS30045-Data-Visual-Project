@@ -1,0 +1,689 @@
+year,road_user,age_group,hospitalisations
+2011,Bus occupant,0-7,7
+2011,Bus occupant,17-25,21
+2011,Bus occupant,26-39,24
+2011,Bus occupant,40-64,58
+2011,Bus occupant,65-74,31
+2011,Bus occupant,75+,61
+2011,Bus occupant,8-16,12
+2011,Car driver,17-25,2917
+2011,Car driver,26-39,2790
+2011,Car driver,40-64,3472
+2011,Car driver,65-74,813
+2011,Car driver,75+,883
+2011,Car driver,8-16,73
+2011,Car passenger,0-7,273
+2011,Car passenger,17-25,1455
+2011,Car passenger,26-39,841
+2011,Car passenger,40-64,962
+2011,Car passenger,65-74,314
+2011,Car passenger,75+,372
+2011,Car passenger,8-16,636
+2011,Motorcyclist,0-7,27
+2011,Motorcyclist,17-25,2042
+2011,Motorcyclist,26-39,2174
+2011,Motorcyclist,40-64,2645
+2011,Motorcyclist,65-74,161
+2011,Motorcyclist,75+,42
+2011,Motorcyclist,8-16,474
+2011,Other or not recorded,0-7,40
+2011,Other or not recorded,17-25,339
+2011,Other or not recorded,26-39,344
+2011,Other or not recorded,40-64,460
+2011,Other or not recorded,65-74,138
+2011,Other or not recorded,75+,101
+2011,Other or not recorded,8-16,77
+2011,Pedal cyclist,0-7,204
+2011,Pedal cyclist,17-25,668
+2011,Pedal cyclist,26-39,1314
+2011,Pedal cyclist,40-64,2017
+2011,Pedal cyclist,65-74,240
+2011,Pedal cyclist,75+,87
+2011,Pedal cyclist,8-16,861
+2011,Pedestrian,0-7,163
+2011,Pedestrian,17-25,532
+2011,Pedestrian,26-39,466
+2011,Pedestrian,40-64,633
+2011,Pedestrian,65-74,232
+2011,Pedestrian,75+,355
+2011,Pedestrian,8-16,373
+2011,Truck occupant,0-7,1
+2011,Truck occupant,17-25,45
+2011,Truck occupant,26-39,146
+2011,Truck occupant,40-64,336
+2011,Truck occupant,65-74,28
+2011,Truck occupant,75+,1
+2011,Truck occupant,8-16,5
+2011,Ute or van occupant,0-7,4
+2011,Ute or van occupant,17-25,75
+2011,Ute or van occupant,26-39,67
+2011,Ute or van occupant,40-64,77
+2011,Ute or van occupant,65-74,11
+2011,Ute or van occupant,75+,4
+2011,Ute or van occupant,8-16,9
+2012,Bus occupant,0-7,9
+2012,Bus occupant,17-25,11
+2012,Bus occupant,26-39,29
+2012,Bus occupant,40-64,68
+2012,Bus occupant,65-74,22
+2012,Bus occupant,75+,69
+2012,Bus occupant,8-16,9
+2012,Car driver,0-7,2
+2012,Car driver,17-25,2830
+2012,Car driver,26-39,2736
+2012,Car driver,40-64,3391
+2012,Car driver,65-74,846
+2012,Car driver,75+,942
+2012,Car driver,8-16,59
+2012,Car passenger,0-7,308
+2012,Car passenger,17-25,1384
+2012,Car passenger,26-39,884
+2012,Car passenger,40-64,905
+2012,Car passenger,65-74,283
+2012,Car passenger,75+,406
+2012,Car passenger,8-16,568
+2012,Motorcyclist,0-7,47
+2012,Motorcyclist,17-25,2077
+2012,Motorcyclist,26-39,2240
+2012,Motorcyclist,40-64,2679
+2012,Motorcyclist,65-74,166
+2012,Motorcyclist,75+,41
+2012,Motorcyclist,8-16,478
+2012,Other or not recorded,0-7,32
+2012,Other or not recorded,17-25,380
+2012,Other or not recorded,26-39,316
+2012,Other or not recorded,40-64,443
+2012,Other or not recorded,65-74,94
+2012,Other or not recorded,75+,133
+2012,Other or not recorded,8-16,60
+2012,Pedal cyclist,0-7,202
+2012,Pedal cyclist,17-25,731
+2012,Pedal cyclist,26-39,1317
+2012,Pedal cyclist,40-64,2157
+2012,Pedal cyclist,65-74,282
+2012,Pedal cyclist,75+,104
+2012,Pedal cyclist,8-16,828
+2012,Pedestrian,0-7,144
+2012,Pedestrian,17-25,502
+2012,Pedestrian,26-39,513
+2012,Pedestrian,40-64,641
+2012,Pedestrian,65-74,208
+2012,Pedestrian,75+,351
+2012,Pedestrian,8-16,313
+2012,Truck occupant,0-7,2
+2012,Truck occupant,17-25,47
+2012,Truck occupant,26-39,156
+2012,Truck occupant,40-64,279
+2012,Truck occupant,65-74,21
+2012,Truck occupant,75+,4
+2012,Truck occupant,8-16,2
+2012,Ute or van occupant,0-7,4
+2012,Ute or van occupant,17-25,73
+2012,Ute or van occupant,26-39,60
+2012,Ute or van occupant,40-64,99
+2012,Ute or van occupant,65-74,19
+2012,Ute or van occupant,75+,8
+2012,Ute or van occupant,8-16,10
+2013,Bus occupant,0-7,7
+2013,Bus occupant,17-25,16
+2013,Bus occupant,26-39,24
+2013,Bus occupant,40-64,66
+2013,Bus occupant,65-74,38
+2013,Bus occupant,75+,69
+2013,Bus occupant,8-16,6
+2013,Car driver,0-7,4
+2013,Car driver,17-25,2756
+2013,Car driver,26-39,2830
+2013,Car driver,40-64,3457
+2013,Car driver,65-74,889
+2013,Car driver,75+,943
+2013,Car driver,8-16,63
+2013,Car passenger,0-7,302
+2013,Car passenger,17-25,1331
+2013,Car passenger,26-39,891
+2013,Car passenger,40-64,971
+2013,Car passenger,65-74,336
+2013,Car passenger,75+,387
+2013,Car passenger,8-16,610
+2013,Motorcyclist,0-7,37
+2013,Motorcyclist,17-25,2084
+2013,Motorcyclist,26-39,2269
+2013,Motorcyclist,40-64,2879
+2013,Motorcyclist,65-74,205
+2013,Motorcyclist,75+,73
+2013,Motorcyclist,8-16,471
+2013,Other or not recorded,0-7,36
+2013,Other or not recorded,17-25,284
+2013,Other or not recorded,26-39,314
+2013,Other or not recorded,40-64,436
+2013,Other or not recorded,65-74,90
+2013,Other or not recorded,75+,121
+2013,Other or not recorded,8-16,73
+2013,Pedal cyclist,0-7,194
+2013,Pedal cyclist,17-25,778
+2013,Pedal cyclist,26-39,1476
+2013,Pedal cyclist,40-64,2517
+2013,Pedal cyclist,65-74,321
+2013,Pedal cyclist,75+,105
+2013,Pedal cyclist,8-16,871
+2013,Pedestrian,0-7,150
+2013,Pedestrian,17-25,495
+2013,Pedestrian,26-39,482
+2013,Pedestrian,40-64,656
+2013,Pedestrian,65-74,244
+2013,Pedestrian,75+,351
+2013,Pedestrian,8-16,279
+2013,Truck occupant,17-25,42
+2013,Truck occupant,26-39,122
+2013,Truck occupant,40-64,291
+2013,Truck occupant,65-74,23
+2013,Truck occupant,75+,2
+2013,Truck occupant,8-16,4
+2013,Ute or van occupant,0-7,2
+2013,Ute or van occupant,17-25,66
+2013,Ute or van occupant,26-39,64
+2013,Ute or van occupant,40-64,72
+2013,Ute or van occupant,65-74,11
+2013,Ute or van occupant,75+,9
+2013,Ute or van occupant,8-16,6
+2014,Bus occupant,0-7,3
+2014,Bus occupant,17-25,28
+2014,Bus occupant,26-39,34
+2014,Bus occupant,40-64,91
+2014,Bus occupant,65-74,37
+2014,Bus occupant,75+,75
+2014,Bus occupant,8-16,21
+2014,Car driver,0-7,5
+2014,Car driver,17-25,2700
+2014,Car driver,26-39,2830
+2014,Car driver,40-64,3596
+2014,Car driver,65-74,932
+2014,Car driver,75+,1012
+2014,Car driver,8-16,47
+2014,Car passenger,0-7,295
+2014,Car passenger,17-25,1317
+2014,Car passenger,26-39,822
+2014,Car passenger,40-64,938
+2014,Car passenger,65-74,355
+2014,Car passenger,75+,395
+2014,Car passenger,8-16,503
+2014,Motorcyclist,0-7,36
+2014,Motorcyclist,17-25,2104
+2014,Motorcyclist,26-39,2413
+2014,Motorcyclist,40-64,3031
+2014,Motorcyclist,65-74,228
+2014,Motorcyclist,75+,71
+2014,Motorcyclist,8-16,451
+2014,Other or not recorded,0-7,34
+2014,Other or not recorded,17-25,275
+2014,Other or not recorded,26-39,297
+2014,Other or not recorded,40-64,400
+2014,Other or not recorded,65-74,78
+2014,Other or not recorded,75+,105
+2014,Other or not recorded,8-16,46
+2014,Other or not recorded,Missing,1
+2014,Pedal cyclist,0-7,223
+2014,Pedal cyclist,17-25,763
+2014,Pedal cyclist,26-39,1626
+2014,Pedal cyclist,40-64,2629
+2014,Pedal cyclist,65-74,389
+2014,Pedal cyclist,75+,129
+2014,Pedal cyclist,8-16,877
+2014,Pedestrian,0-7,132
+2014,Pedestrian,17-25,432
+2014,Pedestrian,26-39,476
+2014,Pedestrian,40-64,618
+2014,Pedestrian,65-74,281
+2014,Pedestrian,75+,349
+2014,Pedestrian,8-16,266
+2014,Truck occupant,17-25,44
+2014,Truck occupant,26-39,107
+2014,Truck occupant,40-64,285
+2014,Truck occupant,65-74,33
+2014,Truck occupant,75+,6
+2014,Truck occupant,8-16,5
+2014,Ute or van occupant,0-7,1
+2014,Ute or van occupant,17-25,65
+2014,Ute or van occupant,26-39,63
+2014,Ute or van occupant,40-64,78
+2014,Ute or van occupant,65-74,12
+2014,Ute or van occupant,75+,5
+2014,Ute or van occupant,8-16,15
+2015,Bus occupant,17-25,21
+2015,Bus occupant,26-39,27
+2015,Bus occupant,40-64,69
+2015,Bus occupant,65-74,44
+2015,Bus occupant,75+,73
+2015,Bus occupant,8-16,12
+2015,Car driver,0-7,3
+2015,Car driver,17-25,2918
+2015,Car driver,26-39,3186
+2015,Car driver,40-64,3853
+2015,Car driver,65-74,1022
+2015,Car driver,75+,1122
+2015,Car driver,8-16,59
+2015,Car passenger,0-7,343
+2015,Car passenger,17-25,1296
+2015,Car passenger,26-39,904
+2015,Car passenger,40-64,988
+2015,Car passenger,65-74,378
+2015,Car passenger,75+,423
+2015,Car passenger,8-16,626
+2015,Motorcyclist,0-7,37
+2015,Motorcyclist,17-25,2064
+2015,Motorcyclist,26-39,2322
+2015,Motorcyclist,40-64,3097
+2015,Motorcyclist,65-74,226
+2015,Motorcyclist,75+,86
+2015,Motorcyclist,8-16,466
+2015,Other or not recorded,0-7,21
+2015,Other or not recorded,17-25,298
+2015,Other or not recorded,26-39,313
+2015,Other or not recorded,40-64,398
+2015,Other or not recorded,65-74,99
+2015,Other or not recorded,75+,124
+2015,Other or not recorded,8-16,62
+2015,Pedal cyclist,0-7,220
+2015,Pedal cyclist,17-25,748
+2015,Pedal cyclist,26-39,1539
+2015,Pedal cyclist,40-64,2730
+2015,Pedal cyclist,65-74,400
+2015,Pedal cyclist,75+,144
+2015,Pedal cyclist,8-16,935
+2015,Pedestrian,0-7,121
+2015,Pedestrian,17-25,447
+2015,Pedestrian,26-39,492
+2015,Pedestrian,40-64,664
+2015,Pedestrian,65-74,255
+2015,Pedestrian,75+,379
+2015,Pedestrian,8-16,269
+2015,Truck occupant,0-7,2
+2015,Truck occupant,17-25,40
+2015,Truck occupant,26-39,132
+2015,Truck occupant,40-64,298
+2015,Truck occupant,65-74,26
+2015,Truck occupant,75+,4
+2015,Truck occupant,8-16,8
+2015,Ute or van occupant,0-7,3
+2015,Ute or van occupant,17-25,50
+2015,Ute or van occupant,26-39,62
+2015,Ute or van occupant,40-64,102
+2015,Ute or van occupant,65-74,15
+2015,Ute or van occupant,75+,15
+2015,Ute or van occupant,8-16,2
+2016,Bus occupant,0-7,4
+2016,Bus occupant,17-25,21
+2016,Bus occupant,26-39,32
+2016,Bus occupant,40-64,100
+2016,Bus occupant,65-74,41
+2016,Bus occupant,75+,72
+2016,Bus occupant,8-16,13
+2016,Car driver,0-7,4
+2016,Car driver,17-25,3204
+2016,Car driver,26-39,3496
+2016,Car driver,40-64,4156
+2016,Car driver,65-74,1120
+2016,Car driver,75+,1164
+2016,Car driver,8-16,50
+2016,Car passenger,0-7,314
+2016,Car passenger,17-25,1466
+2016,Car passenger,26-39,932
+2016,Car passenger,40-64,990
+2016,Car passenger,65-74,350
+2016,Car passenger,75+,446
+2016,Car passenger,8-16,605
+2016,Motorcyclist,0-7,27
+2016,Motorcyclist,17-25,2199
+2016,Motorcyclist,26-39,2424
+2016,Motorcyclist,40-64,3101
+2016,Motorcyclist,65-74,263
+2016,Motorcyclist,75+,84
+2016,Motorcyclist,8-16,428
+2016,Other or not recorded,0-7,46
+2016,Other or not recorded,17-25,306
+2016,Other or not recorded,26-39,336
+2016,Other or not recorded,40-64,461
+2016,Other or not recorded,65-74,110
+2016,Other or not recorded,75+,110
+2016,Other or not recorded,8-16,59
+2016,Pedal cyclist,0-7,202
+2016,Pedal cyclist,17-25,713
+2016,Pedal cyclist,26-39,1540
+2016,Pedal cyclist,40-64,2826
+2016,Pedal cyclist,65-74,480
+2016,Pedal cyclist,75+,150
+2016,Pedal cyclist,8-16,993
+2016,Pedestrian,0-7,130
+2016,Pedestrian,17-25,454
+2016,Pedestrian,26-39,519
+2016,Pedestrian,40-64,719
+2016,Pedestrian,65-74,252
+2016,Pedestrian,75+,355
+2016,Pedestrian,8-16,314
+2016,Truck occupant,0-7,2
+2016,Truck occupant,17-25,45
+2016,Truck occupant,26-39,99
+2016,Truck occupant,40-64,291
+2016,Truck occupant,65-74,36
+2016,Truck occupant,75+,9
+2016,Truck occupant,8-16,2
+2016,Ute or van occupant,0-7,7
+2016,Ute or van occupant,17-25,66
+2016,Ute or van occupant,26-39,73
+2016,Ute or van occupant,40-64,105
+2016,Ute or van occupant,65-74,25
+2016,Ute or van occupant,75+,10
+2016,Ute or van occupant,8-16,12
+2017,Bus occupant,0-7,3
+2017,Bus occupant,17-25,23
+2017,Bus occupant,26-39,29
+2017,Bus occupant,40-64,74
+2017,Bus occupant,65-74,38
+2017,Bus occupant,75+,89
+2017,Bus occupant,8-16,9
+2017,Car driver,0-7,3
+2017,Car driver,17-25,3239
+2017,Car driver,26-39,3460
+2017,Car driver,40-64,4221
+2017,Car driver,65-74,1096
+2017,Car driver,75+,1186
+2017,Car driver,8-16,62
+2017,Car passenger,0-7,344
+2017,Car passenger,17-25,1402
+2017,Car passenger,26-39,934
+2017,Car passenger,40-64,966
+2017,Car passenger,65-74,381
+2017,Car passenger,75+,452
+2017,Car passenger,8-16,623
+2017,Motorcyclist,0-7,35
+2017,Motorcyclist,17-25,2163
+2017,Motorcyclist,26-39,2478
+2017,Motorcyclist,40-64,3202
+2017,Motorcyclist,65-74,336
+2017,Motorcyclist,75+,83
+2017,Motorcyclist,8-16,442
+2017,Other or not recorded,0-7,26
+2017,Other or not recorded,17-25,298
+2017,Other or not recorded,26-39,345
+2017,Other or not recorded,40-64,439
+2017,Other or not recorded,65-74,107
+2017,Other or not recorded,75+,104
+2017,Other or not recorded,8-16,58
+2017,Pedal cyclist,0-7,190
+2017,Pedal cyclist,17-25,788
+2017,Pedal cyclist,26-39,1570
+2017,Pedal cyclist,40-64,2897
+2017,Pedal cyclist,65-74,486
+2017,Pedal cyclist,75+,154
+2017,Pedal cyclist,8-16,991
+2017,Pedestrian,0-7,134
+2017,Pedestrian,17-25,420
+2017,Pedestrian,26-39,513
+2017,Pedestrian,40-64,746
+2017,Pedestrian,65-74,275
+2017,Pedestrian,75+,326
+2017,Pedestrian,8-16,300
+2017,Truck occupant,0-7,1
+2017,Truck occupant,17-25,62
+2017,Truck occupant,26-39,119
+2017,Truck occupant,40-64,296
+2017,Truck occupant,65-74,40
+2017,Truck occupant,75+,7
+2017,Truck occupant,8-16,3
+2017,Ute or van occupant,0-7,4
+2017,Ute or van occupant,17-25,73
+2017,Ute or van occupant,26-39,60
+2017,Ute or van occupant,40-64,96
+2017,Ute or van occupant,65-74,18
+2017,Ute or van occupant,75+,10
+2017,Ute or van occupant,8-16,10
+2018,Bus occupant,0-7,2
+2018,Bus occupant,17-25,25
+2018,Bus occupant,26-39,32
+2018,Bus occupant,40-64,57
+2018,Bus occupant,65-74,45
+2018,Bus occupant,75+,74
+2018,Bus occupant,8-16,12
+2018,Car driver,0-7,3
+2018,Car driver,17-25,3328
+2018,Car driver,26-39,3615
+2018,Car driver,40-64,4185
+2018,Car driver,65-74,1172
+2018,Car driver,75+,1232
+2018,Car driver,8-16,60
+2018,Car passenger,0-7,348
+2018,Car passenger,17-25,1387
+2018,Car passenger,26-39,932
+2018,Car passenger,40-64,978
+2018,Car passenger,65-74,390
+2018,Car passenger,75+,491
+2018,Car passenger,8-16,680
+2018,Motorcyclist,0-7,34
+2018,Motorcyclist,17-25,1992
+2018,Motorcyclist,26-39,2536
+2018,Motorcyclist,40-64,3246
+2018,Motorcyclist,65-74,352
+2018,Motorcyclist,75+,86
+2018,Motorcyclist,8-16,377
+2018,Other or not recorded,0-7,18
+2018,Other or not recorded,17-25,298
+2018,Other or not recorded,26-39,375
+2018,Other or not recorded,40-64,505
+2018,Other or not recorded,65-74,98
+2018,Other or not recorded,75+,122
+2018,Other or not recorded,8-16,51
+2018,Pedal cyclist,0-7,184
+2018,Pedal cyclist,17-25,712
+2018,Pedal cyclist,26-39,1541
+2018,Pedal cyclist,40-64,2872
+2018,Pedal cyclist,65-74,510
+2018,Pedal cyclist,75+,195
+2018,Pedal cyclist,8-16,945
+2018,Pedestrian,0-7,130
+2018,Pedestrian,17-25,426
+2018,Pedestrian,26-39,500
+2018,Pedestrian,40-64,727
+2018,Pedestrian,65-74,265
+2018,Pedestrian,75+,327
+2018,Pedestrian,8-16,286
+2018,Truck occupant,0-7,4
+2018,Truck occupant,17-25,64
+2018,Truck occupant,26-39,134
+2018,Truck occupant,40-64,304
+2018,Truck occupant,65-74,30
+2018,Truck occupant,75+,11
+2018,Truck occupant,8-16,6
+2018,Ute or van occupant,0-7,1
+2018,Ute or van occupant,17-25,77
+2018,Ute or van occupant,26-39,71
+2018,Ute or van occupant,40-64,99
+2018,Ute or van occupant,65-74,14
+2018,Ute or van occupant,75+,12
+2018,Ute or van occupant,8-16,5
+2019,Bus occupant,0-7,3
+2019,Bus occupant,17-25,21
+2019,Bus occupant,26-39,33
+2019,Bus occupant,40-64,83
+2019,Bus occupant,65-74,50
+2019,Bus occupant,75+,61
+2019,Bus occupant,8-16,4
+2019,Car driver,0-7,5
+2019,Car driver,17-25,3063
+2019,Car driver,26-39,3488
+2019,Car driver,40-64,4298
+2019,Car driver,65-74,1226
+2019,Car driver,75+,1350
+2019,Car driver,8-16,52
+2019,Car passenger,0-7,316
+2019,Car passenger,17-25,1294
+2019,Car passenger,26-39,924
+2019,Car passenger,40-64,979
+2019,Car passenger,65-74,391
+2019,Car passenger,75+,482
+2019,Car passenger,8-16,603
+2019,Motorcyclist,0-7,34
+2019,Motorcyclist,17-25,2158
+2019,Motorcyclist,26-39,2476
+2019,Motorcyclist,40-64,3278
+2019,Motorcyclist,65-74,384
+2019,Motorcyclist,75+,132
+2019,Motorcyclist,8-16,462
+2019,Other or not recorded,0-7,17
+2019,Other or not recorded,17-25,304
+2019,Other or not recorded,26-39,396
+2019,Other or not recorded,40-64,425
+2019,Other or not recorded,65-74,119
+2019,Other or not recorded,75+,119
+2019,Other or not recorded,8-16,37
+2019,Pedal cyclist,0-7,203
+2019,Pedal cyclist,17-25,731
+2019,Pedal cyclist,26-39,1589
+2019,Pedal cyclist,40-64,2995
+2019,Pedal cyclist,65-74,565
+2019,Pedal cyclist,75+,178
+2019,Pedal cyclist,8-16,1041
+2019,Pedestrian,0-7,123
+2019,Pedestrian,17-25,428
+2019,Pedestrian,26-39,531
+2019,Pedestrian,40-64,714
+2019,Pedestrian,65-74,286
+2019,Pedestrian,75+,346
+2019,Pedestrian,8-16,285
+2019,Truck occupant,17-25,45
+2019,Truck occupant,26-39,133
+2019,Truck occupant,40-64,301
+2019,Truck occupant,65-74,32
+2019,Truck occupant,75+,10
+2019,Truck occupant,8-16,3
+2019,Ute or van occupant,0-7,3
+2019,Ute or van occupant,17-25,58
+2019,Ute or van occupant,26-39,71
+2019,Ute or van occupant,40-64,97
+2019,Ute or van occupant,65-74,15
+2019,Ute or van occupant,75+,8
+2019,Ute or van occupant,8-16,8
+2020,Bus occupant,17-25,21
+2020,Bus occupant,26-39,19
+2020,Bus occupant,40-64,50
+2020,Bus occupant,65-74,22
+2020,Bus occupant,75+,45
+2020,Bus occupant,8-16,16
+2020,Car driver,0-7,6
+2020,Car driver,17-25,3070
+2020,Car driver,26-39,3253
+2020,Car driver,40-64,3716
+2020,Car driver,65-74,984
+2020,Car driver,75+,1122
+2020,Car driver,8-16,66
+2020,Car passenger,0-7,292
+2020,Car passenger,17-25,1275
+2020,Car passenger,26-39,816
+2020,Car passenger,40-64,794
+2020,Car passenger,65-74,303
+2020,Car passenger,75+,335
+2020,Car passenger,8-16,529
+2020,Motorcyclist,0-7,32
+2020,Motorcyclist,17-25,2102
+2020,Motorcyclist,26-39,2501
+2020,Motorcyclist,40-64,3062
+2020,Motorcyclist,65-74,377
+2020,Motorcyclist,75+,75
+2020,Motorcyclist,8-16,535
+2020,Other or not recorded,0-7,23
+2020,Other or not recorded,17-25,284
+2020,Other or not recorded,26-39,328
+2020,Other or not recorded,40-64,434
+2020,Other or not recorded,65-74,110
+2020,Other or not recorded,75+,76
+2020,Other or not recorded,8-16,58
+2020,Pedal cyclist,0-7,258
+2020,Pedal cyclist,17-25,768
+2020,Pedal cyclist,26-39,1681
+2020,Pedal cyclist,40-64,3331
+2020,Pedal cyclist,65-74,693
+2020,Pedal cyclist,75+,253
+2020,Pedal cyclist,8-16,1348
+2020,Pedestrian,0-7,100
+2020,Pedestrian,17-25,333
+2020,Pedestrian,26-39,396
+2020,Pedestrian,40-64,567
+2020,Pedestrian,65-74,234
+2020,Pedestrian,75+,239
+2020,Pedestrian,8-16,234
+2020,Truck occupant,0-7,2
+2020,Truck occupant,17-25,33
+2020,Truck occupant,26-39,148
+2020,Truck occupant,40-64,274
+2020,Truck occupant,65-74,36
+2020,Truck occupant,75+,5
+2020,Truck occupant,8-16,2
+2020,Ute or van occupant,0-7,1
+2020,Ute or van occupant,17-25,85
+2020,Ute or van occupant,26-39,60
+2020,Ute or van occupant,40-64,114
+2020,Ute or van occupant,65-74,20
+2020,Ute or van occupant,75+,9
+2020,Ute or van occupant,8-16,11
+2021,Bus occupant,0-7,1
+2021,Bus occupant,17-25,10
+2021,Bus occupant,26-39,20
+2021,Bus occupant,40-64,58
+2021,Bus occupant,65-74,28
+2021,Bus occupant,75+,44
+2021,Bus occupant,8-16,8
+2021,Car driver,0-7,9
+2021,Car driver,17-25,3272
+2021,Car driver,26-39,3571
+2021,Car driver,40-64,4036
+2021,Car driver,65-74,1119
+2021,Car driver,75+,1254
+2021,Car driver,8-16,66
+2021,Car passenger,0-7,288
+2021,Car passenger,17-25,1203
+2021,Car passenger,26-39,813
+2021,Car passenger,40-64,924
+2021,Car passenger,65-74,287
+2021,Car passenger,75+,377
+2021,Car passenger,8-16,603
+2021,Motorcyclist,0-7,36
+2021,Motorcyclist,17-25,2020
+2021,Motorcyclist,26-39,2479
+2021,Motorcyclist,40-64,3259
+2021,Motorcyclist,65-74,402
+2021,Motorcyclist,75+,112
+2021,Motorcyclist,8-16,575
+2021,Other or not recorded,0-7,27
+2021,Other or not recorded,17-25,284
+2021,Other or not recorded,26-39,329
+2021,Other or not recorded,40-64,408
+2021,Other or not recorded,65-74,119
+2021,Other or not recorded,75+,88
+2021,Other or not recorded,8-16,63
+2021,Pedal cyclist,0-7,217
+2021,Pedal cyclist,17-25,727
+2021,Pedal cyclist,26-39,1542
+2021,Pedal cyclist,40-64,3393
+2021,Pedal cyclist,65-74,749
+2021,Pedal cyclist,75+,285
+2021,Pedal cyclist,8-16,1250
+2021,Pedestrian,0-7,123
+2021,Pedestrian,17-25,338
+2021,Pedestrian,26-39,450
+2021,Pedestrian,40-64,622
+2021,Pedestrian,65-74,240
+2021,Pedestrian,75+,278
+2021,Pedestrian,8-16,283
+2021,Truck occupant,0-7,1
+2021,Truck occupant,17-25,47
+2021,Truck occupant,26-39,134
+2021,Truck occupant,40-64,240
+2021,Truck occupant,65-74,40
+2021,Truck occupant,75+,10
+2021,Truck occupant,8-16,3
+2021,Ute or van occupant,0-7,5
+2021,Ute or van occupant,17-25,109
+2021,Ute or van occupant,26-39,85
+2021,Ute or van occupant,40-64,86
+2021,Ute or van occupant,65-74,34
+2021,Ute or van occupant,75+,10
+2021,Ute or van occupant,8-16,12

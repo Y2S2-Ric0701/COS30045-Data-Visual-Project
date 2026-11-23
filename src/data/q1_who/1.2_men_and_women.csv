@@ -1,0 +1,211 @@
+year,road_user,sex,hospitalisations
+2011,Bus occupant,Female,140
+2011,Bus occupant,Male,74
+2011,Car driver,Female,5068
+2011,Car driver,Male,5880
+2011,Car passenger,Female,2808
+2011,Car passenger,Male,2045
+2011,Motorcyclist,Female,737
+2011,Motorcyclist,Male,6828
+2011,Other or not recorded,Female,575
+2011,Other or not recorded,Male,924
+2011,Pedal cyclist,Female,1125
+2011,Pedal cyclist,Male,4266
+2011,Pedestrian,Female,1173
+2011,Pedestrian,Male,1581
+2011,Truck occupant,Female,34
+2011,Truck occupant,Male,528
+2011,Ute or van occupant,Female,52
+2011,Ute or van occupant,Male,195
+2012,Bus occupant,Female,129
+2012,Bus occupant,Male,88
+2012,Car driver,Female,5017
+2012,Car driver,Male,5789
+2012,Car passenger,Female,2694
+2012,Car passenger,Male,2044
+2012,Motorcyclist,Female,774
+2012,Motorcyclist,Male,6954
+2012,Other or not recorded,Female,600
+2012,Other or not recorded,Male,858
+2012,Pedal cyclist,Female,1182
+2012,Pedal cyclist,Male,4439
+2012,Pedestrian,Female,1113
+2012,Pedestrian,Male,1559
+2012,Truck occupant,Female,29
+2012,Truck occupant,Male,482
+2012,Ute or van occupant,Female,55
+2012,Ute or van occupant,Male,218
+2013,Bus occupant,Female,134
+2013,Bus occupant,Male,92
+2013,Car driver,Female,5178
+2013,Car driver,Male,5763
+2013,Car driver,Other or missing,1
+2013,Car passenger,Female,2847
+2013,Car passenger,Male,1981
+2013,Motorcyclist,Female,827
+2013,Motorcyclist,Male,7190
+2013,Motorcyclist,Other or missing,1
+2013,Other or not recorded,Female,577
+2013,Other or not recorded,Male,777
+2013,Pedal cyclist,Female,1317
+2013,Pedal cyclist,Male,4945
+2013,Pedestrian,Female,1104
+2013,Pedestrian,Male,1553
+2013,Truck occupant,Female,19
+2013,Truck occupant,Male,465
+2013,Ute or van occupant,Female,39
+2013,Ute or van occupant,Male,191
+2014,Bus occupant,Female,204
+2014,Bus occupant,Male,85
+2014,Car driver,Female,5316
+2014,Car driver,Male,5806
+2014,Car passenger,Female,2790
+2014,Car passenger,Male,1835
+2014,Motorcyclist,Female,838
+2014,Motorcyclist,Male,7496
+2014,Other or not recorded,Female,518
+2014,Other or not recorded,Male,718
+2014,Pedal cyclist,Female,1418
+2014,Pedal cyclist,Male,5218
+2014,Pedestrian,Female,1124
+2014,Pedestrian,Male,1430
+2014,Truck occupant,Female,40
+2014,Truck occupant,Male,440
+2014,Ute or van occupant,Female,46
+2014,Ute or van occupant,Male,193
+2015,Bus occupant,Female,145
+2015,Bus occupant,Male,101
+2015,Car driver,Female,5907
+2015,Car driver,Male,6256
+2015,Car passenger,Female,2972
+2015,Car passenger,Male,1985
+2015,Car passenger,Other or missing,1
+2015,Motorcyclist,Female,881
+2015,Motorcyclist,Male,7417
+2015,Other or not recorded,Female,593
+2015,Other or not recorded,Male,722
+2015,Pedal cyclist,Female,1425
+2015,Pedal cyclist,Male,5291
+2015,Pedestrian,Female,1177
+2015,Pedestrian,Male,1450
+2015,Truck occupant,Female,16
+2015,Truck occupant,Male,494
+2015,Ute or van occupant,Female,45
+2015,Ute or van occupant,Male,204
+2016,Bus occupant,Female,175
+2016,Bus occupant,Male,108
+2016,Car driver,Female,6390
+2016,Car driver,Male,6804
+2016,Car passenger,Female,3016
+2016,Car passenger,Male,2087
+2016,Motorcyclist,Female,904
+2016,Motorcyclist,Male,7622
+2016,Other or not recorded,Female,637
+2016,Other or not recorded,Male,791
+2016,Pedal cyclist,Female,1519
+2016,Pedal cyclist,Male,5385
+2016,Pedestrian,Female,1222
+2016,Pedestrian,Male,1521
+2016,Truck occupant,Female,25
+2016,Truck occupant,Male,459
+2016,Ute or van occupant,Female,64
+2016,Ute or van occupant,Male,234
+2017,Bus occupant,Female,176
+2017,Bus occupant,Male,89
+2017,Car driver,Female,6410
+2017,Car driver,Male,6857
+2017,Car passenger,Female,3185
+2017,Car passenger,Male,1917
+2017,Motorcyclist,Female,871
+2017,Motorcyclist,Male,7868
+2017,Other or not recorded,Female,608
+2017,Other or not recorded,Male,769
+2017,Pedal cyclist,Female,1509
+2017,Pedal cyclist,Male,5567
+2017,Pedestrian,Female,1228
+2017,Pedestrian,Male,1486
+2017,Truck occupant,Female,34
+2017,Truck occupant,Male,494
+2017,Ute or van occupant,Female,62
+2017,Ute or van occupant,Male,209
+2018,Bus occupant,Female,149
+2018,Bus occupant,Male,98
+2018,Car driver,Female,6629
+2018,Car driver,Male,6966
+2018,Car passenger,Female,3149
+2018,Car passenger,Male,2057
+2018,Motorcyclist,Female,894
+2018,Motorcyclist,Male,7729
+2018,Other or not recorded,Female,647
+2018,Other or not recorded,Male,820
+2018,Pedal cyclist,Female,1523
+2018,Pedal cyclist,Male,5434
+2018,Pedal cyclist,Other or missing,2
+2018,Pedestrian,Female,1194
+2018,Pedestrian,Male,1467
+2018,Truck occupant,Female,35
+2018,Truck occupant,Male,518
+2018,Ute or van occupant,Female,53
+2018,Ute or van occupant,Male,226
+2019,Bus occupant,Female,156
+2019,Bus occupant,Male,98
+2019,Bus occupant,Other or missing,1
+2019,Car driver,Female,6823
+2019,Car driver,Male,6658
+2019,Car driver,Other or missing,1
+2019,Car passenger,Female,3118
+2019,Car passenger,Male,1871
+2019,Motorcyclist,Female,980
+2019,Motorcyclist,Male,7944
+2019,Other or not recorded,Female,630
+2019,Other or not recorded,Male,787
+2019,Pedal cyclist,Female,1517
+2019,Pedal cyclist,Male,5785
+2019,Pedestrian,Female,1189
+2019,Pedestrian,Male,1524
+2019,Truck occupant,Female,38
+2019,Truck occupant,Male,486
+2019,Ute or van occupant,Female,48
+2019,Ute or van occupant,Male,212
+2020,Bus occupant,Female,101
+2020,Bus occupant,Male,72
+2020,Car driver,Female,5626
+2020,Car driver,Male,6588
+2020,Car driver,Other or missing,3
+2020,Car passenger,Female,2587
+2020,Car passenger,Male,1757
+2020,Motorcyclist,Female,931
+2020,Motorcyclist,Male,7752
+2020,Motorcyclist,Other or missing,1
+2020,Other or not recorded,Female,587
+2020,Other or not recorded,Male,725
+2020,Other or not recorded,Other or missing,1
+2020,Pedal cyclist,Female,1946
+2020,Pedal cyclist,Male,6385
+2020,Pedal cyclist,Other or missing,1
+2020,Pedestrian,Female,913
+2020,Pedestrian,Male,1189
+2020,Pedestrian,Other or missing,1
+2020,Truck occupant,Female,31
+2020,Truck occupant,Male,469
+2020,Ute or van occupant,Female,59
+2020,Ute or van occupant,Male,241
+2021,Bus occupant,Female,109
+2021,Bus occupant,Male,60
+2021,Car driver,Female,6602
+2021,Car driver,Male,6725
+2021,Car passenger,Female,2698
+2021,Car passenger,Male,1797
+2021,Motorcyclist,Female,992
+2021,Motorcyclist,Male,7891
+2021,Other or not recorded,Female,530
+2021,Other or not recorded,Male,788
+2021,Pedal cyclist,Female,1737
+2021,Pedal cyclist,Male,6425
+2021,Pedal cyclist,Other or missing,1
+2021,Pedestrian,Female,945
+2021,Pedestrian,Male,1389
+2021,Truck occupant,Female,31
+2021,Truck occupant,Male,444
+2021,Ute or van occupant,Female,72
+2021,Ute or van occupant,Male,269

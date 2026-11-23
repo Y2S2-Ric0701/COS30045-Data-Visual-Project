@@ -1,142 +1,97 @@
 /* ═══════════════════════════════════════════════════════════════
-   charts-severity.js – Page Controller for Question 5 (Severity)
+   charts-severity.js – Question 5: Who is hurt the worst?
    COS30045 Data Visualisation Project
-   Pattern: Object-Oriented Component Instantiation
+
+   5.1 Who is most likely to die?          (deaths per 1,000 cases)
+   5.2 Who stays in hospital longest?      (average bed days per case)
+   5.3 Is the biggest group the worst hurt? (share of cases vs share of deaths)
+   All use 2011–2019: deaths after mid-2020 are not recorded yet.
    ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
-  d3.csv('data/rq5_mortality_severity.csv').then(function (rawData) {
-    const formatted = rawData.map(d => {
-      const cases = +d['Sum(Count of cases)'] || 0;
-      const deaths = +d['Sum(Died_cases)'] || 0;
-      const bedDays = +d['Sum(Bed days)'] || 0;
-      const rate = +d['Deaths_per_1000'] || (cases > 0 ? (deaths / cases) * 1000 : 0);
-      const avgBedDays = cases > 0 ? Math.round((bedDays / cases) * 10) / 10 : 0;
-      return {
-        user: d['Road user'],
-        cases,
-        deaths,
-        bedDays,
-        rate: Math.round(rate * 100) / 100,
-        avgBedDays,
-      };
-    }).filter(d => !d.user.toLowerCase().includes('unknown position') && d.cases > 1000);
+  const fmt = d3.format(',');
+  const pct0 = d3.format('.0%');
+  const fmtPct = d3.format('.1%');
+  const fmtDec1 = d3.format('.1f');
+  const highlightOf = state => (state.roadUser === 'all' ? null : state.roadUser);
+  const clickRoadUser = d => GlobalFilter.toggleRoadUser(d.key);
+  const NO_DEATHS = 'No death records for 2020–2021: choose earlier years';
 
-    const userColors = {
-      'Car driver': '#0072B2',
-      'Motorcyclist': '#E69F00',
-      'Pedal cyclist': '#009E73',
-      'Car passenger': '#56B4E9',
-      'Pedestrian': '#D55E00',
-      'Heavy transport driver': '#64748b',
-      'Pick-up truck or van occupant': '#94a3b8',
-      'Bus occupant': '#94a3b8',
-      'Other or unknown': '#94a3b8',
-    };
+  SiteData.severity().then(function (severityRows) {
 
-    // ── Figure 5.1: In-Hospital Mortality Rate per 1,000 Cases ───
-    new Vis.BarChart('#chart-mortality-risk', formatted, {
-      labelKey: 'user',
-      valueKey: 'rate',
-      gradient: true,
-      xLabel: 'Deaths per 1,000 Hospitalised Cases (2011–2019 Baseline)',
-      valueLabel: 'Mortality Rate:',
-      unit: ' deaths / 1k',
-      valueFormatter: d => `${d.toFixed(1)} / 1k`,
-      showProportion: false,
-      margin: { top: 25, right: 90, bottom: 45, left: 235 },
-      height: 420,
-    });
-
-    // ── Figure 5.2: Average Hospital Bed Days per Case ────────────
-    new Vis.BarChart('#chart-length-of-stay', formatted, {
-      labelKey: 'user',
-      valueKey: 'avgBedDays',
-      gradient: true,
-      xLabel: 'Average Inpatient Bed Days per Hospitalised Case',
-      valueLabel: 'Average Stay:',
-      unit: ' days',
-      valueFormatter: d => `${d.toFixed(1)} days`,
-      showProportion: false,
-      margin: { top: 25, right: 90, bottom: 45, left: 235 },
-      height: 420,
-    });
-
-    // ── Figure 5.3: Volume vs. Severity Bubble Chart (Climax) ────
-    const bubbleVis = new Vis.BubbleChart('#chart-injury-severity', formatted, {
-      xKey: 'cases',
-      yKey: 'rate',
-      rKey: 'avgBedDays',
-      labelKey: 'user',
-      colorMap: userColors,
-      height: 520,
-      margin: { top: 45, right: 95, bottom: 55, left: 65 },
-    });
-
-    // ── Interactive Segmented Control Filtering ──────────────────
-    // Chip appearance (hover / active) is defined in css/base.css.
-    const filterBtns = document.querySelectorAll('#severity-filter-control .filter-btn');
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', function () {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        // Reset any locked chip on cohort switch
-        d3.selectAll('#bubble-interactive-legend .legend-chip').classed('active', false);
-        bubbleVis.filterByCohort(this.getAttribute('data-filter'));
-      });
-    });
-
-    // ── Interactive Road User Spotlight Legend Bar ──────────────
-    const legendContainer = d3.select('#bubble-interactive-legend');
-    if (!legendContainer.empty()) {
-      legendContainer.selectAll('*').remove();
-
-      legendContainer.append('div')
-        .attr('class', 'interactive-legend-title')
-        .html('Interactive Cohort Spotlight &bull; Hover or Click to Lock Crosshairs');
-
-      const chipsWrapper = legendContainer.append('div')
-        .attr('class', 'interactive-legend-chips');
-
-      // Sort road users by clinical mortality rate descending (matching Fig 5.1 order)
-      const sortedUsers = [...formatted].sort((a, b) => b.rate - a.rate);
-
-      const chips = chipsWrapper.selectAll('.legend-chip')
-        .data(sortedUsers)
-        .join('button')
-        .attr('class', 'legend-chip')
-        .attr('type', 'button')
-        .attr('aria-label', d => `Spotlight ${d.user}`);
-
-      chips.append('span')
-        .attr('class', 'legend-chip-dot')
-        .style('background-color', d => userColors[d.user] || '#0072B2');
-
-      chips.append('span')
-        .attr('class', 'legend-chip-label')
-        .text(d => d.user);
-
-      chips
-        .on('mouseenter', (event, d) => bubbleVis.spotlight(d.user))
-        .on('mouseleave', () => {
-          const locked = chipsWrapper.select('.legend-chip.active');
-          if (!locked.empty()) bubbleVis.spotlight(locked.datum().user);
-          else bubbleVis.resetSpotlight();
-        })
-        .on('click', function (event, d) {
-          const wasActive = this.classList.contains('active');
-          chips.classed('active', false);
-          if (!wasActive) {
-            d3.select(this).classed('active', true);
-            bubbleVis.spotlight(d.user);
-          } else {
-            bubbleVis.resetSpotlight();
-          }
-        });
+    /** One row per road user with cases, deaths, rate and stay for the chosen years (to 2019) */
+    function byRoadUser(state) {
+      const dy = SiteData.deathYears(state.years);
+      if (!dy) return [];
+      const sums = SiteData.sumBy(SiteData.inYears(severityRows, dy), d => d.road_user, ['cases', 'deaths', 'bed_days']);
+      const rows = ROAD_USERS.map(r => Object.assign(
+        { key: r.key, label: r.plural },
+        SiteData.outcomes(sums.get(r.key) || { cases: 0, deaths: 0, bed_days: 0 })));
+      const allCases = d3.sum(rows, d => d.cases);
+      const allDeaths = d3.sum(rows, d => d.deaths);
+      rows.forEach(d => { d.a = allCases ? d.cases / allCases : 0; d.b = allDeaths ? d.deaths / allDeaths : 0; });
+      return rows;
     }
 
-  }).catch(err => console.error('Error loading rq5_mortality_severity.csv:', err));
+    const initial = GlobalFilter.get();
+    const data0 = byRoadUser(initial);
+    const tipRows = d => [
+      ['Hospital cases:', fmt(d.cases)],
+      ['Died in hospital:', fmt(d.deaths)],
+      ['Deaths per 1,000 cases:', fmtDec1(d.rate)],
+      ['Average stay:', `${fmtDec1(d.stay)} days`],
+    ];
 
+    // ── Figure 5.1: Who is most likely to die? ───────────────────
+    const deathChart = new Vis.RankedBarChart('#chart-mortality-risk', data0.map(d => ({ ...d, value: d.rate })), {
+      valueText: d => `${fmtDec1(d.value)} per 1,000`,
+      tickFormat: d3.format('~'),
+      margin: { top: 24, right: 130, bottom: 54, left: 200 },
+      rowHeight: 42,
+      emptyText: NO_DEATHS,
+      onClick: clickRoadUser,
+      tooltip: d => [d.label, tipRows(d).map((r, i) => (i === 2 ? [...r, true] : r))],
+    });
+
+    // ── Figure 5.2: Who stays in hospital longest? ───────────────
+    const stayChart = new Vis.RankedBarChart('#chart-length-of-stay', data0.map(d => ({ ...d, value: d.stay })), {
+      valueText: d => `${fmtDec1(d.value)} days`,
+      tickFormat: d3.format('~'),
+      margin: { top: 24, right: 110, bottom: 54, left: 200 },
+      rowHeight: 42,
+      emptyText: NO_DEATHS,
+      onClick: clickRoadUser,
+      tooltip: d => [d.label, tipRows(d).map((r, i) => (i === 3 ? [...r, true] : r))],
+    });
+
+    // ── Figure 5.3: Is the biggest group also the worst hurt? ────
+    const pairChart = new Vis.PairedBarChart('#chart-injury-severity', data0, {
+      onClick: clickRoadUser,
+      tooltip: d => [d.label, [
+        ['Share of all hospital cases:', fmtPct(d.a)],
+        ['Share of all deaths in hospital:', fmtPct(d.b), true],
+        ['Deaths ÷ cases:', `${fmtDec1(d.b / d.a)}× ${d.b / d.a >= 1.25 ? '(dies more often than its size suggests)' : d.b / d.a <= 0.8 ? '(dies less often than its size suggests)' : '(about as expected)'}`],
+        ['Cases / deaths:', `${fmt(d.cases)} / ${fmt(d.deaths)}`],
+      ]],
+    });
+
+    GlobalFilter.subscribe(state => {
+      const rows = byRoadUser(state);
+      const dy = SiteData.deathYears(state.years);
+      const hl = highlightOf(state);
+
+      deathChart.config.highlight = hl;
+      deathChart.config.xLabel = dy ? `Deaths in hospital per 1,000 cases, ${rangeText(dy)}` : '';
+      deathChart.wrangleData(rows.map(d => ({ ...d, value: d.rate })));
+
+      stayChart.config.highlight = hl;
+      stayChart.config.xLabel = dy ? `Average days in hospital per case, ${rangeText(dy)}` : '';
+      stayChart.wrangleData(rows.map(d => ({ ...d, value: d.stay })));
+
+      pairChart.config.highlight = hl;
+      pairChart.wrangleData(rows);
+    });
+  }).catch(err => console.error('Error loading data/q5_severity/:', err));
 });

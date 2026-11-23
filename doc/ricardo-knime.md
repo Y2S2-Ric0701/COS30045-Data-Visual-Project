@@ -1,8 +1,9 @@
-# Changes on `ricardo-knime`: readability, colour, responsive and summary update
+# Changes on `ricardo-knime`: readability, colour, responsive, summary and story update
 
 This file lists what changed on the site in this round, why it changed, and where the code is.
-It covers five rounds of feedback: readability and responsiveness; chart interaction and colour;
-the Overview page structure and summary charts; a clarity pass; and new chart types and filters.
+It covers six rounds of feedback: readability and responsiveness; chart interaction and colour;
+the Overview page structure and summary charts; a clarity pass; new chart types and filters; and
+one connected story with a site-wide filter and real data (round 6).
 
 ---
 
@@ -340,6 +341,140 @@ the old shades stayed. The update step now sets `fill` and `opacity` too.
 
 ---
 
+## Round 6: One story, one filter, real data
+
+This round answers the review notes in `doc/analysis.md` (lines 162–187). The main complaint was that
+charts were presented without a purpose and did not connect to each other. Every figure now has to answer
+**why it is here, what it shows, and what the reader should take away**.
+
+### 24. The story: one big question, five steps
+
+The site now asks one question, **"Who gets hurt on Australian roads, and who gets hurt worst?"**, and each
+page answers one step of it. Each step leads to the next:
+
+| # | Old question | New question (page title) | What the page delivers | Leads to the next page because… |
+|---|---|---|---|---|
+| Q1 | Who is most affected by hospitalised road crash injuries? | **Who ends up in hospital?** | Drivers, motorcyclists and cyclists are ~3 in 4 cases; 2 in 3 patients are men; young adults are most at risk for their age | "We know who. Is it getting worse?" |
+| Q2 | How have hospitalised road crash injuries changed between 2011 and 2021? | **Is it getting better or worse?** | Total +16%; cyclists +51%, pedestrians −15% | "Rising, but where?" |
+| Q3 | Where are hospitalised road crash injuries most common? | **Where does it happen?** | NSW, VIC, QLD hold ~79% of cases; regional patients die ~25% more often | "Place matters. What about the crash itself?" |
+| Q4 | What crash characteristics are associated with hospitalised injuries? | **What did they crash into?** | Most often a car; trucks and buses are rare but the deadliest | "Some crashes are far worse. Who is hurt worst?" |
+| Q5 | What are the most severe consequences of hospitalised road crash injuries? | **Who is hurt the worst?** | Pedestrians: ~4× the drivers' death rate, longest stays | Payoff: the biggest group is not the worst hurt |
+
+**Road user is the thread.** Q1 introduces nine road-user groups and their colours, and every later page uses
+the same groups in the same colours.
+
+### 25. Every figure follows the same pattern
+
+Each chart card now has, in this order:
+
+1. **The title is a question** (e.g. "Which crashes are deadliest?").
+2. **A bold one-line answer** with the key number.
+3. **"Why it matters:"** one sentence on why the reader should care, often pointing to the next figure.
+4. **"Showing: …"**: what the chart is currently showing (road user and years). It turns orange when the
+   filter is not on its default. In that case a short note also appears after the answer, saying which
+   road users and years the sentence describes.
+5. The chart, then a **small-print note** for definitions and data limits.
+
+Each page also has a **short-answer line** in the header, linking it to the previous question, and a
+**"What we learned"** card at the end, which leads into the next question.
+
+### 26. Figure by figure
+
+| New | Was | Question | Chart | What changed and why |
+|---|---|---|---|---|
+| 1.1 | 1.3 | Which road users are hurt most? | Lollipop | Moved first: it introduces the groups every page uses. Labels show count and share. **Click a row to set the site-wide filter** (review note on Fig 1.1) |
+| 1.2 | 1.2 | Are men and women hurt differently? | Bar, % men | Stacked counts → **% of patients who are men**, with dashed lines for an even split and the all-road-user average (65%). The note says it covers every year in the dataset, 2011–2021 (review note on Fig 1.2) |
+| 1.3 | 1.1 | Which age is most at risk? | Bar | **"Per year of age" is now the default**, because the age groups are different sizes (40–64 spans 25 years). It shows that 17–25 is the most affected, not 40–64. A toggle switches to total cases. It follows the road-user filter (e.g. older pedestrians) |
+| 2.1 | 2.3 | Did the total go up? | **Stacked area** | Was a 100% stacked bar whose shares barely moved. Now a stacked area of counts with a total line and "34,033 → 39,505 (+16%)" labels, so it shows the total and where the growth came from (review note on Fig 2.3) |
+| 2.2 | 2.1 | Which groups are rising, and which are falling? | Multi-line | **All nine road users** (review note on Fig 2.1). The line labels now carry the message: each line ends with its **name and % change** over the chosen years, so no legend is needed. The break labels are plain words ("2012: Victoria stopped counting patients treated only in emergency"), so a dip is not misread as a safety gain. Hover lists every value for that year, and clicking a line selects it |
+| 2.3 | 2.2 | Who changed the most? | **Diverging bar** | Replaces the dumbbell. Shows % change from the first to the last chosen year, with orange for worse and green for better. "and rates over time" no longer appears in any title (review note on Fig 2.2) |
+| 3.1 | 3.1 | Which states have the most injuries? | Map ⇄ bar | **Map / Bar chart toggle** and the **year filter** now apply (review note on Fig 3.1). It was 2021 only. The note says counts mostly follow population size |
+| 3.2 | 3.2 | Is it more dangerous outside the cities? | Bar | Now leads with the **death rate** instead of counts. This is the Overview's summary figure 2 moved into Q3 (review note on summary figure 2). It uses 2011–2019 and follows the road-user filter |
+| 3.3 | 3.3 | Is every state following the national trend? | Multi-line | **All eight states and territories** (was 4), each with its **own colour** and an end label with % change (review note on Fig 3.3) |
+| 4.1 | 4.1 | What do people crash into most? | Bar | The 100% stacked bar duplicated 4.2 and had no clear message (review note on Fig 4.1). It is now one simple ranked bar of share of cases, coloured by crash type |
+| 4.2 | 4.2 | Is it different for each road user? | Heatmap | Now shows all nine road users. A click on a row selects that road user, the year filter applies, and the selected row is highlighted |
+| 4.3 | — | Which crashes are deadliest? | Bar | **New.** Replaces the crash-scenario donut (review note on Fig 4.3: "Useless. Delete"). Deaths per 1,000 by what was hit: truck or bus 20.4, about 3× a car crash. Uses the same colours as 4.1 |
+| 5.1 | 5.1 | Who is most likely to die? | Bar | A boxed note explains **why the data stops at 2019** (review note on Fig 5.1) |
+| 5.2 | 5.2 | Who stays in hospital longest? | Bar | Same 2011–2019 years as 5.1, so both describe the same patients |
+| 5.3 | 5.3 | Is the biggest group also the worst hurt? | **Paired bar** | The bubble chart was hard to read, and its bubble size repeated 5.2 (review note on Fig 5.3). Each road user now has a grey bar (share of all cases) next to a coloured bar (share of all deaths), with a "deaths ÷ cases" number on the right. Pedestrians: 7% of cases, 26% of deaths, **3.6×** |
+
+Chart types are now lollipop, bar, diverging bar, paired bar, stacked area, line, choropleth map and heatmap.
+
+### 27. One filter for every chart (`src/js/global-filter.js`)
+
+- A bar under the navbar on every question page has a **road-user dropdown**, a **two-knob year slider**
+  (the old Figure 1.1 slider, now shared) and **Reset**. It stays visible while scrolling on desktop.
+- **Clicking a road user in any chart** (bar, line, heatmap row or legend chip) sets the filter, and clicking
+  it again clears it.
+- **The choice carries over** to the next page (stored in `sessionStorage`, with a safe fallback when storage
+  is blocked).
+- Each chart responds in the way that makes sense for it:
+  - charts *about* one road user (age, what they hit, city vs country) are **redrawn** for that road user;
+  - charts that *compare* road users **highlight** the chosen one and fade the rest;
+  - time charts draw all years and **grey out** the years outside the range;
+  - death and hospital-stay charts use the chosen years **up to 2019**. Choosing only 2020–2021 shows a
+    "no death records" message instead of an empty chart.
+- The "Showing:" line on each figure always says which of these applies. State data has no road-user
+  split, so Figures 3.1 and 3.3 say so instead of silently ignoring the filter.
+
+### 28. Consistent data and colours
+
+- **One set of data files for all pages**, built by `analysis/build_site_data.py` from the AIHW workbook
+  (`raw` sheet, `Cause of injury = Traffic`):
+  - `src/data/people_by_year.csv`: year × road user × sex × age group (1,361 rows)
+  - `src/data/crashes_by_year.csv`: year × road user × remoteness × what they hit, with cases, deaths and
+    bed days (2,011 rows)
+  - Run it again with `uv run --with openpyxl python analysis/build_site_data.py`. The totals match the
+    earlier KNIME outputs exactly (e.g. car drivers 135,063; 39,505 cases in 2021).
+- **Two periods, stated on every figure:** counts are 2011–2021, and deaths and hospital stay are
+  **2011–2019**. Before this round, Q5 used Jan 2011–Jun 2020, Figure 3.2 and the summary used 2011–2021 (so
+  the deaths missing for 2020–21 lowered the rate), Figure 3.1 used 2021 only and the Overview used 2023.
+  Small number changes as a result:
+  - Regional vs city death rate is now **+25%** (6.9 vs 5.5), not +23%.
+  - Pedestrians are 21.8 deaths per 1,000 (was 21.9).
+- **Nine road-user groups:** truck driver, passenger and unknown position are merged into "Truck
+  occupants". Car occupants with an unrecorded seat join "Other or not recorded". "Pick-up truck or van" is
+  renamed "Ute or van occupants".
+- **Six crash types** in plain words: car, ute or van; no other vehicle; fixed object; truck or bus;
+  something else; not recorded.
+- **Fixed colours** (`shared-constants.js`): each road user, state and crash type keeps one colour on every
+  chart. Charts of an amount (map, heatmap, age, remoteness) keep the blue gradient (darker = more).
+
+### 29. Overview page
+
+- **Why 2023? (review note):** the Overview read `sample_hospitalisation_data.csv`, which was
+  placeholder data (2015, 2019, 2023, with a minor/serious/critical field that the AIHW data does not have).
+  That file and `load-data.js` are removed. Both figures now use the real state data for 2011–2021.
+- **Figure 1** "Which states have the most injuries?" adds up 2011–2021, and the jurisdiction filter still
+  highlights one state.
+- **Figure 2** "Is it going up?" is now a **line chart** of all 11 years (review note on Overview figure 2),
+  for Australia or the chosen jurisdiction. It marks the two counting changes, and its answer sentence
+  updates with the filter (e.g. NSW: "No, it went down… after NSW changed how it counts").
+- **Key numbers** are calculated from the data and link to their figure: 39,505 in 2021 (+16%),
+  NSW+VIC+QLD 79%, and the fastest-rising group (cyclists +51%).
+- The intro, question cards and summary are rewritten around the one story. The summary charts use the
+  2011–2019 data.
+
+### 30. Back and Next buttons
+
+Every page ends with **← Back** and **Next →** cards that show the previous and next question
+(`renderStepper()` in `layout.js`, following the order of `NAV_PAGES`). After Question 5, **Next** returns to
+the Overview's summary.
+
+### 31. Checked
+
+- All six pages load in Chrome with no script errors, at 1280px and 390px. At 390px no page scrolls
+  sideways; wide charts scroll inside their card as before.
+- Tested: clicking a road user in Figure 1.1 sets the filter; the year slider works with the keyboard; the
+  filter carries over to the next page; 2020–2021 shows the "no death records" message; Reset; the map/bar
+  toggle; the Overview jurisdiction filter.
+- **Not changed:** the old KNIME output files (`rq1_*`, `rq2_trends`, `rq3_remoteness`, `rq4_*`,
+  `rq5_mortality_severity`) are no longer read by the site but were kept, because the KNIME workflow may be
+  part of the submission. `BubbleChart`, `DumbbellChart`, `DonutChart`, `StackedBarChart`, `LineChart` and
+  `BarChart` in `vis-components.js` are no longer used, and were kept too.
+
+---
+
 ## Files changed
 
 | File | What changed |
@@ -364,3 +499,167 @@ the old shades stayed. The update step now sets `fill` and `opacity` too.
 | `src/data/australia_states.geojson` | **New.** State and territory boundaries for the Figure 3.1 map |
 | `src/data/rq1_age_group_by_year.csv` | **New.** Age group by year (AIHW Table 3) for the Figure 1.1 year slider |
 | `src/data/rq4_crash_scenario.csv` | **New.** Traffic / non-traffic / unknown / other transport totals for Figure 4.3 |
+
+### Round 6 files
+
+| File | What changed |
+|---|---|
+| `analysis/build_site_data.py` | **New.** Builds the two shared data files from the AIHW workbook |
+| `src/data/people_by_year.csv`, `src/data/crashes_by_year.csv` | **New.** Shared data for every question page |
+| `src/data/sample_hospitalisation_data.csv`, `src/js/load-data.js` | **Removed.** Placeholder data behind the old Overview |
+| `src/js/site-data.js` | **New.** Loads the data once; year, road-user and "deaths up to 2019" helpers |
+| `src/js/global-filter.js` | **New.** Filter bar, shared year slider, road-user chips, "Showing:" lines |
+| `src/js/vis-story-charts.js` | **New.** `RankedBarChart`, `StackedAreaChart`, `TrendLinesChart`, `PairedBarChart` |
+| `src/js/vis-components.js` | `LollipopChart`: highlight, click-to-filter, keyboard, "count · share" labels |
+| `src/js/shared-constants.js` | Road-user, crash-type and state colours; time periods |
+| `src/js/layout.js` | Story order with questions; Back / Next buttons |
+| `src/js/charts-*.js` (all five) | Rewritten for the new figures and the filter |
+| `src/js/main-narrative.js`, `src/js/summary-charts.js` | Overview on real data, line chart, calculated key numbers |
+| `src/*.html` (all six) | New questions, answers, "why it matters", scope lines, notes, page summaries |
+| `src/css/base.css`, `src/css/visualisations.css` | Answer / why / scope styles, filter bar, stepper, chart label styles |
+
+---
+
+## Round 7: Polish
+
+### 32. Filter bar is exactly as wide as the chart cards
+
+The filter bar sat outside the page's `.container`, so it was 48px wider than the cards under it
+(1080px against 1032px). It is now inside the same `.container`, so its edges line up with every card at
+every screen size (checked: 1032px at 1280px wide, 358px on a 390px phone).
+
+### 33. Smaller Back / Next buttons
+
+The two large cards became compact pill buttons: a round arrow plus a two-line label
+("NEXT · QUESTION 2" above the question). **Next** has a solid blue arrow, because it is the main action;
+**Back** is quieter. The arrow nudges sideways on hover. On phones each button shrinks to one short line
+("← Overview", "Question 2 →"). The Overview's label is shortened to "Who gets hurt, and who gets hurt worst?"
+so it fits without being cut off.
+
+### 34. One colour, different shades, unless colour is needed
+
+Charts that compare one measure across categories now use **one blue, darker = more**, instead of a
+different colour per road user or crash type. The category is already named on the axis, so extra colours
+only added noise.
+
+| Figure | Before | Now |
+|---|---|---|
+| 1.1 road users (lollipop) | One colour per road user | Blue shades by count |
+| 1.2 % men | One colour per road user | Blue shades by % men |
+| 4.1 what they hit, 4.3 deadliest crashes | One colour per crash type | Blue shades by value |
+| 5.1 deaths, 5.2 hospital stay | One colour per road user | Blue shades by value |
+| 5.3 cases vs deaths | Grey + road-user colour; red / green ratios | Grey + dark blue; only ratios of 1.25× or more are in orange (pedestrians 3.6×, bus occupants 1.3×) |
+
+**Kept in colour, because the colour does a job:**
+- **2.1 stacked area, 2.2 road-user lines, 3.3 state lines:** several layers or lines share one chart, so
+  each needs its own colour to be told apart. The chips under 2.1 and 2.2 act as their legend.
+- **2.3 change ranked:** orange = more injuries (worse), green = fewer (better). The colour carries the
+  meaning.
+
+Code: `LollipopChart` has a new `gradient` option (`vis-components.js`), the bar charts drop their
+`colorOf` so they use the shared blue scale, and `PairedBarChart` uses one dark blue with a plain legend.
+The page text that mentioned road-user colours was updated to match.
+
+---
+
+## Round 8: One data file per question
+
+### 35. Data files renamed after the question that uses them
+
+`src/data/` now holds only what the site reads, one file per question. All six are built by
+`analysis/build_site_data.py`:
+
+| File | Used by | Replaces |
+|---|---|---|
+| `q1_who.csv` | Question 1 | `people_by_year.csv` |
+| `q2_trends.csv` | Question 2, Overview key numbers | `people_by_year.csv` (year × road user only) |
+| `q3_states.csv` | Figures 3.1, 3.3, Overview Figures 1–2 | `rq3_states.csv` (identical numbers, now built by the script from the state workbook) |
+| `q3_remoteness.csv` | Figure 3.2, Overview summary chart 2 | `crashes_by_year.csv` |
+| `q4_crashes.csv` | Question 4 | `crashes_by_year.csv` |
+| `q5_severity.csv` | Question 5, Overview summary chart 1 | `crashes_by_year.csv` |
+
+- The 11 old `rq*.csv` files, which the site no longer read, moved to `analysis/old-csv/` (7 of them are the
+  outputs of the KNIME workflow).
+- `SiteData` (`src/js/site-data.js`) has one loader per file: `who()`, `trends()`, `states()`,
+  `remoteness()`, `crashes()`, `severity()`. Each page script loads its own question's file.
+- **One small data fix:** the old shared file dropped AIHW's "bed days only" rows (patients transferred
+  between hospitals). The new files keep their bed days, so the average stay in Figure 5.2 moves by at most
+  0.02 days. No caption changes. Every other number is unchanged (checked against the old files).
+
+### 36. KNIME status
+
+The site's data does **not** come from the KNIME workflow: the workflow still writes the old `rq*` files,
+and the site now uses the script's `q*` files. KNIME is not installed on this machine, so the workflow was
+not changed. `doc/knime-todo.md` lists, node by node, how to build the six files in KNIME and the totals
+to check the output against.
+
+---
+
+## Round 9: The data now comes from KNIME
+
+### 37. New KNIME workflow, organised question by question
+
+`analysis/knime/road_crash_site_data` builds all six `src/data/q*.csv` files: one shared preparation step,
+then one branch per output file, each in a labelled box with its question. Full details are in
+`doc/knime-workflow.md`, which replaces `doc/knime-todo.md`.
+
+- **Checked:** run headless with KNIME 5.12.0, the workflow writes all six files, and each is
+  **byte-for-byte identical** to the Python script's output. The site's numbers are unchanged.
+- `analysis/build_site_data.py` is now the **cross-check**, not the source.
+- `analysis/road_crash_site_data.knwf` is the same workflow exported for File → Import.
+- The team's original `analysis/data_visual_project.knwf` is unchanged.
+
+### 38. Batch mode
+
+- KNIME's own Batch Executor is deprecated and not available for 5.12, so the free **NodePit Batch** extension
+  was installed into `~/knime_5.12.0`.
+- `analysis/knime/run_batch.sh` runs the workflow from the terminal.
+- The workflow's paths are relative to the KNIME workspace, the same convention as the original workflow. For
+  that, the repo is linked into the workspace: `~/knime-workspace/COS30045-Data-Visual-Project` →
+  this repo.
+- `analysis/knime/.gitignore` keeps KNIME's run data (port tables, lock files) out of git.
+
+---
+
+## Round 10: One folder per question, one CSV per sub-question
+
+### 39. Data files split by sub-question
+
+Each question now has its own folder in `src/data/`, with one CSV ("sheet") per sub-question. When
+sub-questions use exactly the same table they share one CSV, named after all of them:
+
+| Folder | Files |
+|---|---|
+| `q1_who/` | `1.1_road_users.csv` · `1.2_men_and_women.csv` · `1.3_age.csv` |
+| `q2_trends/` | `2.1+2.2+2.3_road_users_by_year.csv` |
+| `q3_where/` | `3.1+3.3_states.csv` · `3.2_city_or_country.csv` |
+| `q4_crashes/` | `4.1+4.2+4.3_what_they_hit.csv` |
+| `q5_severity/` | `5.1+5.2+5.3_outcomes.csv` |
+
+- **Q1 was split in three:** the old `q1_who.csv` was one big table (year × road user × sex × age). Each
+  figure now has its own smaller table. Each still adds up to 410,884.
+- **The other files only moved and were renamed:** their content is byte-for-byte the same as before.
+- **Website:** `site-data.js` has one loader per file. The Q1 page loads its three files together.
+  Every page was checked in headless Chrome with no errors.
+
+### 40. KNIME workflow rewritten
+
+- Q1's box now has three rows, one per CSV.
+- Node placement follows Ricardo's arrangement in the KNIME app: preparation across the top, question
+  boxes stacked on the right with gaps, and the states box across the bottom.
+- 51 nodes. A batch run writes all eight files, byte-for-byte identical to the Python cross-check.
+- `analysis/road_crash_site_data.knwf` was exported again.
+
+### 41. Only the `.knwf` is kept in the repo
+
+- **Folder deleted:** the workflow folder `analysis/knime/road_crash_site_data/` (one `settings.xml` per node,
+  51 in all) duplicated `analysis/road_crash_site_data.knwf`. It was deleted, along with its `.gitignore`,
+  so the repo holds one file for the workflow.
+- **Layout kept:** before deleting, the node positions Ricardo had tidied in the KNIME app were copied into
+  the `.knwf`.
+- **Batch mode:** `run_batch.sh` now unpacks the `.knwf` into a temporary folder and runs it there. It
+  still writes all eight files, byte-for-byte identical.
+- **Bug fixed:** the old script reported OK even when KNIME failed, because it read the exit code of
+  `|| true` instead of KNIME's.
+- **Editing:** import the `.knwf` into KNIME, edit, then export over the same file. See
+  `doc/knime-workflow.md`.

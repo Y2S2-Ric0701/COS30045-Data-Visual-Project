@@ -375,9 +375,10 @@
       vis.displayData = vis.rawData
         .map(d => ({
           label: String(d[vis.config.labelKey]),
+          key: d.key ?? String(d[vis.config.labelKey]),
           value: +d[vis.config.valueKey] || 0,
         }))
-        .filter(d => !d.label.toLowerCase().includes('unknown position') && d.value > 1000)
+        .filter(d => !d.label.toLowerCase().includes('unknown position') && d.value > (vis.config.minValue ?? 1000))
         .sort((a, b) => b.value - a.value);
 
       vis.totalSum = d3.sum(vis.displayData, d => d.value);
@@ -419,6 +420,14 @@
         .attr('text-anchor', 'middle')
         .text(d => d);
 
+      // Dot colour: one blue, darker = more (config.gradient), else colorMap / palette
+      const grad = barGradient(d3.extent(vis.displayData, d => d.value));
+      vis.dotFill = (d, i) => {
+        if (vis.config.gradient) return grad(d.value);
+        if (vis.config.colorMap && vis.config.colorMap[d.label]) return vis.config.colorMap[d.label];
+        return vis.config.palette[i % vis.config.palette.length];
+      };
+
       // Stems (Lines)
       vis.plotG.selectAll('.lollipop-line')
         .data(vis.displayData, d => d.label)
@@ -449,9 +458,7 @@
             .attr('cx', 0)
             .attr('cy', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
             .attr('r', 6.5)
-            .attr('fill', (d, i) => (vis.config.colorMap && vis.config.colorMap[d.label])
-              ? vis.config.colorMap[d.label]
-              : vis.config.palette[i % vis.config.palette.length])
+            .attr('fill', (d, i) => vis.dotFill(d, i))
             .attr('stroke', '#ffffff')
             .attr('stroke-width', 2)
             .call(enter => enter.transition().duration(vis.config.duration).ease(vis.config.ease)
@@ -459,13 +466,14 @@
           update => update
             .attr('cy', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
             .attr('cx', d => vis.xScale(d.value))
-            .attr('fill', (d, i) => (vis.config.colorMap && vis.config.colorMap[d.label])
-              ? vis.config.colorMap[d.label]
-              : vis.config.palette[i % vis.config.palette.length]),
+            .attr('fill', (d, i) => vis.dotFill(d, i)),
           exit => exit.remove()
         );
 
-      // Labels
+      // Labels: count and share of all cases ("135,063 · 33%")
+      const labelText = d => (vis.config.showShare
+        ? `${fmtComma(d.value)} · ${d3.format('.0%')(d.value / vis.totalSum)}`
+        : fmtComma(d.value));
       vis.plotG.selectAll('.lollipop-label')
         .data(vis.displayData, d => d.label)
         .join(
@@ -473,30 +481,50 @@
             .attr('class', 'lollipop-label')
             .attr('x', d => vis.xScale(d.value) + 12)
             .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
-            .text(d => fmtComma(d.value)),
+            .text(labelText),
           update => update
             .attr('x', d => vis.xScale(d.value) + 12)
             .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
-            .text(d => fmtComma(d.value)),
+            .text(labelText),
           exit => exit.remove()
         );
 
-      // Interactive hitboxes
+      // Highlight the selected category (the global road-user filter)
+      const hl = vis.config.highlight;
+      const faded = d => hl && d.key !== hl;
+      vis.plotG.selectAll('.lollipop-dot').attr('opacity', d => (faded(d) ? 0.2 : 1))
+        .attr('r', d => (hl && d.key === hl ? 9 : 6.5));
+      vis.plotG.selectAll('.lollipop-line').attr('opacity', d => (faded(d) ? 0.3 : 1));
+      vis.plotG.selectAll('.lollipop-label').attr('opacity', d => (faded(d) ? 0.4 : 1));
+      vis.yAxisG.selectAll('.tick text')
+        .style('opacity', label => (faded(vis.displayData.find(d => d.label === label) || {}) ? 0.45 : 1))
+        .style('font-weight', label => (hl && (vis.displayData.find(d => d.label === label) || {}).key === hl ? 700 : null));
+
+      // Interactive hitboxes (whole row, including the name on the left)
+      const onClick = vis.config.onClick;
       vis.plotG.selectAll('.lollipop-hitbox')
         .data(vis.displayData, d => d.label)
         .join('rect')
         .attr('class', 'lollipop-hitbox')
         .attr('y', d => vis.yScale(d.label))
-        .attr('x', 0)
-        .attr('width', vis.innerWidth)
+        .attr('x', -vis.config.margin.left)
+        .attr('width', vis.innerWidth + vis.config.margin.left)
         .attr('height', vis.yScale.bandwidth())
         .attr('fill', 'transparent')
+        .attr('tabindex', onClick ? 0 : null)
+        .attr('role', onClick ? 'button' : null)
+        .attr('aria-label', d => `${d.label}: ${fmtComma(d.value)}`)
+        .on('click', (event, d) => onClick && onClick(d))
+        .on('keydown', (event, d) => {
+          if (onClick && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onClick(d); }
+        })
         .on('mouseenter', function (event, d) {
           vis.tooltip.classed('visible', true)
             .html(`
               <div class="tooltip-title">${d.label}</div>
               <div class="tooltip-row"><span>Total Hospitalised:</span> <span class="tooltip-val">${fmtComma(d.value)}</span></div>
               <div class="tooltip-row"><span>National Share:</span> <span class="tooltip-accent">${fmtPercent(d.value / vis.totalSum)}</span></div>
+              ${onClick ? `<div class="tooltip-row"><span>${d.key === vis.config.highlight ? 'Click to show all road users' : 'Click to filter every chart'}</span></div>` : ''}
             `);
         })
         .on('mousemove', function (event) {
