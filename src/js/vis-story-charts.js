@@ -196,6 +196,7 @@
         tickFormat: fmtK,
         valueText: d => fmtComma(d.value),
         colorOf: null,           // d => colour; otherwise the site's blue gradient
+        rest: null,              // { colorOf: d => colour }: fill from the bar's end to xMax (a split bar, e.g. men | women)
         highlight: null,         // key of the category to highlight
         onClick: null,           // d => …
         refLines: [],            // [{ value, label }]
@@ -312,11 +313,25 @@
         .attr('x', d => x(Math.min(0, d.value))).attr('width', d => Math.abs(x(d.value) - x(0)))
         .attr('opacity', d => (faded(d) ? 0.2 : 1));
 
+      // Split bars: the rest of the 100% (e.g. women, when the bar is men)
+      vis.plotG.selectAll('.rbar-rest').data(c.rest ? valid : [], keyOf).join(
+        enter => enter.insert('rect', '.rbar').attr('class', 'rbar-rest').attr('rx', 4)
+          .attr('x', x(c.xMax ?? hi)).attr('width', 0).attr('y', barY).attr('height', barH),
+        update => update,
+        exit => exit.remove())
+        .attr('fill', d => c.rest.colorOf(d))
+        .style('pointer-events', 'none')
+        .transition(t)
+        .attr('y', barY).attr('height', barH)
+        .attr('x', d => x(d.value)).attr('width', d => Math.max(0, x(c.xMax ?? hi) - x(d.value)))
+        .attr('opacity', d => (faded(d) ? 0.2 : 1));
+
       vis.plotG.selectAll('.rbar-label').data(rows, keyOf).join('text')
         .attr('class', 'bar-label rbar-label')
         .attr('y', d => (compact ? nameY(d) : y(d.label) + y.bandwidth() / 2)).attr('dy', '0.35em')
         .attr('x', d => (compact ? vis.innerWidth
-          : d.value == null ? x(0) + 8 : d.value >= 0 ? x(d.value) + 8 : x(d.value) - 8))
+          : c.rest ? x(c.xMax ?? hi) + 8
+            : d.value == null ? x(0) + 8 : d.value >= 0 ? x(d.value) + 8 : x(d.value) - 8))
         .attr('text-anchor', d => (compact || (d.value != null && d.value < 0) ? 'end' : 'start'))
         .style('fill', d => (d.value == null ? 'var(--c-ink-3)' : (c.labelColor ? c.labelColor(d) : 'var(--c-ink)')))
         .attr('opacity', d => (faded(d) ? 0.45 : 1))
@@ -333,7 +348,7 @@
         .attr('role', c.onClick ? 'button' : null)
         .attr('aria-label', d => `${d.label}: ${d.value == null ? c.nullText : c.valueText(d)}`)
         .on('mouseenter', function (event, d) {
-          vis.plotG.selectAll('.rbar').filter(b => keyOf(b) === keyOf(d)).attr('filter', 'brightness(0.9)');
+          vis.plotG.selectAll('.rbar, .rbar-rest').filter(b => keyOf(b) === keyOf(d)).attr('filter', 'brightness(0.9)');
           vis.emitHover(keyOf(d));
           if (!c.tooltip) return;
           const [title, tipRows] = c.tooltip(d);
@@ -342,7 +357,7 @@
         })
         .on('mousemove', event => placeTip(vis.tooltip, event))
         .on('mouseleave', function () {
-          vis.plotG.selectAll('.rbar').attr('filter', null);
+          vis.plotG.selectAll('.rbar, .rbar-rest').attr('filter', null);
           vis.emitHover(null);
           vis.tooltip.classed('visible', false);
         });
@@ -357,7 +372,7 @@
       const vis = this;
       const k = key || vis.config.highlight;
       const faded = d => k && keyOf(d) !== k;
-      vis.plotG.selectAll('.rbar').interrupt().attr('opacity', d => (faded(d) ? 0.2 : 1));
+      vis.plotG.selectAll('.rbar, .rbar-rest').interrupt().attr('opacity', d => (faded(d) ? 0.2 : 1));
       vis.plotG.selectAll('.rbar-label, .rbar-name').attr('opacity', d => (faded(d) ? 0.45 : 1));
       vis.yAxisG.selectAll('.tick text')
         .style('opacity', label => (faded(vis.displayData.find(r => r.label === label) || {}) ? 0.45 : 1));
@@ -489,17 +504,36 @@
       ep.selectAll('*').remove();
       ep.append('circle').attr('cx', p => x(p.d.year)).attr('cy', p => y(p.d.total)).attr('r', 5)
         .style('fill', 'var(--c-ink)').style('stroke', 'var(--c-surface)').attr('stroke-width', 2);
+      // On a wide screen the end label sits in the right margin beside its dot
+      // (two lines), so notes on the last years (e.g. the 2020 dip) have
+      // clear space above the line
+      const inMargin = p => !compact && p.anchor === 'end' && p.d.year === last;
       ep.append('text').attr('class', 'total-label')
-        .attr('x', p => x(p.d.year) + (p.d.year === first ? 0 : p.d.year === last ? 0 : p.anchor === 'start' ? -6 : 6))
-        .attr('y', p => y(p.d.total) - 14)
-        .attr('text-anchor', p => (p.d.year === first ? 'start' : p.d.year === last ? 'end' : 'middle'))
-        .text(p => (compact ? p.text.replace(/ in (\d{4})/, ' ($1)').replace(') (', ', ') : p.text));
+        .attr('x', p => (inMargin(p) ? x(p.d.year) + 12
+          : x(p.d.year) + (p.d.year === first ? 0 : p.d.year === last ? 0 : p.anchor === 'start' ? -6 : 6)))
+        .attr('y', p => y(p.d.total) - (inMargin(p) ? 4 : 14))
+        .attr('text-anchor', p => (inMargin(p) ? 'start' : p.d.year === first ? 'start' : p.d.year === last ? 'end' : 'middle'))
+        .each(function (p) {
+          const el = d3.select(this);
+          if (inMargin(p)) {
+            el.append('tspan').attr('x', x(p.d.year) + 12).text(`${fmtComma(p.d.total)} in ${p.d.year}`);
+            el.append('tspan').attr('x', x(p.d.year) + 12).attr('dy', '1.25em').style('font-weight', 500)
+              .text(`${change >= 0 ? '+' : '−'}${d3.format('.0%')(Math.abs(change))} since ${range[0]}`);
+          } else {
+            el.text(compact ? p.text.replace(/ in (\d{4})/, ' ($1)').replace(') (', ', ') : p.text);
+          }
+        });
 
       // Name each layer at the right edge when it is thick enough to hold a label
       const lastRow = compact ? [] : series.map(s => {
         const p = s[s.length - 1];
         return { key: s.key, y: (y(p[0]) + y(p[1])) / 2, h: y(p[0]) - y(p[1]) };
       }).filter(d => d.h >= c.minLabelPx || d.key === c.highlight);
+      // Layer names start below the two-line total label in the margin
+      if (!compact && range[1] === last) {
+        let floor = y(t1.total) + 26;
+        [...lastRow].sort((p, q) => p.y - q.y).forEach(d => { if (d.y < floor) d.y = floor; floor = d.y + 18; });
+      }
       if (compact) {
         drawCompactLegend(vis, [...c.keys].reverse().map(k => ({ key: k, label: c.labelOf(k), color: c.colorOf(k) })),
           { onClick: c.onClick, faded, active: c.highlight });
@@ -516,7 +550,7 @@
       drawYearBand(vis, x, c.band, first, last);
       // Notes on the total line (e.g. the 2020 COVID-19 dip)
       vis.annotationsG.selectAll('.chart-annotation').remove();
-      c.notes.filter(n => n.year >= first && n.year <= last).forEach(n => {
+      c.notes.filter(n => n.year >= first && n.year <= last && !(compact && n.wideOnly)).forEach(n => {
         const tot = totals.find(d => d.year === n.year);
         drawNote(vis.annotationsG, [x(n.year), y(tot.total)], compact && n.short ? n.short : n.lines,
           { side: n.side || 'below', dx: n.dx || 0, len: n.len || 40, anchor: n.anchor || 'middle' });
@@ -562,7 +596,7 @@
         onClick: null,
         yLabel: 'Hospitalised per year',
         height: 500,
-        noteRiser: false,        // point out the line that rose the most over the chosen years
+        noteRiser: false,        // tag the end labels of the lines that rose and fell the most (chosen years)
       }, config, {
         margin: Object.assign({ top: 64, right: 220, bottom: 48, left: 72 }, config.margin || {}),
       }));
@@ -625,6 +659,13 @@
       const r1 = data.find(d => d.year === range[1]);
       const changeOf = s => (r0[s.key] ? (r1[s.key] - r0[s.key]) / r0[s.key] : 0);
       const fmtChange = v => `${v >= 0 ? '+' : '−'}${d3.format('.0%')(Math.abs(v))}`;
+      // Which lines rose and fell the most over the chosen years (tagged on their end labels)
+      const tagOf = (() => {
+        if (!c.noteRiser || r0 === r1) return () => '';
+        const top = d3.greatest(c.series, changeOf), low = d3.least(c.series, changeOf);
+        return s => (top && s.key === top.key && changeOf(top) > 0 ? '▲ rose most'
+          : low && s.key === low.key && changeOf(low) < 0 ? '▼ fell most' : '');
+      })();
 
       const line = key => d3.line().x(d => x(d.year)).y(d => y(d[key])).curve(d3.curveMonotoneX);
       const paths = vis.plotG.selectAll('.trend-line').data(c.series, s => s.key).join('path')
@@ -636,7 +677,7 @@
       if (compact) {
         drawCompactLegend(vis, [...c.series]
           .sort((a, b) => data[data.length - 1][b.key] - data[data.length - 1][a.key])
-          .map(s => ({ key: s.key, label: s.short || s.label, color: s.color, extra: fmtChange(changeOf(s)) })),
+          .map(s => ({ key: s.key, label: s.short || s.label, color: s.color, extra: `${fmtChange(changeOf(s))}${tagOf(s) ? ` ${tagOf(s).slice(0, 1)}` : ''}` })),   // phone: just ▲ / ▼
         { onClick: c.onClick, faded: k => c.highlight && k !== c.highlight, active: c.highlight });
       } else {
         vis.annotationsG.selectAll('.compact-key').remove();
@@ -658,6 +699,9 @@
       lt.append('tspan').text(d => d.s.label);
       lt.append('tspan').attr('class', 'trend-end-change').attr('dx', 6)
         .text(d => fmtChange(changeOf(d.s)));
+      lt.filter(d => tagOf(d.s)).append('tspan').attr('class', 'trend-end-tag').attr('dx', 8)
+        .style('fill', 'var(--c-ink)')
+        .text(d => tagOf(d.s));
 
       function paint(activeKey) {
         paths.attr('stroke-width', s => (s.key === activeKey ? 4 : 2.4))
@@ -706,21 +750,9 @@
         })
         .on('click', () => { if (c.onClick && hoverKey) c.onClick(hoverKey); });
 
-      // "Biggest rise" note on the line that grew the most (over the chosen years)
-      vis.annotationsG.selectAll('.chart-annotation').remove();
-      if (c.noteRiser && r0 !== r1) {
-        const top = d3.greatest(c.series, changeOf);
-        if (top && changeOf(top) > 0) {
-          const yr = Math.max(range[0], range[1] - 2);
-          const row = data.find(d => d.year === yr);
-          const py = y(row[top.key]);
-          // Point upward unless the line is near the top of the chart
-          const side = py > 70 ? 'above' : 'below';
-          drawNote(vis.annotationsG, [x(yr), py],
-            [`Biggest rise: ${compact ? top.short || top.label : top.label}`, `${fmtChange(changeOf(top))} since ${range[0]}`],
-            { side, len: 40, anchor: 'end', dx: -4, color: 'var(--c-ink)' });
-        }
-      }
+      // (The rose-most / fell-most call-outs are tags on the end labels
+      // above, outside the plot, so nothing crosses a line.)
+      vis.annotationsG.selectAll('.chart-annotation, .riser-dot').remove();
 
       drawYearBand(vis, x, c.band, first, last);
       vis.annotationsG.select('.year-band').lower();

@@ -343,6 +343,120 @@
   }
 
   // ═══════════════════════════════════════════════════════════════
+  // FIGURE 3.1 MORPH: map ⇄ bar chart
+  // Each state's outline is traced as N points and each bar's outline as
+  // N points; the two are lined up and blended, so the shapes melt into
+  // their bars (and back). Drawn on a page overlay because the two views
+  // live in different SVGs. Skipped under reduced motion.
+  // ═══════════════════════════════════════════════════════════════
+  const MORPH_N = 96;
+
+  const toPage = (el, x, y) => {
+    const p = new DOMPoint(x, y).matrixTransform(el.getScreenCTM());
+    return [p.x + window.scrollX, p.y + window.scrollY];
+  };
+
+  /** State outlines (largest piece of land only) as page points, keyed by code */
+  function mapShapes(mapEl) {
+    const out = new Map();
+    mapEl.querySelectorAll('.map-state').forEach(el => {
+      const code = d3.select(el).datum().properties.code;
+      const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      el.parentNode.appendChild(tmp);
+      let best = null, bestArea = -1;
+      (el.getAttribute('d') || '').split(/(?=M)/).forEach(sub => {
+        tmp.setAttribute('d', sub);
+        const b = tmp.getBBox();
+        if (b.width * b.height > bestArea) { bestArea = b.width * b.height; best = sub; }
+      });
+      tmp.setAttribute('d', best);
+      const len = tmp.getTotalLength();
+      const pts = d3.range(MORPH_N).map(i => {
+        const p = tmp.getPointAtLength((i / MORPH_N) * len);
+        return toPage(el, p.x, p.y);
+      });
+      tmp.remove();
+      out.set(code, { pts, fill: el.getAttribute('fill'), opacity: +(el.getAttribute('opacity') ?? 1) });
+    });
+    return out;
+  }
+
+  /** Bar outlines as page points, keyed by state code (clockwise from top-left) */
+  function barShapes(barEl) {
+    const out = new Map();
+    barEl.querySelectorAll('.rbar').forEach(el => {
+      const d = d3.select(el).datum();
+      const x = +el.getAttribute('x'), y = +el.getAttribute('y');
+      const w = Math.max(1, +el.getAttribute('width')), h = +el.getAttribute('height');
+      const per = 2 * (w + h);
+      const pts = d3.range(MORPH_N).map(i => {
+        let s = (i / MORPH_N) * per;
+        if (s < w) return toPage(el, x + s, y);
+        s -= w; if (s < h) return toPage(el, x + w, y + s);
+        s -= h; if (s < w) return toPage(el, x + w - s, y + h);
+        s -= w; return toPage(el, x, y + h - s);
+      });
+      out.set(d.key, { pts, fill: el.getAttribute('fill'), opacity: +(el.getAttribute('opacity') ?? 1) });
+    });
+    return out;
+  }
+
+  /** Start/direction for `src` that travels least to reach `dst`, so shapes don't twist */
+  function alignRing(src, dst) {
+    const n = src.length;
+    let best = src, bestCost = Infinity;
+    [src, [...src].reverse()].forEach(ring => {
+      for (let off = 0; off < n; off++) {
+        let cost = 0;
+        for (let i = 0; i < n; i++) {
+          const a = ring[(i + off) % n], b = dst[i];
+          cost += (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+          if (cost >= bestCost) break;
+        }
+        if (cost < bestCost) { bestCost = cost; best = ring.slice(off).concat(ring.slice(0, off)); }
+      }
+    });
+    return best;
+  }
+
+  let morphLayer = null;
+  function stopMorph() {
+    if (!morphLayer) return;
+    const layer = morphLayer;
+    morphLayer = null;            // set first, so the interrupt handlers below do nothing
+    layer.selectAll('path').interrupt();
+    layer.remove();
+    document.querySelectorAll('.is-morphing').forEach(n => n.classList.remove('is-morphing'));
+  }
+
+  /** Blend `from` shapes into `to` shapes, biggest state first, then call done() */
+  function runMorph(from, to, order, done) {
+    stopMorph();
+    const layer = d3.select(document.body).append('svg').attr('class', 'morph-layer').attr('aria-hidden', 'true');
+    morphLayer = layer;
+    const box = layer.node().getBoundingClientRect();
+    const ox = box.left + window.scrollX, oy = box.top + window.scrollY;
+    const line = pts => `M${pts.map(([x, y]) => `${(x - ox).toFixed(1)},${(y - oy).toFixed(1)}`).join('L')}Z`;
+    const codes = order.filter(c => from.has(c) && to.has(c));
+    const ms = 900, step = 45;
+    let left = codes.length;
+    const finish = () => { if (layer === morphLayer) { stopMorph(); done(); } };
+    if (!left) { finish(); return; }
+    codes.forEach((code, i) => {
+      const a = from.get(code), b = to.get(code);
+      const start = alignRing(a.pts, b.pts);
+      const pt = d3.interpolate(start, b.pts);
+      layer.append('path')
+        .attr('d', line(start)).attr('fill', a.fill).attr('opacity', a.opacity)
+        .style('stroke', 'var(--c-surface)').attr('stroke-width', 1).attr('stroke-linejoin', 'round')
+        .transition().delay(i * step).duration(ms).ease(d3.easeCubicInOut)
+        .attrTween('d', () => t => line(pt(t)))
+        .attr('fill', b.fill).attr('opacity', b.opacity)
+        .on('end interrupt', () => { if (--left === 0) finish(); });
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   // INITIALISE
   // ═══════════════════════════════════════════════════════════════
   document.addEventListener('DOMContentLoaded', function () {
@@ -428,16 +542,40 @@
         }
 
         const viewButtons = document.querySelectorAll('#state-view-control .filter-btn');
-        viewButtons.forEach(btn => btn.addEventListener('click', () => {
+        const barNode = document.getElementById('chart-state-bars');
+        const frames = ms => new Promise(r => setTimeout(() => requestAnimationFrame(() => r()), ms));
+        async function switchView(next) {
+          if (next === view) return;
+          stopMorph();
+          const animate = !Motion.REDUCED && typeof DOMPoint !== 'undefined';
+          const from = animate ? (view === 'map' ? mapShapes(mapNode) : barShapes(barNode)) : null;
+          view = next;
           viewButtons.forEach(b => {
-            b.classList.toggle('active', b === btn);
-            b.setAttribute('aria-pressed', String(b === btn));
+            b.classList.toggle('active', b.dataset.view === next);
+            b.setAttribute('aria-pressed', String(b.dataset.view === next));
           });
-          view = btn.dataset.view;
-          document.getElementById('chart-state-territory').hidden = view !== 'map';
-          document.getElementById('chart-state-bars').hidden = view !== 'bar';
+          const toNode = next === 'map' ? mapNode : barNode;
+          if (animate) toNode.classList.add('is-morphing');
+          mapNode.hidden = next !== 'map';
+          barNode.hidden = next !== 'bar';
+          const keepDur = stateBars.config.duration;
+          if (next === 'bar') {
+            // The bars were first built while hidden (no width): size them now,
+            // and draw them in place, since the morph does the moving
+            if (Math.abs(Vis.BaseChart.contentWidth(barNode) - (stateBars.containerWidth || 0)) >= 4) stateBars.initVis();
+            if (animate) stateBars.config.duration = 0;
+          }
           drawStates(GlobalFilter.get().years);
-        }));
+          if (!animate) return;
+          await frames(40);   // let the zero-length bar transition land
+          stateBars.config.duration = keepDur;
+          if (view !== next) return;   // switched again meanwhile
+          const to = next === 'map' ? mapShapes(mapNode) : barShapes(barNode);
+          const order = [...stateTotals(stateRows, GlobalFilter.get().years).entries()]
+            .sort((a, b) => b[1] - a[1]).map(([st]) => st);
+          runMorph(from, to, order, () => toNode.classList.remove('is-morphing'));
+        }
+        viewButtons.forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
 
         // ── Figure 3.2: deaths per 1,000 cases, city vs country ─────
         const AREAS = ['Major Cities', 'Regional', 'Remote'];
@@ -466,6 +604,16 @@
           ]],
         });
 
+        // Highlight the area the reader lives in (shared with "Where do you fit?")
+        const fitArea = v => (AREAS.includes(v) ? v : null);
+        remChart.config.highlight = fitArea(GlobalFilter.profile().area);
+        remChart.renderVis();
+        GlobalFilter.profileChooser(document.getElementById('chart-metro-regional'), {
+          field: 'area', label: 'Highlight where you live',
+          options: [{ key: 'Major Cities', label: 'Major cities' }, { key: 'Regional', label: 'Regional' }, { key: 'Remote', label: 'Remote' }],
+          onChange: v => { remChart.config.highlight = fitArea(v); remChart.renderVis(); },
+        });
+
         // ── Figure 3.3: every state over time ───────────────────────
         const stateTable = YEARS.map(year => {
           const r = stateRows.find(d => d.year === year);
@@ -475,11 +623,12 @@
           linkChannel: 'state',   // linked hover (js/highlight.js)
           series: STATES.map(st => ({ key: st, label: STATE_NAMES[st], short: st, color: STATE_COLORS[st] })),
           breaks: [
-            { year: 2012, lines: ['2012: Victoria stopped counting', 'patients treated only in emergency'], short: ['2012: VIC', 'count change'] },
-            { year: 2017, lines: ['2017: NSW made the', 'same change'], short: ['2017: NSW', 'same change'] },
+            // What changed is explained in the "Dashed lines" note under the chart
+            { year: 2012, lines: ['2012: Victoria', 'counting change'], short: ['2012: VIC', 'counting change'] },
+            { year: 2017, lines: ['2017: NSW', 'counting change'], short: ['2017: NSW', 'counting change'] },
           ],
           band: initial.years,
-          noteRiser: true,
+
           margin: { right: 260 },
         });
 

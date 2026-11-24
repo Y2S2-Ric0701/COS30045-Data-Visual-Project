@@ -79,6 +79,79 @@ const GlobalFilter = (function () {
     return { years: [...DEFAULT.years], roadUser: DEFAULT.roadUser };
   }
 
+  // ── "Where do you fit?" profile (js/where-you-fit.js, Overview) ──────
+  // The reader's age group and area, kept in this browser. Figure 1.3
+  // highlights their age group and Figure 3.2 their area, with a note
+  // saying why and a button to clear it. (Their road user arrives through
+  // the normal filter state above.)
+  const FIT_KEY = 'fit-choices';
+  function readFit() {
+    try { return JSON.parse(localStorage.getItem(FIT_KEY) || 'null') || {}; } catch (e) { return {}; }
+  }
+  function profile() {
+    const p = readFit();
+    return { age: p.age || '', sex: p.sex || '', area: p.area || '' };
+  }
+  function clearProfile(field) {
+    const p = readFit();
+    p[field] = '';
+    try { localStorage.setItem(FIT_KEY, JSON.stringify(p)); } catch (e) { /* ignore */ }
+  }
+  function setProfile(field, value) {
+    const p = readFit();
+    p[field] = value || '';
+    try { localStorage.setItem(FIT_KEY, JSON.stringify(p)); } catch (e) { /* ignore */ }
+  }
+
+  /**
+   * Chip row above a chart: "Highlight your age group: [0–7] [8–16] …".
+   * The pressed chip is the reader's saved choice (shared with "Where do
+   * you fit?" on the Overview); pressing it again clears it. onChange(value)
+   * redraws the chart. Re-synced when the page is shown again from the
+   * back/forward cache or the choice changes in another tab.
+   */
+  const choosers = [];
+  function profileChooser(chartEl, { field, label, options, onChange }) {
+    if (!chartEl) return;
+    const box = document.createElement('div');
+    box.className = 'fit-chooser';
+    box.setAttribute('role', 'group');
+    box.setAttribute('aria-label', label);
+    const title = document.createElement('span');
+    title.className = 'fit-chooser-label';
+    title.textContent = `${label}:`;
+    box.appendChild(title);
+    const buttons = options.map(o => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'fit-chooser-chip';
+      b.textContent = o.label;
+      b.addEventListener('click', () => {
+        const next = profile()[field] === o.key ? '' : o.key;
+        setProfile(field, next);
+        sync();
+        onChange(next);
+      });
+      box.appendChild(b);
+      return [o.key, b];
+    });
+    const link = document.createElement('a');
+    link.className = 'fit-chooser-link';
+    link.href = 'index.html#where-you-fit';
+    link.textContent = 'Where do you fit? →';
+    box.appendChild(link);
+    chartEl.parentNode.insertBefore(box, chartEl);
+    const sync = () => {
+      const v = profile()[field];
+      buttons.forEach(([k, b]) => b.setAttribute('aria-pressed', String(k === v)));
+    };
+    sync();
+    choosers.push(() => { sync(); onChange(profile()[field]); });
+  }
+  const resyncChoosers = () => choosers.forEach(f => f());
+  window.addEventListener('pageshow', e => { if (e.persisted) resyncChoosers(); });
+  window.addEventListener('storage', e => { if (e.key === FIT_KEY) resyncChoosers(); });
+
   function save() {
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
   }
@@ -412,5 +485,5 @@ const GlobalFilter = (function () {
     syncScopes();
   });
 
-  return { get, set, subscribe, toggleRoadUser, roadUserChips, isDefault, param, setParam };
+  return { get, set, subscribe, toggleRoadUser, roadUserChips, isDefault, param, setParam, profile, clearProfile, profileChooser };
 })();

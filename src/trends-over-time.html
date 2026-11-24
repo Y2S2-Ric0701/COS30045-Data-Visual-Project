@@ -72,7 +72,7 @@
           <div>
             <div class="section-kicker">Figure 2.2 &bull; Each road user</div>
             <h2 class="chart-card-title">Which groups are rising, and which are falling?</h2>
-            <p class="chart-card-answer">Cyclists rose the most (+51%), then car drivers (+22%). Pedestrians fell (−15%). <span class="answer-note">(This sentence describes 2011–2021.)</span></p>
+            <p class="chart-card-answer">Cyclists rose the most (+51%), then people in utes or vans (+38%, from small numbers). Bus occupants fell the most (−21%), also from a few hundred cases a year; pedestrians, a much bigger group, fell 15%. <span class="answer-note">(This sentence describes 2011–2021.)</span></p>
             <p class="chart-card-why"><strong>Why it matters:</strong> one total can hide groups moving in opposite directions. The label at the end of each line gives its <strong>name and its change</strong> over the selected years, so you can read the answer without a legend. The dashed lines mark two changes in how hospitals counted patients; a dip right after one is partly a counting change, not fewer crashes.</p>
             <p class="figure-scope" data-road-user="highlight" data-years="trend"></p>
           </div>
@@ -81,7 +81,8 @@
           <!-- D3 SVG injected here -->
         </div>
         <div id="chips-by-group"></div>
-        <p class="chart-note">Clicking a chip under the chart also follows that road user. Buses, trucks, and utes or vans have only a few hundred cases a year, so their lines sit near the bottom.</p>
+        <p class="chart-note"><strong>Dashed lines (counting changes):</strong> these mark years when a state changed which patients it counts. From 2012 Victoria, and from 2017 New South Wales, stopped counting people who were treated only in the emergency department, so those patients drop out of the numbers from then on. A fall right after a dashed line is therefore partly a change in counting, not fewer crashes. Each line here is an Australia-wide total that includes Victoria and NSW, so any road user's line can dip a little after a dashed line.</p>
+        <p class="chart-note"><strong>How the % is worked out:</strong> (cases in the last year − cases in the first year) ÷ cases in the first year, using the years chosen in the filter bar. For cyclists: (8,163 − 5,391) ÷ 5,391 = +51%. "▲ rose most" and "▼ fell most" mark the biggest change each way. Clicking a chip under the chart also follows that road user. Buses, trucks, and utes or vans have only a few hundred cases a year, so their lines sit near the bottom.</p>
       </div>
     </section>
 
@@ -92,15 +93,15 @@
           <div>
             <div class="section-kicker">Figure 2.3 &bull; Change ranked</div>
             <h2 class="chart-card-title">Who changed the most?</h2>
-            <p class="chart-card-answer">Cyclists (+51%) and ute or van occupants (+38%) grew fastest. Bus occupants (−21%), pedestrians and truck occupants (both −15%) fell. <span class="answer-note">(This sentence describes 2011 to 2021.)</span></p>
-            <p class="chart-card-why"><strong>Why it matters:</strong> this is Figure 2.2 boiled down to one number per group, so the winners and losers are easy to rank. <strong>Orange = more injuries (worse), green = fewer (better).</strong></p>
+            <p class="chart-card-answer">Cyclists (+51%) and people in utes or vans (+38%) grew fastest. Bus occupants (−21%), pedestrians and truck occupants (both −15%) fell. <span class="answer-note">(This sentence describes 2011 to 2021.)</span></p>
+            <p class="chart-card-why"><strong>Why it matters:</strong> this is Figure 2.2 boiled down to one number per group, so you can rank at a glance which groups had more injuries over the years and which had fewer. <strong>Orange = more injuries (worse), green = fewer (better).</strong></p>
             <p class="figure-scope" data-road-user="highlight" data-years="change"></p>
           </div>
         </div>
         <div class="responsive-svg-container" id="chart-change" data-hint="{Hover} a bar to see the real numbers">
           <!-- D3 SVG injected here -->
         </div>
-        <p class="chart-note">Change from the first to the last year chosen in the filter bar. Small groups have few cases, so a change of a few dozen patients shows up as a large percentage.</p>
+        <p class="chart-note">Change from the first to the last year chosen in the filter bar. A <strong>ute</strong> (short for "utility vehicle") is the Australian name for a pickup: a car-sized vehicle with an open tray at the back. Small groups have few cases, so a change of a few dozen patients shows up as a large percentage.</p>
       </div>
     </section>
 

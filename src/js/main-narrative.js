@@ -121,7 +121,7 @@ function updateRegionalLegend(filterState) {
   const box = document.getElementById('chart-1-legend');
   if (!box) return;
   box.innerHTML = filterState === 'all'
-    ? `<span class="legend-chip">Fewer <span class="swatch swatch-gradient"></span> More hospitalisations</span>`
+    ? `<span class="legend-chip legend-scale"><span class="legend-scale-title">Bar colour:</span> <span class="legend-scale-end">fewer cases</span> <span class="swatch swatch-gradient"></span> <span class="legend-scale-end">more cases</span></span>`
     : `<span class="legend-chip"><span class="swatch swatch-accent"></span> Selected: ${stateLabel(filterState)}</span>
        <span class="legend-chip"><span class="swatch swatch-gradient swatch-faded"></span> Other jurisdictions</span>`;
 }
@@ -352,15 +352,23 @@ function renderRegionalChart(filterState = 'all') {
     .on('mousemove', positionTooltip)
     .on('mouseleave', hideTooltip);
 
-  const focalItem = filterState === 'all' ? stateData[0] : stateData.find(d => d.state === filterState);
   updateRegionalLegend(filterState);
-  if (focalItem) {
-    g.append('text').attr('class', 'annotation-text')
-      .style('fill', filterState === 'all' ? gradient(focalItem.total) : COLORS.storytelling.accent)
-      .attr('x', x(focalItem.state) + x.bandwidth() / 2).attr('y', y(focalItem.total) - 8)
-      .attr('text-anchor', 'middle')
-      .text(compact ? focalItem.total.toLocaleString() : `${focalItem.state}: ${focalItem.total.toLocaleString()}`);
-  }
+  // Values on the three biggest bars (and the selected state). If the full
+  // number is wider than a bar's slot it would touch its neighbour, so all
+  // labels switch to the short form ("116k") together.
+  const labelled = stateData.slice(0, 3);
+  const focal = stateData.find(d => d.state === filterState);
+  if (focal && !labelled.includes(focal)) labelled.push(focal);
+  const labelsG = g.append('g').attr('class', 'bar-values');
+  const probe = labelsG.append('text').attr('class', 'annotation-text').style('visibility', 'hidden');
+  const widest = d3.max(labelled, d => { probe.text(d.total.toLocaleString()); return probe.node().getComputedTextLength(); });
+  probe.remove();
+  const short = widest > x.step() - 6;
+  labelsG.selectAll('text').data(labelled).join('text').attr('class', 'annotation-text')
+    .style('fill', d => (isSelected(d) ? COLORS.storytelling.accent : 'var(--c-ink)'))
+    .attr('x', d => x(d.state) + x.bandwidth() / 2).attr('y', d => y(d.total) - 8)
+    .attr('text-anchor', 'middle')
+    .text(d => (short ? `${Math.round(d.total / 1000)}k` : d.total.toLocaleString()));
 }
 
 /**
@@ -434,12 +442,31 @@ function renderTrendChart(filterState = 'all') {
   // Start and end labels with the change between them
   const a = series[0], b = series[series.length - 1];
   const change = (b.value - a.value) / a.value;
-  g.append('text').attr('class', 'annotation-text').style('fill', color)
-    .attr('x', x(a.year)).attr('y', y(a.value) - 14).attr('text-anchor', 'start')
-    .text(a.value.toLocaleString());
-  g.append('text').attr('class', 'annotation-text').style('fill', color)
-    .attr('x', x(b.year)).attr('y', y(b.value) - 14).attr('text-anchor', 'end')
-    .text(`${b.value.toLocaleString()} (${change >= 0 ? '+' : '−'}${Math.abs(change * 100).toFixed(0)}%)`);
+  // Each label sits just above the highest point of the line under the
+  // text (not just above its own dot), so a line that climbs steeply at
+  // the end (e.g. the Northern Territory) never runs through it
+  const lineY = px => {   // line height at screen x, between data points
+    const yr = x.invert(px);
+    const i = Math.max(0, Math.min(series.length - 2, Math.floor(yr - series[0].year)));
+    const p = series[i], q = series[i + 1];
+    return y(p.value + (q.value - p.value) * Math.max(0, Math.min(1, yr - p.year)));
+  };
+  const placeLabel = (text, px, anchor) => {
+    const t = g.append('text').attr('class', 'annotation-text').style('fill', color)
+      .attr('x', px).attr('text-anchor', anchor).text(text);
+    const w = t.node().getComputedTextLength();
+    const [x0, x1] = anchor === 'end' ? [px - w, px] : [px, px + w];
+    const ys = d3.range(0, 11).map(k => lineY(x0 + (k / 10) * (x1 - x0)));
+    const dotY = y(anchor === 'end' ? b.value : a.value);
+    // Above the highest point under the text, or below the lowest one:
+    // whichever keeps the label closer to its own dot
+    const above = Math.min(dotY, d3.min(ys)) - 14;
+    const below = Math.max(dotY, d3.max(ys)) + 24;
+    const fitsBelow = below <= INNER_HEIGHT - 6;
+    t.attr('y', fitsBelow && below - dotY < dotY - above ? below : Math.max(14, above));
+  };
+  placeLabel(a.value.toLocaleString(), x(a.year), 'start');
+  placeLabel(`${b.value.toLocaleString()} (${change >= 0 ? '+' : '−'}${Math.abs(change * 100).toFixed(0)}%)`, x(b.year), 'end');
 
   const answer = document.getElementById('chart-2-answer');
   if (answer) {

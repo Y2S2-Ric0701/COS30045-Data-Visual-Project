@@ -120,15 +120,19 @@ document.addEventListener('DOMContentLoaded', function () {
       xMin: 0,
       xMax: 1,
       tickFormat: pct0,
-      xLabel: 'Share of patients who are men',
-      valueText: d => `${pct0(d.value)} men`,
-      margin: { top: 40, right: 110, bottom: 54, left: 200 },
+      xLabel: 'Share of patients: men (left) and women (right)',
+      valueText: d => `${pct0(d.value)} men · ${pct0(1 - d.value)} women`,
+      margin: { top: 40, right: 190, bottom: 54, left: 200 },
+      // Each bar is split: men from the left, women filling the rest to 100%
+      colorOf: () => (Vis.isDark() ? '#5AA9E6' : '#0072B2'),
+      rest: { colorOf: () => (Vis.isDark() ? '#D99BC6' : '#CC79A7') },
       rowHeight: 42,
       onClick: clickRoadUser,
       tooltip: d => [d.label, [
         ['Men:', fmt(d.men)],
         ['Women:', fmt(d.women)],
         ['Share who are men:', pct0(d.value), true],
+        ['Share who are women:', pct0(1 - d.value)],
       ]],
       ariaLabel: data => 'Share of patients who are men: ' +
         data.map(d => `${d.label} ${pct0(d.value)}`).join(', '),
@@ -145,6 +149,16 @@ document.addEventListener('DOMContentLoaded', function () {
         ['Ages in the group:', d.width ? `${d.width}` : 'open-ended'],
         ['Per year of age:', d.width ? fmt(Math.round(d.total / d.width)) : 'n/a', true],
       ]],
+    });
+
+    // Highlight the reader's own age group (shared with "Where do you fit?")
+    const AGE_KEYS = ['0-7', '8-16', '17-25', '26-39', '40-64', '65-74', '75+'];
+    const fitAge = v => (AGE_KEYS.includes(v) ? v : null);
+    ageChart.config.highlight = fitAge(GlobalFilter.profile().age);
+    GlobalFilter.profileChooser(document.getElementById('chart-age-group'), {
+      field: 'age', label: 'Highlight your age group',
+      options: AGE_KEYS.map(k => ({ key: k, label: ageLabel(k) })),
+      onChange: v => { ageChart.config.highlight = fitAge(v); ageChart.renderVis(); },
     });
 
     function renderAge(state) {
@@ -176,8 +190,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const g = genderData(state.years);
       genderChart.config.highlight = highlightOf(state);
       genderChart.config.refLines = [
-        { value: 0.5, label: 'Even split', anchor: 'end' },
-        { value: g.overall, label: `All road users: ${pct0(g.overall)}`, anchor: 'start' },
+        { value: 0.5, label: 'Half men, half women', anchor: 'end' },
+        { value: g.overall, label: `All patients together: ${pct0(g.overall)} men`, anchor: 'start' },
       ];
       genderChart.wrangleData(g.data);
 

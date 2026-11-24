@@ -18,8 +18,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Plain-language notes for the two changes in how patients were counted
   const BREAKS = [
-    { year: 2012, lines: ['2012: Victoria stopped counting', 'patients treated only in emergency'], short: ['2012: VIC', 'count change'] },
-    { year: 2017, lines: ['2017: NSW made the', 'same change'], short: ['2017: NSW', 'same change'] },
+    // What changed is explained in the "Dashed lines" note under the chart
+    { year: 2012, lines: ['2012: Victoria', 'counting change'], short: ['2012: VIC', 'counting change'] },
+    { year: 2017, lines: ['2017: NSW', 'counting change'], short: ['2017: NSW', 'counting change'] },
   ];
 
   // Phone layout: the key under the line chart needs short names
@@ -51,8 +52,10 @@ document.addEventListener('DOMContentLoaded', function () {
       band: initial.years,
       onClick: k => GlobalFilter.toggleRoadUser(k),
       onBrush: years => GlobalFilter.set({ years }),
-      notes: [{ year: 2020, lines: ['2020: COVID-19', 'fewer trips, fewer crashes'], short: ['2020:', 'COVID-19'],
-        side: 'above', len: 62, anchor: 'end', dx: -26 }],
+      // Straight above the 2020 dip; the 2021 total sits in the right margin.
+      // Phones have no room for both, and the note under the chart covers it.
+      notes: [{ year: 2020, lines: ['2020: COVID-19', 'fewer trips, fewer crashes'],
+        side: 'above', len: 46, anchor: 'middle', wideOnly: true }],
     });
     GlobalFilter.roadUserChips('#chips-total', stackKeys);
 
@@ -62,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
       series: ROAD_USERS.map(r => ({ key: r.key, label: r.plural, short: SHORT_NAMES[r.key], color: r.color })),
       breaks: BREAKS,
       noteRiser: true,
+      margin: { right: 300 },   // room for "▼ fell most" after the longest end labels
       highlight: highlightOf(initial),
       band: initial.years,
       onClick: k => GlobalFilter.toggleRoadUser(k),

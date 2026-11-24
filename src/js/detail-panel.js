@@ -16,7 +16,8 @@
    DetailPanel.close()
    DetailPanel.isOpen()
 
-   Keyboard: focus moves to the panel title; Esc closes it and focus
+   Keyboard: focus moves to the panel title; ← → read the line year by
+   year from anywhere in the panel; Esc closes it and focus
    returns to the mark that opened it. The panel is not modal: the
    charts stay usable, so the reader can click another state.
    ═══════════════════════════════════════════════════════════════ */
@@ -27,6 +28,8 @@ const DetailPanel = (function () {
   let lastOpts = null;
   let closeTimer = null;
   const fmt = d3.format(',');
+
+  let stepSpark = null;   // set by drawSpark: steps the year readout
 
   function build() {
     panel = document.createElement('aside');
@@ -46,11 +49,15 @@ const DetailPanel = (function () {
         </button>
       </div>
       <div class="detail-chart"></div>
-      <p class="detail-spark-hint">Point at the line, or Tab to it and use ← → to read each year. <span class="detail-spark-readout visually-hidden" aria-live="polite"></span></p>
+      <p class="detail-spark-hint">Point at the line, or press ← → to read each year. <span class="detail-spark-readout visually-hidden" aria-live="polite"></span></p>
       <dl class="detail-stats"></dl>
       <p class="detail-note"></p>`;
     document.body.appendChild(panel);
     panel.querySelector('.detail-close').addEventListener('click', () => close());
+    panel.addEventListener('keydown', e => {
+      if (e.altKey || e.ctrlKey || e.metaKey || !stepSpark) return;
+      if (stepSpark(e.key)) e.preventDefault();
+    });
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && isOpen()) { e.stopPropagation(); close(); }
     }, true);
@@ -123,13 +130,15 @@ const DetailPanel = (function () {
     svg.attr('tabindex', 0)
       .attr('aria-describedby', null)
       .on('focus', () => show(current < 0 ? pts.length - 1 : current))
-      .on('blur', hide)
-      .on('keydown', event => {
-        const step = { ArrowLeft: -1, ArrowRight: 1, Home: -Infinity, End: Infinity }[event.key];
-        if (step == null) return;
-        event.preventDefault();
-        show(Math.max(0, Math.min(pts.length - 1, (current < 0 ? pts.length - 1 : current) + step)));
-      });
+      .on('blur', hide);
+    // ← → / Home / End step through the years from anywhere in the panel
+    // (focus lands on the panel title when it opens), not only on the chart
+    stepSpark = key => {
+      const step = { ArrowLeft: -1, ArrowRight: 1, Home: -Infinity, End: Infinity }[key];
+      if (step == null) return false;
+      show(Math.max(0, Math.min(pts.length - 1, (current < 0 ? pts.length - 1 : current) + step)));
+      return true;
+    };
     tag.raise();
   }
 

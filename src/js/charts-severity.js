@@ -47,9 +47,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Figure 5.1: Who is most likely to die? ───────────────────
     const deathChart = new Vis.RankedBarChart('#chart-mortality-risk', data0.map(d => ({ ...d, value: d.rate })), {
       linkChannel: 'roadUser',   // linked hover (js/highlight.js)
-      valueText: d => `${fmtDec1(d.value)} per 1,000`,
+      // A rate, not a count: deaths per 1,000 patients, also shown as a percentage
+      valueText: d => `${fmtDec1(d.value)} per 1,000 (${d3.format('.1%')(d.value / 1000)})`,
       tickFormat: d3.format('~'),
-      margin: { top: 24, right: 130, bottom: 54, left: 200 },
+      margin: { top: 24, right: 200, bottom: 54, left: 200 },
       rowHeight: 42,
       emptyText: NO_DEATHS,
       onClick: clickRoadUser,
@@ -86,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const hl = highlightOf(state);
 
       deathChart.config.highlight = hl;
-      deathChart.config.xLabel = dy ? `Deaths in hospital per 1,000 cases, ${rangeText(dy)}` : '';
+      deathChart.config.xLabel = dy ? `Deaths in hospital for every 1,000 patients admitted, ${rangeText(dy)}` : '';
       deathChart.wrangleData(rows.map(d => ({ ...d, value: d.rate })));
 
       stayChart.config.highlight = hl;

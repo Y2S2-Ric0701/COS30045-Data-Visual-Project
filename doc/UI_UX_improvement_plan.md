@@ -59,9 +59,9 @@ Tick an item when it is built **and** checked in the browser. Last updated 24 No
 - [x] Theme switch as headlights: the new theme spreads out from the sun/moon button with a warm flash, using View Transitions. Without View Transitions, or with reduced motion, the theme switches instantly.
 - [x] Lane-line parallax: the yellow dashes in the hero and the chapter band slide as you scroll. Off under reduced motion.
 - [ ] ~~Car driving along the timeline during Play~~: skipped (it repeats the stepper car).
-- [ ] Map morphs into the bar chart (Figure 3.1)
-- [ ] "Where do you fit?" personaliser
-- [ ] Scrollytelling summary on the Overview
+- [x] Map morphs into the bar chart (Figure 3.1): each state's outline melts into its bar (and back), biggest state first. Off under reduced motion.
+- [x] "Where do you fit?" personaliser (Overview): pick how you travel, plus age, sex or area if you like. Six cards answer separately, because the data never splits age, sex and area together. Choices stay in the browser. Picking anything sets the site-wide road-user filter, and Figures 1.3 and 3.2 highlight the reader's age group and area (with a note and a Clear button).
+- [x] Scrollytelling summary on the Overview: one pinned chart of the eight road users answers Q1 to Q5 in turn as the steps scroll past (cases, change, share outside cities, no other vehicle, deaths per 1,000). On wide screens the chart is pinned level with the active step, two mouse-wheel notches move one question, and the axis fades between units instead of sliding. On phones the chart pins at the top and the steps scroll over it as cards.
 
 **Constraint:** the stack stays as it is (static HTML + vanilla JS + D3 v7 on Vercel). Everything here can be built with `d3-zoom`, `d3-transition` and `IntersectionObserver`, all of which are already available. **We should not add GSAP, React or a framework.**
 

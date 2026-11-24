@@ -181,6 +181,52 @@
       </div>
     </section>
 
+    <!-- ═══ Scrollytelling: the five questions in one pinned chart (js/scrolly.js) ═══ -->
+    <section id="story-in-one" class="apple-section scrolly" aria-labelledby="scrolly-title">
+      <div class="section-header-compact">
+        <div class="section-kicker">The story in one chart</div>
+        <h2 class="section-heading" id="scrolly-title">Five questions, eight road users</h2>
+        <p class="scrolly-lede">Scroll on. The same eight bars answer each question in turn, and a different group comes out on top each time.</p>
+      </div>
+      <div class="scrolly-body">
+        <figure class="scrolly-graphic" aria-labelledby="scrolly-caption">
+          <div class="scrolly-chart-head">
+            <span class="scrolly-q" id="scrolly-q">Q1</span>
+            <span class="scrolly-measure" id="scrolly-caption">Hospitalised, 2011–2021</span>
+          </div>
+          <div class="scrolly-chart" id="scrolly-chart"></div>
+          <figcaption class="scrolly-source">Data: AIHW hospital records. Cases 2011–2021; deaths 2011–2019.</figcaption>
+        </figure>
+        <ol class="scrolly-steps">
+          <li class="scrolly-step" data-step="who">
+            <p class="scrolly-step-kicker"><span class="km">Q1</span> Who is hurt the most?</p>
+            <p><strong>Car drivers are the biggest group:</strong> about 1 in 3 of the 410,000 people hospitalised after a road crash from 2011 to 2021. Motorcyclists and cyclists come next.</p>
+            <a class="scrolly-more" href="who-is-affected.html">Question 1: who is affected →</a>
+          </li>
+          <li class="scrolly-step" data-step="trend">
+            <p class="scrolly-step-kicker"><span class="km">Q2</span> Is it getting worse?</p>
+            <p>Overall, yes: <strong>+16%</strong> from 2011 to 2021. But the groups split. <strong>Cyclists rose fastest, +51%</strong>, while pedestrians and car passengers fell.</p>
+            <a class="scrolly-more" href="trends-over-time.html">Question 2: trends over time →</a>
+          </li>
+          <li class="scrolly-step" data-step="where">
+            <p class="scrolly-step-kicker"><span class="km">Q3</span> Where do they live?</p>
+            <p>Each bar is the share of that group who live outside the major cities. The <strong>dashed line is all patients: 32%, about 1 in 3</strong>. For <strong>truck occupants it is more than half</strong>. Regional patients are also more likely to die once in hospital.</p>
+            <a class="scrolly-more" href="geographic-distribution.html">Question 3: where it happens →</a>
+          </li>
+          <li class="scrolly-step" data-step="crash">
+            <p class="scrolly-step-kicker"><span class="km">Q4</span> What did they hit?</p>
+            <p>Often nothing at all. <strong>More than half of injured cyclists, and half of motorcyclists</strong>, were hurt with no other vehicle involved. Bus occupants rank highest of all, at 69%.</p>
+            <a class="scrolly-more" href="crash-characteristics.html">Question 4: crash factors →</a>
+          </li>
+          <li class="scrolly-step" data-step="severity">
+            <p class="scrolly-step-kicker"><span class="km">Q5</span> Who is hurt worst?</p>
+            <p><strong>Pedestrians.</strong> For every 1,000 pedestrians admitted to hospital, about 22 die there (21.8, or 2.2%). That is a rate, not a count, which is why it can have a decimal. It is more than 3 times the average of 6 per 1,000. The biggest group, car drivers, is close to the average: the biggest group is not the worst hurt.</p>
+            <a class="scrolly-more" href="injury-severity.html">Question 5: injury severity →</a>
+          </li>
+        </ol>
+      </div>
+    </section>
+
     <!-- ═══ Explore by Jurisdiction: one filter drives Figure 1 AND Figure 2 ═══ -->
     <div class="explore-group" id="explore">
     <div class="section-header-compact explore-group-header">
@@ -246,7 +292,7 @@
             </p>
           </div>
           <div class="chart-legend-box" id="chart-1-legend">
-            <span class="legend-chip">Fewer <span class="swatch swatch-gradient"></span> More hospitalisations</span>
+            <span class="legend-chip legend-scale"><span class="legend-scale-title">Bar colour:</span> <span class="legend-scale-end">fewer cases</span> <span class="swatch swatch-gradient"></span> <span class="legend-scale-end">more cases</span></span>
           </div>
         </div>
 
@@ -296,6 +342,35 @@
           </figure>
         </div>
         <p class="chapter-source"><span class="waffle-key" aria-hidden="true"></span> Pedestrians. Each square is 1% of all road-crash cases (left) or deaths (right), <span data-waffle-years>2011–2019</span>, the years with death data. <a href="injury-severity.html#injury-severity">See Figure 5.3</a></p>
+      </div>
+    </section>
+
+    <!-- ── Where do you fit? (js/where-you-fit.js) ─────────── -->
+    <section id="where-you-fit" class="apple-section" aria-labelledby="fit-title">
+      <div class="apple-card fit-card">
+        <div class="section-kicker">Where do you fit?</div>
+        <h2 class="apple-card-title" id="fit-title">Find the numbers for people like you</h2>
+        <p class="fit-intro">Pick how you usually travel, then add your age, sex or where you live if you like. The data never splits age, sex and area together, so each card answers one question for your road user. Once you pick, the question pages follow you too: every chart filters to your road user, and Figures 1.3 and 3.2 highlight your age group and area (you can also change those right on the figures). Your choices stay in this browser.</p>
+        <div class="fit-form">
+          <fieldset class="fit-q fit-q-wide">
+            <legend>How do you usually travel?</legend>
+            <div class="fit-options" data-fit="ru"></div>
+          </fieldset>
+          <fieldset class="fit-q">
+            <legend>Your age</legend>
+            <div class="fit-options" data-fit="age"></div>
+          </fieldset>
+          <fieldset class="fit-q">
+            <legend>You are a…</legend>
+            <div class="fit-options" data-fit="sex"></div>
+          </fieldset>
+          <fieldset class="fit-q">
+            <legend>You live in…</legend>
+            <div class="fit-options" data-fit="area"></div>
+          </fieldset>
+        </div>
+        <div class="fit-results" id="fit-results" aria-live="polite"></div>
+        <p class="fit-foot"><a id="fit-follow" class="fit-follow" href="who-is-affected.html">Follow car drivers through all five questions →</a></p>
       </div>
     </section>
 
@@ -416,6 +491,8 @@
   <script src="js/main-narrative.js"></script>
   <script src="js/summary-charts.js"></script>
   <script src="js/chapter-divider.js"></script>
+  <script src="js/where-you-fit.js"></script>
+  <script src="js/scrolly.js"></script>
 
 </body>
 </html>

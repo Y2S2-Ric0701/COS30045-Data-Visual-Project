@@ -1289,3 +1289,174 @@ body[data-page="severity"] { --hero-photo: url("../asset/q5-ambulance-1600.jpg")
 .detail-spark-focus rect { fill: var(--c-ink); }
 .detail-spark-tag { font-size: 12px; font-weight: 700; fill: var(--c-surface); font-family: var(--font-body); font-variant-numeric: tabular-nums; }
 .detail-spark-hint { margin: 0 0 12px; font-size: 12.5px; color: var(--ink-2); }
+
+/* ── Figure 3.1 morph: map ⇄ bar chart (js/charts-geography.js) ── */
+.morph-layer {
+  position: absolute; left: 0; top: 0;
+  width: 1px; height: 1px; overflow: visible;
+  pointer-events: none; z-index: 40;
+}
+/* While the shapes travel, the view they are heading to shows only its frame.
+   The shapes land exactly on the real ones, which then appear without a fade. */
+#chart-state-bars .rbar-label,
+#chart-state-bars .rbar-name,
+#chart-state-bars .y-axis,
+#chart-state-territory .map-labels,
+#chart-state-territory .map-callouts { transition: opacity 0.35s ease-out; }
+#chart-state-bars.is-morphing .rbar { opacity: 0 !important; transition: none; }
+#chart-state-bars.is-morphing :is(.rbar-label, .rbar-name, .y-axis),
+#chart-state-territory.is-morphing :is(.map-labels, .map-callouts) { opacity: 0; transition: none; }
+#chart-state-territory.is-morphing .map-states { opacity: 0; transition: none; }
+
+/* ── "Where do you fit?" (index.html, js/where-you-fit.js) ── */
+.fit-intro { color: var(--c-ink-2); max-width: 70ch; margin: 8px 0 22px; line-height: 1.55; }
+.fit-form {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 24px; margin-bottom: 26px;
+}
+.fit-q { border: 0; margin: 0; padding: 0; min-width: 0; }
+.fit-q-wide { grid-column: 1 / -1; }
+.fit-q legend {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--c-ink-2); margin-bottom: 8px; padding: 0;
+}
+.fit-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.fit-option {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 8px 16px; border-radius: 999px;
+  border: 1px solid var(--c-line); background: var(--c-surface); color: var(--c-ink);
+  font-size: 15px; font-weight: 500; cursor: pointer; user-select: none;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.fit-option input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.fit-option:hover { border-color: var(--c-ink-3); }
+.fit-option.is-skip { color: var(--c-ink-3); border-style: dashed; }
+.fit-option:has(input:checked) {
+  background: var(--c-ink); border-color: var(--c-ink); color: var(--c-surface); font-weight: 600;
+}
+.fit-option.is-skip:has(input:checked) { background: transparent; color: var(--c-ink-2); border-color: var(--c-ink-3); border-style: solid; }
+.fit-option:has(input:focus-visible) { outline: 3px solid var(--link, #0071e3); outline-offset: 2px; }
+.fit-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px var(--c-surface); }
+
+.fit-results {
+  --fit-color: #0072B2;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px;
+}
+.fit-tile {
+  position: relative; padding: 18px 18px 16px; border-radius: 16px;
+  background: var(--c-empty); border: 1px solid var(--c-grid);
+  animation: fit-in 0.35s ease-out both;
+}
+.fit-tile::before {   /* road-user colour stripe */
+  content: ''; position: absolute; left: 18px; right: 18px; top: 0; height: 3px;
+  border-radius: 0 0 3px 3px; background: var(--fit-color);
+}
+.fit-tile.is-prompt { background: transparent; border: 1px dashed var(--c-line); }
+.fit-tile.is-prompt::before { display: none; }
+.fit-kicker { font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-accent); }
+.fit-big {
+  font-family: var(--font-display, inherit); font-size: 38px; font-weight: 700; line-height: 1.1;
+  color: var(--c-ink); margin-top: 6px; font-variant-numeric: tabular-nums;
+}
+.fit-bar { height: 6px; border-radius: 3px; background: var(--c-line); margin: 10px 0 2px; overflow: hidden; }
+.fit-bar span { display: block; height: 100%; border-radius: 3px; background: var(--fit-color); transition: width 0.5s ease-out; }
+.fit-text { margin: 8px 0 0; color: var(--c-ink); font-size: 15px; line-height: 1.5; }
+.fit-note { margin: 8px 0 0; color: var(--c-ink-2); font-size: 13.5px; line-height: 1.45; }
+.fit-tile.is-prompt .fit-text { color: var(--c-ink-2); }
+.fit-foot { margin: 20px 0 0; }
+.fit-follow { font-weight: 600; }
+@keyframes fit-in { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .fit-tile { animation: none; } .fit-bar span { transition: none; } }
+@media (max-width: 900px) {
+  .fit-form, .fit-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .fit-form, .fit-results { grid-template-columns: 1fr; }
+  .fit-big { font-size: 32px; }
+}
+
+/* ── Scrollytelling: "The story in one chart" (index.html, js/scrolly.js) ── */
+.scrolly-lede { color: var(--c-ink-2); max-width: 60ch; margin: 6px 0 0; }
+.scrolly-body {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 40px; align-items: start; margin-top: 24px;
+}
+.scrolly-graphic {
+  grid-column: 2; grid-row: 1;
+  /* Pinned in the middle of the screen below the nav (72px = the page's
+     scroll-padding-top), level with the active step; --scrolly-h is the
+     chart card's height, set by js/scrolly.js */
+  position: sticky; margin: 0;
+  top: max(72px, calc(72px + (100vh - 72px - var(--scrolly-h, 520px)) / 2));
+  padding: 20px 20px 14px; border-radius: 20px;
+  background: var(--apple-surface, var(--c-surface)); border: 1px solid var(--apple-card-border, var(--c-line));
+  box-shadow: var(--apple-shadow-card, none);
+}
+.scrolly-chart-head { display: flex; align-items: baseline; gap: 10px; min-height: 28px; }
+.scrolly-q {
+  font: 700 13px/1 var(--font-body, inherit); letter-spacing: 0.04em;
+  padding: 4px 7px; border-radius: 6px; background: var(--lane, #F5C518); color: #14171A;
+}
+.scrolly-measure { font-weight: 600; color: var(--c-ink); font-size: 16px; }
+.scrolly-chart { width: 100%; margin-top: 8px; }
+.scrolly-chart svg { display: block; overflow: hidden; font-family: var(--font-body, inherit); }   /* nothing slides in from outside the card */
+.scrolly-source { color: var(--c-ink-3); font-size: 12.5px; margin-top: 6px; }
+
+.scrolly-steps {
+  grid-column: 1; grid-row: 1; list-style: none; margin: 0;
+  /* enough room above the first step and below the last for the chart to stay pinned */
+  padding: max(40px, calc(var(--scrolly-h, 520px) / 2 - 110px)) 0;
+}
+/* Steps are 250px apart: with a mouse wheel, two notches move one
+   question and js/scrolly.js glides the new step level with the chart */
+.scrolly-step {
+  min-height: 250px; display: flex; flex-direction: column; justify-content: center;
+  opacity: 0.28; transition: opacity 0.4s ease;
+}
+.scrolly-step.is-active { opacity: 1; }
+.scrolly-step > p:not(.scrolly-step-kicker) { font-size: 19px; line-height: 1.6; color: var(--c-ink); margin: 0; }
+.scrolly-step-kicker {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--c-accent); margin: 0 0 10px;
+}
+.scrolly-step-kicker .km { margin-right: 6px; }
+.scrolly-more { margin-top: 14px; font-weight: 600; align-self: flex-start; }
+@media (prefers-reduced-motion: reduce) { .scrolly-step { transition: none; } }
+
+/* Phone and narrow tablet: chart pinned at the top, steps scroll over it as cards */
+@media (max-width: 860px) {
+  .scrolly-body { display: block; }
+  .scrolly-graphic { top: 64px; z-index: 1; padding: 12px 12px 8px; }
+  .scrolly-steps { position: relative; z-index: 2; padding: 30vh 0 20vh; }
+  .scrolly-step {
+    min-height: 0; margin: 0 4px 45vh; padding: 18px 18px 16px; border-radius: 16px;
+    background: var(--apple-surface, var(--c-surface)); border: 1px solid var(--apple-card-border, var(--c-line));
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12); opacity: 1;
+  }
+  .scrolly-step > p:not(.scrolly-step-kicker) { font-size: 16.5px; }
+  .scrolly-measure { font-size: 14.5px; }
+}
+
+/* Figure 1 colour key: "Bar colour: fewer cases [gradient] more cases" */
+.legend-scale { flex-wrap: wrap; row-gap: 4px; }
+.legend-scale-title { font-weight: 600; }
+.legend-scale-end { white-space: nowrap; color: var(--c-ink-2); }
+
+/* "Highlight your age group / where you live" chips above Figures 1.3 and 3.2
+   (js/global-filter.js profileChooser; shared with "Where do you fit?") */
+.fit-chooser {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin: 0 0 12px; padding: 10px 12px; border-radius: 14px; background: var(--c-empty);
+}
+.fit-chooser-label { font-size: 14px; font-weight: 600; color: var(--c-ink-2); margin-right: 4px; }
+.fit-chooser-chip {
+  min-height: 40px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--c-line); background: var(--c-surface); color: var(--c-ink);
+  font: inherit; font-size: 14.5px; font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.fit-chooser-chip:hover { border-color: var(--c-ink-3); }
+.fit-chooser-chip[aria-pressed="true"] { background: var(--c-ink); border-color: var(--c-ink); color: var(--c-surface); font-weight: 600; }
+.fit-chooser-chip:focus-visible { outline: 3px solid var(--link, #0071e3); outline-offset: 2px; }
+.fit-chooser-link { margin-left: auto; font-size: 14px; font-weight: 600; }
+@media (max-width: 600px) { .fit-chooser-label { flex-basis: 100%; } .fit-chooser-link { margin-left: 0; } }

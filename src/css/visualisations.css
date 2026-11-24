@@ -381,3 +381,4 @@
 .year-brush .overlay { cursor: ew-resize; }
 .year-brush .selection { fill: var(--link); fill-opacity: 0.14; stroke: var(--link); stroke-width: 1; shape-rendering: crispEdges; }
 .year-brush .handle { fill: var(--link); fill-opacity: 0.5; }
+.vis-chart .trend-end-tag { font-weight: 600; font-size: 12.5px; letter-spacing: 0.01em; }
