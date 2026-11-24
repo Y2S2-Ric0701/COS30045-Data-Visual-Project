@@ -10,12 +10,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
 
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
+  <link rel="stylesheet" href="css/story.css" />
 </head>
 <body data-page="trends">
 
@@ -75,11 +76,11 @@
             <p class="figure-scope" data-road-user="highlight" data-years="trend"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-by-group">
+        <div class="responsive-svg-container" id="chart-by-group" data-hint="{Hover} to read each year · {Click} a line to follow it">
           <!-- D3 SVG injected here -->
         </div>
         <div id="chips-by-group"></div>
-        <p class="chart-note">Hover to read every group's value for a year; click a line (or a chip) to follow that road user. Buses, trucks, and utes or vans have only a few hundred cases a year, so their lines sit near the bottom.</p>
+        <p class="chart-note">Clicking a chip under the chart also follows that road user. Buses, trucks, and utes or vans have only a few hundred cases a year, so their lines sit near the bottom.</p>
       </div>
     </section>
 
@@ -95,10 +96,10 @@
             <p class="figure-scope" data-road-user="highlight" data-years="change"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-change">
+        <div class="responsive-svg-container" id="chart-change" data-hint="{Hover} a bar to see the real numbers">
           <!-- D3 SVG injected here -->
         </div>
-        <p class="chart-note">Change from the first to the last year chosen in the filter bar. Small groups have few cases, so a change of a few dozen patients shows up as a large percentage; hover a bar to see the real numbers.</p>
+        <p class="chart-note">Change from the first to the last year chosen in the filter bar. Small groups have few cases, so a change of a few dozen patients shows up as a large percentage.</p>
       </div>
     </section>
 
@@ -118,6 +119,7 @@
 
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/motion.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/site-data.js"></script>
   <script src="js/global-filter.js"></script>

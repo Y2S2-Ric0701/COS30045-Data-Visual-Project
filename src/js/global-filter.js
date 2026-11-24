@@ -242,16 +242,59 @@ const GlobalFilter = (function () {
           <span class="gf-label">Years: <span class="gf-year-readout" id="gf-year-readout" aria-live="polite"></span></span>
           <div class="gf-slider" id="gf-year-slider"></div>
         </div>
-        <button type="button" class="gf-reset" id="gf-reset">Reset</button>
+        <div class="gf-actions">
+          <button type="button" class="gf-play" id="gf-play" aria-pressed="false"
+                  title="Show each year from ${PERIOD.first} to ${PERIOD.last}, one at a time"></button>
+          <button type="button" class="gf-reset" id="gf-reset">Reset</button>
+        </div>
       </div>
       </div>`;
 
     document.getElementById('gf-road-user')
       .addEventListener('change', e => set({ roadUser: e.target.value }));
     document.getElementById('gf-reset')
-      .addEventListener('click', () => set({ years: [...DEFAULT.years], roadUser: 'all' }));
-    slider = yearSlider('#gf-year-slider', years => set({ years }));
+      .addEventListener('click', () => { stopPlay(); set({ years: [...DEFAULT.years], roadUser: 'all' }); });
+    slider = yearSlider('#gf-year-slider', years => { stopPlay(); set({ years }); });
+    document.getElementById('gf-play').addEventListener('click', () => (playTimer ? stopPlay() : startPlay()));
+    paintPlay();
     syncControls();
+  }
+
+  // ── Play: step through the years one at a time (plan §6.2) ─────
+  // Every chart on the page follows, like a flip-book. Touching the
+  // slider or Reset stops it; it ends on the last year.
+  const PLAY_STEP_MS = 1100;
+  const ICON_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15a1 1 0 0 0 1.52.85l12-7.5a1 1 0 0 0 0-1.7l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect fill="currentColor" x="5" y="4" width="5" height="16" rx="1.5"/><rect fill="currentColor" x="14" y="4" width="5" height="16" rx="1.5"/></svg>';
+  let playTimer = null;
+  let played = false;
+
+  function paintPlay() {
+    const btn = document.getElementById('gf-play');
+    if (!btn) return;
+    const on = !!playTimer;
+    btn.setAttribute('aria-pressed', String(on));
+    btn.innerHTML = on ? `${ICON_PAUSE}<span>Pause</span>`
+      : `${ICON_PLAY}<span>${played ? 'Replay' : 'Play'}<span class="visually-hidden"> each year, ${PERIOD.first} to ${PERIOD.last}</span></span>`;
+  }
+
+  function startPlay() {
+    let year = PERIOD.first;
+    set({ years: [year, year] });
+    playTimer = setInterval(() => {
+      year += 1;
+      if (year > PERIOD.last) { stopPlay(); return; }
+      set({ years: [year, year] });
+    }, PLAY_STEP_MS);
+    played = true;
+    paintPlay();
+  }
+
+  function stopPlay() {
+    if (!playTimer) return;
+    clearInterval(playTimer);
+    playTimer = null;
+    paintPlay();
   }
 
   function syncControls() {

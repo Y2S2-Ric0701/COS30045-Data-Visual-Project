@@ -10,12 +10,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
 
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
+  <link rel="stylesheet" href="css/story.css" />
 </head>
 <body data-page="crash">
 
@@ -55,10 +56,10 @@
             <p class="figure-scope" data-road-user="filter" data-years="counts"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-collision-type">
+        <div class="responsive-svg-container" id="chart-collision-type" data-hint="{Hover} a bar for a plain description">
           <!-- D3 SVG injected here -->
         </div>
-        <p class="chart-note">"Something else" is a motorbike, bicycle, pedestrian, animal, train or other non-motor vehicle. "Not recorded" means the hospital record does not say. Hover a bar for a plain description.</p>
+        <p class="chart-note">"Something else" is a motorbike, bicycle, pedestrian, animal, train or other non-motor vehicle. "Not recorded" means the hospital record does not say.</p>
       </div>
     </section>
 
@@ -74,10 +75,10 @@
             <p class="figure-scope" data-road-user="highlight" data-years="counts"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-counterparty">
+        <div class="responsive-svg-container" id="chart-counterparty" data-hint="{Click} a row to follow that road user">
           <!-- D3 SVG injected here -->
         </div>
-        <p class="chart-note">Each row is one road user and adds up to 100%. Darker blue = a bigger share of that row; the outlined cell is what that road user hit most often. Click a row to follow that road user.</p>
+        <p class="chart-note">Each row is one road user and adds up to 100%. Darker blue = a bigger share of that row; the outlined cell is what that road user hit most often.</p>
       </div>
     </section>
 
@@ -116,6 +117,7 @@
 
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/motion.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/site-data.js"></script>
   <script src="js/global-filter.js"></script>

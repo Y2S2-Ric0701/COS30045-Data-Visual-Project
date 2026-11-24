@@ -31,8 +31,13 @@
   function placeTip(tooltip, event) {
     const node = tooltip.node();
     const w = node ? node.offsetWidth : 0;
+    const h = node ? node.offsetHeight : 0;
     const left = (event.clientX + 16 + w > window.innerWidth - 8) ? event.pageX - 16 - w : event.pageX + 14;
-    tooltip.style('left', `${Math.max(8, left)}px`).style('top', `${event.pageY - 28}px`);
+    // Flip above the pointer when the tooltip would run off the bottom of the screen
+    const top = (event.clientY - 28 + h > window.innerHeight - 8)
+      ? Math.max(window.scrollY + 8, event.pageY - h - 14)
+      : event.pageY - 28;
+    tooltip.style('left', `${Math.max(8, left)}px`).style('top', `${top}px`);
   }
 
   /** Enter / Space on a focused element acts like a click */
@@ -78,6 +83,63 @@
     }
     items.forEach(d => { d.y = Math.max(lo, d.y); });
     return items;
+  }
+
+  /**
+   * Phone layout: a two-column key under the chart, used instead of the
+   * labels at the right edge (there is no room for them on a phone).
+   * items: [{ key, label, color, extra? }]; returns the height it needs.
+   */
+  const LEGEND_ROW = 24;
+  function legendHeight(n) { return n ? Math.ceil(n / 2) * LEGEND_ROW + 8 : 0; }
+  function drawCompactLegend(vis, items, { onClick, faded, active } = {}) {
+    const c = vis.config;
+    const top = vis.innerHeight + 40;
+    const colW = vis.innerWidth / 2;
+    const g = vis.annotationsG.selectAll('.compact-key').data([0]).join('g').attr('class', 'compact-key');
+    g.selectAll('*').remove();
+    items.forEach((it, i) => {
+      const row = g.append('g')
+        .attr('class', 'compact-key-item')
+        .attr('transform', `translate(${(i % 2) * colW},${top + Math.floor(i / 2) * LEGEND_ROW})`)
+        .attr('opacity', faded && faded(it.key) ? 0.4 : 1)
+        .style('cursor', onClick ? 'pointer' : null)
+        .attr('tabindex', onClick ? 0 : null)
+        .attr('role', onClick ? 'button' : null)
+        .attr('aria-label', `${it.label}${it.extra ? ` ${it.extra}` : ''}`);
+      row.append('rect').attr('width', colW - 4).attr('height', LEGEND_ROW).attr('y', -LEGEND_ROW / 2).attr('fill', 'transparent');
+      row.append('rect').attr('width', 12).attr('height', 12).attr('y', -6).attr('rx', 2).attr('fill', it.color);
+      const t = row.append('text').attr('class', 'compact-key-text').attr('x', 18).attr('dy', '0.35em')
+        .style('font-weight', active === it.key ? 700 : null);
+      t.append('tspan').text(it.label);
+      if (it.extra) t.append('tspan').attr('class', 'trend-end-change').attr('dx', 5).style('fill', it.color).text(it.extra);
+      // Shrink an entry that would run into the next column
+      const room = colW - 26, w = t.node().getComputedTextLength();
+      if (w > room) t.style('font-size', `${Math.max(10, 13 * room / w).toFixed(1)}px`);
+      if (onClick) {
+        row.on('click', () => onClick(it.key));
+        keyClick(row, () => onClick(it.key));
+      }
+    });
+  }
+
+  /** Year axis + value axis for the time charts; fewer ticks on a phone */
+  function drawTimeAxes(vis, x, y, nYears, yLabel) {
+    const compact = vis.compact;
+    // One tick per year needs ~40px per year; otherwise let d3 pick fewer
+    const yearTicks = vis.innerWidth / nYears >= 40 ? nYears : Math.max(4, Math.floor(vis.innerWidth / 70));
+    vis.gridG.call(d3.axisLeft(y).ticks(compact ? 5 : 6).tickSize(-vis.innerWidth).tickFormat(''))
+      .call(g => g.select('.domain').remove())
+      .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
+    vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
+      .call(d3.axisBottom(x).ticks(yearTicks).tickFormat(d3.format('d')));
+    vis.yAxisG.call(d3.axisLeft(y).ticks(compact ? 5 : 6).tickFormat(fmtK));
+    // On a phone the axis title goes above the axis instead of rotated beside it
+    vis.yAxisG.selectAll('.axis-label').data([yLabel]).join('text').attr('class', 'axis-label')
+      .attr('transform', compact ? null : 'rotate(-90)')
+      .attr('x', compact ? -vis.config.margin.left + 2 : -vis.innerHeight / 2)
+      .attr('y', compact ? -vis.config.margin.top + 14 : -54)
+      .style('text-anchor', compact ? 'start' : 'middle').text(d => d);
   }
 
   function setViewHeight(vis, height) {
@@ -130,11 +192,15 @@
       this.renderVis();
     }
 
+    // Phone layout: names sit above the bars, values at the right
+    compactMargin() { return { left: 6, right: 10 }; }
+
     renderVis() {
       const vis = this;
       const c = vis.config;
       const rows = vis.displayData;
-      setViewHeight(vis, c.margin.top + c.margin.bottom + Math.max(1, rows.length) * c.rowHeight);
+      const compact = vis.compact;
+      setViewHeight(vis, c.margin.top + c.margin.bottom + Math.max(1, rows.length) * (compact ? 56 : c.rowHeight));
       if (c.ariaLabel) vis.svg.attr('aria-label', c.ariaLabel(rows));
 
       const valid = rows.filter(d => d.value != null);
@@ -151,24 +217,38 @@
       const hi = c.xMax ?? Math.max(0, d3.max(vals)) * 1.12;
       const x = d3.scaleLinear().domain([lo, hi || 1]).range([0, vis.innerWidth]);
       if (c.xMin == null || c.xMax == null) x.nice();
-      const y = d3.scaleBand().domain(rows.map(d => d.label)).range([0, vis.innerHeight]).padding(0.28);
+      const y = d3.scaleBand().domain(rows.map(d => d.label)).range([0, vis.innerHeight]).padding(compact ? 0 : 0.28);
+      const barY = d => (compact ? y(d.label) + 22 : y(d.label));
+      const barH = compact ? y.step() - 30 : y.bandwidth();
+      const nameY = d => y(d.label) + 13;
+      const ticks = compact ? 4 : 6;
       const grad = Vis.barGradient(d3.extent(vals));
       const fill = d => (c.colorOf ? c.colorOf(d) : grad(d.value));
       const faded = d => c.highlight && keyOf(d) !== c.highlight;
 
-      vis.gridG.call(d3.axisBottom(x).ticks(6).tickSize(vis.innerHeight).tickFormat(''))
+      vis.gridG.call(d3.axisBottom(x).ticks(ticks).tickSize(vis.innerHeight).tickFormat(''))
         .call(g => g.select('.domain').remove())
         .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
 
-      vis.yAxisG.classed('axis-category', true)
-        .call(d3.axisLeft(y).tickSize(0).tickPadding(12))
-        .call(g => g.select('.domain').remove());
-      vis.yAxisG.selectAll('.tick text')
-        .style('opacity', label => (faded(rows.find(r => r.label === label)) ? 0.45 : 1))
-        .style('font-weight', label => (c.highlight && keyOf(rows.find(r => r.label === label)) === c.highlight ? 700 : null));
+      if (compact) {
+        vis.yAxisG.selectAll('*').remove();
+        vis.plotG.selectAll('.rbar-name').data(rows, keyOf).join('text')
+          .attr('class', 'rbar-name').attr('x', 0).attr('y', nameY).attr('dy', '0.35em')
+          .attr('opacity', d => (faded(d) ? 0.45 : 1))
+          .style('font-weight', d => (c.highlight && keyOf(d) === c.highlight ? 700 : null))
+          .text(d => d.label);
+      } else {
+        vis.plotG.selectAll('.rbar-name').remove();
+        vis.yAxisG.classed('axis-category', true)
+          .call(d3.axisLeft(y).tickSize(0).tickPadding(12))
+          .call(g => g.select('.domain').remove());
+        vis.yAxisG.selectAll('.tick text')
+          .style('opacity', label => (faded(rows.find(r => r.label === label)) ? 0.45 : 1))
+          .style('font-weight', label => (c.highlight && keyOf(rows.find(r => r.label === label)) === c.highlight ? 700 : null));
+      }
 
       vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(x).ticks(6).tickFormat(c.tickFormat));
+        .call(d3.axisBottom(x).ticks(ticks).tickFormat(c.tickFormat));
       vis.xAxisG.selectAll('.axis-label').data([c.xLabel]).join('text')
         .attr('class', 'axis-label').attr('x', vis.innerWidth / 2).attr('y', 44)
         .attr('text-anchor', 'middle').text(d => d);
@@ -192,20 +272,21 @@
       vis.plotG.selectAll('.rbar').data(valid, keyOf).join(
         enter => enter.append('rect').attr('class', 'rbar').attr('rx', 4)
           .attr('x', x(0)).attr('width', 0)
-          .attr('y', d => y(d.label)).attr('height', y.bandwidth()),
+          .attr('y', barY).attr('height', barH),
         update => update,
         exit => exit.remove())
         .attr('fill', fill)
         .transition(t)
-        .attr('y', d => y(d.label)).attr('height', y.bandwidth())
+        .attr('y', barY).attr('height', barH)
         .attr('x', d => x(Math.min(0, d.value))).attr('width', d => Math.abs(x(d.value) - x(0)))
         .attr('opacity', d => (faded(d) ? 0.2 : 1));
 
       vis.plotG.selectAll('.rbar-label').data(rows, keyOf).join('text')
         .attr('class', 'bar-label rbar-label')
-        .attr('y', d => y(d.label) + y.bandwidth() / 2).attr('dy', '0.35em')
-        .attr('x', d => (d.value == null ? x(0) + 8 : d.value >= 0 ? x(d.value) + 8 : x(d.value) - 8))
-        .attr('text-anchor', d => (d.value != null && d.value < 0 ? 'end' : 'start'))
+        .attr('y', d => (compact ? nameY(d) : y(d.label) + y.bandwidth() / 2)).attr('dy', '0.35em')
+        .attr('x', d => (compact ? vis.innerWidth
+          : d.value == null ? x(0) + 8 : d.value >= 0 ? x(d.value) + 8 : x(d.value) - 8))
+        .attr('text-anchor', d => (compact || (d.value != null && d.value < 0) ? 'end' : 'start'))
         .style('fill', d => (d.value == null ? '#64748b' : (c.labelColor ? c.labelColor(d) : '#1d1d1f')))
         .attr('opacity', d => (faded(d) ? 0.45 : 1))
         .text(d => (d.value == null ? c.nullText : c.valueText(d)));
@@ -214,7 +295,7 @@
       const hits = vis.plotG.selectAll('.rbar-hit').data(rows, keyOf).join('rect')
         .attr('class', 'rbar-hit')
         .attr('x', -c.margin.left).attr('width', vis.innerWidth + c.margin.left + c.margin.right - 10)
-        .attr('y', d => y(d.label) - (y.step() * y.paddingInner()) / 2).attr('height', y.step())
+        .attr('y', d => (compact ? y(d.label) : y(d.label) - (y.step() * y.paddingInner()) / 2)).attr('height', y.step())
         .attr('fill', 'transparent')
         .style('cursor', c.onClick ? 'pointer' : 'default')
         .attr('tabindex', c.onClick ? 0 : null)
@@ -268,9 +349,14 @@
 
     update(opts) { Object.assign(this.config, opts); this.renderVis(); }
 
+    // Phone layout: no names at the right edge; a key goes under the chart
+    compactMargin() { return { left: 44, right: 14, top: 40, bottom: 44 + legendHeight(this.config.keys.length) }; }
+    compactHeight() { return 300 + this.compactMargin().top + this.compactMargin().bottom; }
+
     renderVis() {
       const vis = this;
       const c = vis.config;
+      const compact = vis.compact;
       const data = vis.displayData;
       const first = data[0].year, last = data[data.length - 1].year;
       const x = d3.scaleLinear().domain([first, last]).range([0, vis.innerWidth]);
@@ -278,15 +364,7 @@
       const totals = data.map(d => ({ year: d.year, total: d3.sum(c.keys, k => d[k]) }));
       const y = d3.scaleLinear().domain([0, d3.max(totals, d => d.total) * 1.14]).nice().range([vis.innerHeight, 0]);
 
-      vis.gridG.call(d3.axisLeft(y).ticks(6).tickSize(-vis.innerWidth).tickFormat(''))
-        .call(g => g.select('.domain').remove())
-        .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
-      vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(x).ticks(data.length).tickFormat(d3.format('d')));
-      vis.yAxisG.call(d3.axisLeft(y).ticks(6).tickFormat(fmtK));
-      vis.yAxisG.selectAll('.axis-label').data([c.yLabel]).join('text').attr('class', 'axis-label')
-        .attr('transform', 'rotate(-90)').attr('x', -vis.innerHeight / 2).attr('y', -54)
-        .attr('text-anchor', 'middle').text(d => d);
+      drawTimeAxes(vis, x, y, data.length, c.yLabel);
 
       const area = d3.area().x(d => x(d.data.year)).y0(d => y(d[0])).y1(d => y(d[1])).curve(d3.curveMonotoneX);
       const faded = k => c.highlight && k !== c.highlight;
@@ -340,13 +418,19 @@
         .attr('x', p => x(p.d.year) + (p.d.year === first ? 0 : p.d.year === last ? 0 : p.anchor === 'start' ? -6 : 6))
         .attr('y', p => y(p.d.total) - 14)
         .attr('text-anchor', p => (p.d.year === first ? 'start' : p.d.year === last ? 'end' : 'middle'))
-        .text(p => p.text);
+        .text(p => (compact ? p.text.replace(/ in (\d{4})/, ' ($1)').replace(') (', ', ') : p.text));
 
       // Name each layer at the right edge when it is thick enough to hold a label
-      const lastRow = series.map(s => {
+      const lastRow = compact ? [] : series.map(s => {
         const p = s[s.length - 1];
         return { key: s.key, y: (y(p[0]) + y(p[1])) / 2, h: y(p[0]) - y(p[1]) };
       }).filter(d => d.h >= c.minLabelPx || d.key === c.highlight);
+      if (compact) {
+        drawCompactLegend(vis, [...c.keys].reverse().map(k => ({ key: k, label: c.labelOf(k), color: c.colorOf(k) })),
+          { onClick: c.onClick, faded, active: c.highlight });
+      } else {
+        vis.annotationsG.selectAll('.compact-key').remove();
+      }
       vis.annotationsG.selectAll('.area-end-label').data(lastRow, d => d.key).join('text')
         .attr('class', 'area-end-label')
         .attr('x', vis.innerWidth + 10).attr('y', d => d.y).attr('dy', '0.35em')
@@ -388,24 +472,21 @@
 
     update(opts) { Object.assign(this.config, opts); this.renderVis(); }
 
+    // Phone layout: short break notes, and a key with each line's change under the chart
+    compactMargin() { return { left: 44, right: 14, top: 74, bottom: 44 + legendHeight(this.config.series.length) }; }
+    compactHeight() { return 300 + this.compactMargin().top + this.compactMargin().bottom; }
+
     renderVis() {
       const vis = this;
       const c = vis.config;
+      const compact = vis.compact;
       const data = vis.displayData;
       const first = data[0].year, last = data[data.length - 1].year;
       const x = d3.scaleLinear().domain([first, last]).range([0, vis.innerWidth]);
       const yMax = d3.max(data, d => d3.max(c.series, s => d[s.key]));
       const y = d3.scaleLinear().domain([0, yMax * 1.08]).nice().range([vis.innerHeight, 0]);
 
-      vis.gridG.call(d3.axisLeft(y).ticks(6).tickSize(-vis.innerWidth).tickFormat(''))
-        .call(g => g.select('.domain').remove())
-        .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
-      vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(x).ticks(data.length).tickFormat(d3.format('d')));
-      vis.yAxisG.call(d3.axisLeft(y).ticks(6).tickFormat(fmtK));
-      vis.yAxisG.selectAll('.axis-label').data([c.yLabel]).join('text').attr('class', 'axis-label')
-        .attr('transform', 'rotate(-90)').attr('x', -vis.innerHeight / 2).attr('y', -54)
-        .attr('text-anchor', 'middle').text(d => d);
+      drawTimeAxes(vis, x, y, data.length, c.yLabel);
 
       // Counting changes, in plain words, so a dip is not mistaken for a safety gain
       const br = vis.annotationsG.selectAll('.break-group').data(c.breaks).join('g').attr('class', 'break-group');
@@ -413,10 +494,15 @@
       br.append('line').attr('x1', b => x(b.year)).attr('x2', b => x(b.year))
         .attr('y1', -34).attr('y2', vis.innerHeight)
         .attr('stroke', '#94a3b8').attr('stroke-dasharray', '3 3');
-      br.append('text').attr('class', 'break-label').attr('x', b => x(b.year) + 5).attr('y', -40)
+      // On a phone a note near the right edge is written leftwards so it stays on screen
+      const flip = b => compact && x(b.year) > vis.innerWidth * 0.72;
+      br.append('text').attr('class', 'break-label').attr('y', -40)
+        .attr('text-anchor', b => (flip(b) ? 'end' : 'start'))
         .each(function (b) {
-          d3.select(this).selectAll('tspan').data(b.lines).join('tspan')
-            .attr('x', x(b.year) + 5).attr('dy', (l, i) => (i ? 14 : 0)).text(l => l);
+          const lines = (compact || vis.innerWidth < 520) && b.short ? b.short : b.lines;
+          const bx = x(b.year) + (flip(b) ? -5 : 5);
+          d3.select(this).selectAll('tspan').data(lines).join('tspan')
+            .attr('x', bx).attr('dy', (l, i) => (i ? 14 : 0)).text(l => l);
         });
 
       // Change over the chosen years (or the whole period)
@@ -432,8 +518,16 @@
         .attr('stroke-linecap', 'round').style('pointer-events', 'none')
         .attr('d', s => line(s.key)(data));
 
-      // End labels, pushed apart so none overlap
-      const ends = dodge(c.series.map(s => ({
+      // End labels, pushed apart so none overlap (a key under the chart on a phone)
+      if (compact) {
+        drawCompactLegend(vis, [...c.series]
+          .sort((a, b) => data[data.length - 1][b.key] - data[data.length - 1][a.key])
+          .map(s => ({ key: s.key, label: s.short || s.label, color: s.color, extra: fmtChange(changeOf(s)) })),
+        { onClick: c.onClick, faded: k => c.highlight && k !== c.highlight, active: c.highlight });
+      } else {
+        vis.annotationsG.selectAll('.compact-key').remove();
+      }
+      const ends = compact ? [] : dodge(c.series.map(s => ({
         s, y0: y(data[data.length - 1][s.key]), y: y(data[data.length - 1][s.key]),
       })), 17, 0, vis.innerHeight);
       const labels = vis.annotationsG.selectAll('.trend-end').data(ends, d => d.s.key).join('g')
@@ -532,11 +626,15 @@
 
     setHighlight(key) { this.config.highlight = key && key !== 'all' ? key : null; this.renderVis(); }
 
+    // Phone layout: names above each pair, the ratio column narrower
+    compactMargin() { return { left: 6, right: 58, top: 96 }; }
+
     renderVis() {
       const vis = this;
       const c = vis.config;
       const rows = vis.displayData;
-      setViewHeight(vis, c.margin.top + c.margin.bottom + rows.length * c.rowHeight);
+      const compact = vis.compact;
+      setViewHeight(vis, c.margin.top + c.margin.bottom + rows.length * (compact ? 76 : c.rowHeight));
       vis.svg.selectAll('.empty-msg').remove();
       if (!rows.length) {
         [vis.plotG, vis.gridG, vis.xAxisG, vis.yAxisG, vis.annotationsG, vis.legendG].forEach(g => g.selectAll('*').remove());
@@ -548,44 +646,52 @@
       const x = d3.scaleLinear().domain([0, d3.max(rows, d => Math.max(d.a, d.b)) * 1.1]).nice()
         .range([0, vis.innerWidth]);
       const y = d3.scaleBand().domain(rows.map(d => d.label)).range([0, vis.innerHeight]).padding(0.22);
-      const half = y.bandwidth() / 2;
+      const off = compact ? 20 : 0;        // room for the name above the bars
+      const half = (y.bandwidth() - off) / 2;
       const faded = d => c.highlight && keyOf(d) !== c.highlight;
       const pct = d3.format('.0%');
+      const ratioX = compact ? vis.innerWidth + c.margin.right - 4 : vis.innerWidth + 70;
+      const ratioAnchor = compact ? 'end' : 'middle';
 
       vis.gridG.call(d3.axisBottom(x).ticks(5).tickSize(vis.innerHeight).tickFormat(''))
         .call(g => g.select('.domain').remove())
         .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
       vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
         .call(d3.axisBottom(x).ticks(5).tickFormat(pct));
-      vis.yAxisG.classed('axis-category', true).call(d3.axisLeft(y).tickSize(0).tickPadding(12))
-        .call(g => g.select('.domain').remove());
-      vis.yAxisG.selectAll('.tick text')
-        .style('opacity', label => (faded(rows.find(r => r.label === label)) ? 0.45 : 1));
+      if (compact) {
+        vis.yAxisG.selectAll('*').remove();
+      } else {
+        vis.yAxisG.classed('axis-category', true).call(d3.axisLeft(y).tickSize(0).tickPadding(12))
+          .call(g => g.select('.domain').remove());
+        vis.yAxisG.selectAll('.tick text')
+          .style('opacity', label => (faded(rows.find(r => r.label === label)) ? 0.45 : 1));
+      }
 
       const g = vis.plotG.selectAll('.pair-row').data(rows, keyOf).join('g').attr('class', 'pair-row')
         .attr('transform', d => `translate(0,${y(d.label)})`)
         .attr('opacity', d => (faded(d) ? 0.25 : 1));
       g.selectAll('*').remove();
-      g.append('rect').attr('y', 1).attr('height', half - 3).attr('rx', 3).attr('fill', c.aColor)
+      if (compact) g.append('text').attr('class', 'rbar-name').attr('y', 8).attr('dy', '0.35em').text(d => d.label);
+      g.append('rect').attr('y', off + 1).attr('height', half - 3).attr('rx', 3).attr('fill', c.aColor)
         .attr('width', d => x(d.a));
-      g.append('rect').attr('y', half + 1).attr('height', half - 3).attr('rx', 3).attr('fill', d => c.bColorOf(d))
+      g.append('rect').attr('y', off + half + 1).attr('height', half - 3).attr('rx', 3).attr('fill', d => c.bColorOf(d))
         .attr('width', d => x(d.b));
-      g.append('text').attr('class', 'pair-value pair-value-a').attr('x', d => x(d.a) + 6).attr('y', half / 2 + 1)
+      g.append('text').attr('class', 'pair-value pair-value-a').attr('x', d => x(d.a) + 6).attr('y', off + half / 2 + 1)
         .attr('dy', '0.35em').text(d => pct(d.a));
-      g.append('text').attr('class', 'pair-value pair-value-b').attr('x', d => x(d.b) + 6).attr('y', half * 1.5)
+      g.append('text').attr('class', 'pair-value pair-value-b').attr('x', d => x(d.b) + 6).attr('y', off + half * 1.5)
         .attr('dy', '0.35em').style('fill', d => c.bColorOf(d)).text(d => pct(d.b));
 
       // Right-hand column: how many times more (or less) deadly than its size suggests
       const ratioText = d => (d.a ? `${d3.format('.1f')(d.b / d.a)}×` : '');
       // One accent only: groups that die far more often than their size suggests
       const ratioColor = d => (d.b / d.a >= 1.25 ? '#D55E00' : '#55555a');
-      g.append('text').attr('class', 'pair-ratio').attr('x', vis.innerWidth + 70).attr('y', half)
-        .attr('dy', '0.35em').attr('text-anchor', 'middle').style('fill', ratioColor).text(ratioText);
+      g.append('text').attr('class', 'pair-ratio').attr('x', ratioX).attr('y', off + half)
+        .attr('dy', '0.35em').attr('text-anchor', ratioAnchor).style('fill', ratioColor).text(ratioText);
 
       vis.annotationsG.selectAll('.pair-ratio-head').data([0]).join('text').attr('class', 'pair-ratio-head')
-        .attr('x', vis.innerWidth + 70).attr('y', -14).attr('text-anchor', 'middle')
-        .selectAll('tspan').data(['Deaths ÷ cases', '(1× = as expected)']).join('tspan')
-        .attr('x', vis.innerWidth + 70).attr('dy', (l, i) => (i ? 15 : -8)).text(l => l);
+        .attr('x', ratioX).attr('y', -14).attr('text-anchor', ratioAnchor)
+        .selectAll('tspan').data(compact ? ['Deaths ÷', 'cases'] : ['Deaths ÷ cases', '(1× = as expected)']).join('tspan')
+        .attr('x', ratioX).attr('dy', (l, i) => (i ? 15 : -8)).text(l => l);
 
       const hits = g.append('rect').attr('class', 'pair-hit')
         .attr('x', -c.margin.left).attr('width', c.width - 10).attr('y', -4).attr('height', y.step())

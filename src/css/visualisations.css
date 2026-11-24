@@ -312,28 +312,11 @@
   .axis-label { font-size: 14px; }
 }
 
-/* ── Small screens: keep component charts legible ──────────────
-   Charts built by vis-components.js use a fixed 850px viewBox. On narrow
-   screens they would shrink until the text is unreadable, so give them a
-   minimum width and let the reader swipe sideways instead. */
+/* ── Small screens ──────────────────────────────────────────────
+   Charts built by vis-components.js / vis-story-charts.js draw at the
+   container's real width and switch to a phone layout below 560px
+   (BaseChart.COMPACT_PX), so they fit without sideways scrolling. */
 @media (max-width: 760px) {
-  .responsive-svg-container:has(> svg.vis-chart) {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 6px;
-  }
-  .responsive-svg-container > svg.vis-chart {
-    min-width: 680px;
-  }
-  .responsive-svg-container:has(> svg.vis-chart)::before {
-    content: "\2194  Swipe sideways to see the full chart";
-    position: sticky;
-    left: 0;
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: var(--apple-text-secondary);
-  }
   .tooltip {
     white-space: normal;
     max-width: calc(100vw - 24px);
@@ -341,6 +324,15 @@
 }
 
 /* ── Story charts (js/vis-story-charts.js) ─────────────────────── */
+/* Phone layout: category names above the bars, key under time charts */
+.vis-chart .rbar-name,
+.vis-chart .lollipop-name {
+  font-size: 13.5px; font-weight: 600; fill: #1d1d1f;
+  paint-order: stroke fill; stroke: #ffffff; stroke-width: 3px; stroke-linejoin: round;
+}
+.vis-chart .compact-key-text { font-size: 13px; font-weight: 600; fill: #1d1d1f; }
+.vis-chart .compact-key-item:focus { outline: none; }
+.vis-chart .compact-key-item:focus-visible rect:first-child { stroke: var(--focus, #1F6FEB); stroke-width: 2; rx: 4; }
 .vis-chart .empty-msg { font-size: 16px; font-weight: 600; fill: #55555a; }
 .vis-chart .ref-label { font-size: 12.5px; font-weight: 600; fill: #1d1d1f; }
 .vis-chart .year-band-label { font-size: 12px; font-weight: 600; fill: #0071e3; }

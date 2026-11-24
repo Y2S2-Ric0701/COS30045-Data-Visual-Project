@@ -33,9 +33,22 @@
     'Truck or bus':     ['Truck', 'or bus'],
   };
 
+  // Phone layout: shorter names and a single-line column header
+  const COL_SHORT = {
+    'Car, ute or van': 'Car/ute/van', 'No other vehicle': 'No vehicle', 'Fixed object': 'Fixed object',
+    'Not recorded': 'Not recorded', 'Something else': 'Other', 'Truck or bus': 'Truck/bus',
+  };
+  const USER_SHORT = {
+    'Car driver': 'Drivers', 'Car passenger': 'Passengers', 'Motorcyclist': 'Motorcyclists',
+    'Pedal cyclist': 'Cyclists', 'Pedestrian': 'Pedestrians', 'Truck occupant': 'In trucks',
+    'Ute or van occupant': 'In utes/vans', 'Bus occupant': 'In buses', 'Other or not recorded': 'Other',
+  };
+
   function drawHeatmap(containerId, crashes, state) {
     const container = d3.select(containerId);
     container.selectAll('*').remove();
+    const cw = Vis.BaseChart.contentWidth(container.node());
+    const compact = cw > 0 && cw < Vis.BaseChart.COMPACT_PX;
 
     const sel = SiteData.inYears(crashes, state.years);
     const sums = SiteData.sumBy(sel, d => `${d.road_user}|${d.counterparty}`, ['hospitalisations']);
@@ -52,9 +65,13 @@
     const rowMax = d3.rollup(matrix, v => d3.max(v, d => d.pct), d => d.key);
     const hl = state.roadUser === 'all' ? null : state.roadUser;
 
-    const width = 850;
-    const margin = { top: 64, right: 110, bottom: 70, left: 200 };
-    const height = margin.top + margin.bottom + rows.length * 42;
+    const width = cw > 0 ? Math.min(850, Math.max(300, cw)) : 850;
+    // Two-line headers need ~84px columns; narrower than that they are slanted
+    const slant = compact || (width - 310) / COUNTERPARTIES.length < 84;
+    const margin = compact
+      ? { top: 92, right: 6, bottom: 74, left: 92 }
+      : { top: slant ? 100 : 64, right: 110, bottom: 70, left: width < 760 ? 170 : 200 };
+    const height = margin.top + margin.bottom + rows.length * (compact ? 38 : 42) + (width < 820 && !compact ? 26 : 0);
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -80,6 +97,15 @@
 
     // Column headers
     COLS.forEach(cp => {
+      if (slant) {
+        // Slanted one-line header so six columns fit on a narrow screen
+        const cx = x(cp) + x.bandwidth() / 2;
+        g.append('text').attr('text-anchor', 'start')
+          .attr('transform', `translate(${cx - 4},-10) rotate(-50)`)
+          .style('font-size', '12px').style('font-weight', '600').style('fill', '#1d1d1f')
+          .text(compact ? COL_SHORT[cp] || cp : cp);
+        return;
+      }
       const t = g.append('text').attr('text-anchor', 'middle')
         .attr('x', x(cp) + x.bandwidth() / 2).attr('y', -36)
         .style('font-size', '13px').style('font-weight', '600').style('fill', '#1d1d1f');
@@ -89,17 +115,19 @@
 
     // Row labels (left) and row totals (right)
     g.append('g').selectAll('text').data(rows).join('text')
-      .attr('x', -12).attr('y', r => y(r.key) + y.bandwidth() / 2).attr('dy', '0.35em')
+      .attr('x', compact ? -8 : -12).attr('y', r => y(r.key) + y.bandwidth() / 2).attr('dy', '0.35em')
       .attr('text-anchor', 'end')
-      .style('font-size', '13.5px').style('font-weight', r => (r.key === hl ? 700 : 600))
+      .style('font-size', compact ? '12.5px' : '13.5px').style('font-weight', r => (r.key === hl ? 700 : 600))
       .style('fill', '#1d1d1f').style('opacity', r => (faded(r.key) ? 0.45 : 1))
-      .text(r => r.user);
+      .text(r => (compact ? USER_SHORT[r.key] || r.user : r.user));
+    if (!compact) {
     g.append('text').attr('x', innerWidth + 14).attr('y', -20)
       .style('font-size', '12px').style('font-weight', '600').style('fill', '#55555a').text('Cases');
     g.append('g').selectAll('text').data(rows).join('text')
       .attr('x', innerWidth + 14).attr('y', r => y(r.key) + y.bandwidth() / 2).attr('dy', '0.35em')
       .style('font-size', '12.5px').style('fill', '#55555a')
       .text(r => fmt(r.total));
+    }
 
     // Cells
     const cellG = g.selectAll('.heat-cell-g').data(matrix).join('g')
@@ -119,7 +147,7 @@
     cellG.append('text')
       .attr('x', x.bandwidth() / 2).attr('y', y.bandwidth() / 2).attr('dy', '0.35em')
       .attr('text-anchor', 'middle').style('pointer-events', 'none')
-      .style('font-size', d => (d.pct >= 0.1 ? '14px' : '12.5px'))
+      .style('font-size', d => (compact ? (d.pct >= 0.1 ? '12px' : '11px') : d.pct >= 0.1 ? '14px' : '12.5px'))
       .style('font-weight', d => (d.pct >= 0.1 ? '700' : '500'))
       .style('fill', d => (d.pct > 0 ? textFill(d) : '#94a3b8'))
       .text(d => (d.pct >= 0.005 ? pct0(d.pct) : d.pct > 0 ? '<1%' : '–'));
@@ -143,8 +171,8 @@
       .on('click', (event, d) => GlobalFilter.toggleRoadUser(d.key));
 
     // Legend: gradient bar + "outlined = largest share in the row"
-    const legend = g.append('g').attr('transform', `translate(0,${innerHeight + 30})`);
-    const lw = 220;
+    const legend = g.append('g').attr('transform', `translate(${compact ? -margin.left + 4 : 0},${innerHeight + 30})`);
+    const lw = compact ? Math.min(180, width - 100) : 220;
     const gradId = 'counterparty-heat-gradient';
     const grad = svg.append('defs').append('linearGradient').attr('id', gradId);
     d3.range(0, 1.01, 0.1).forEach(t => grad.append('stop')
@@ -155,10 +183,13 @@
     legend.append('text').attr('x', 82).attr('y', 24).style('font-size', '11px').style('fill', '#55555a').text('0%');
     legend.append('text').attr('x', 82 + lw).attr('y', 24).attr('text-anchor', 'end')
       .style('font-size', '11px').style('fill', '#55555a').text('90%');
-    legend.append('rect').attr('x', 340).attr('y', -7).attr('width', 14).attr('height', 14).attr('rx', 3)
+    // On a phone the "outlined" note goes on its own line under the colour bar
+    const stack = compact || width < 820;
+    const ox = stack ? 0 : 340, oy = stack ? 40 : 0;
+    legend.append('rect').attr('x', ox).attr('y', oy - 7).attr('width', 14).attr('height', 14).attr('rx', 3)
       .attr('fill', '#ffffff').attr('stroke', '#1d1d1f').attr('stroke-width', 1.5);
-    legend.append('text').attr('x', 362).attr('y', 4).style('font-size', '12px').style('fill', '#55555a')
-      .text('Outlined = what that road user hit most often');
+    legend.append('text').attr('x', ox + 22).attr('y', oy + 4).style('font-size', '12px').style('fill', '#55555a')
+      .text(compact ? 'Outlined = hit most often' : 'Outlined = what that road user hit most often');
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -212,6 +243,21 @@
           ['Average stay:', `${fmtDec1(d.stay)} days`],
         ]],
       });
+
+      // The heatmap is drawn by hand, so redraw it when its width changes
+      const heatNode = document.querySelector('#chart-counterparty');
+      if (heatNode && typeof ResizeObserver !== 'undefined') {
+        let lastW = Vis.BaseChart.contentWidth(heatNode), timer = null;
+        new ResizeObserver(() => {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            const w = Vis.BaseChart.contentWidth(heatNode);
+            if (!w || Math.abs(w - lastW) < 4) return;
+            lastW = w;
+            drawHeatmap('#chart-counterparty', crashes, GlobalFilter.get());
+          }, 120);
+        }).observe(heatNode);
+      }
 
       GlobalFilter.subscribe(state => {
         hitChart.config.xLabel = `Share of hospitalised cases, ${rangeText(state.years)}`;

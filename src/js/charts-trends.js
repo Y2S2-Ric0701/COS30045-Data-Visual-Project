@@ -18,9 +18,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Plain-language notes for the two changes in how patients were counted
   const BREAKS = [
-    { year: 2012, lines: ['2012: Victoria stopped counting', 'patients treated only in emergency'] },
-    { year: 2017, lines: ['2017: NSW made the', 'same change'] },
+    { year: 2012, lines: ['2012: Victoria stopped counting', 'patients treated only in emergency'], short: ['2012: VIC', 'count change'] },
+    { year: 2017, lines: ['2017: NSW made the', 'same change'], short: ['2017: NSW', 'same change'] },
   ];
+
+  // Phone layout: the key under the line chart needs short names
+  const SHORT_NAMES = {
+    'Car passenger': 'Passengers', 'Truck occupant': 'In trucks', 'Ute or van occupant': 'In utes/vans',
+    'Bus occupant': 'In buses', 'Other or not recorded': 'Other',
+  };
 
   SiteData.trends().then(function (rows) {
     // year × road user table
@@ -48,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Figure 2.2: Which groups are rising, which are falling? ──
     const linesChart = new Vis.TrendLinesChart('#chart-by-group', table, {
-      series: ROAD_USERS.map(r => ({ key: r.key, label: r.plural, color: r.color })),
+      series: ROAD_USERS.map(r => ({ key: r.key, label: r.plural, short: SHORT_NAMES[r.key], color: r.color })),
       breaks: BREAKS,
       highlight: highlightOf(initial),
       band: initial.years,

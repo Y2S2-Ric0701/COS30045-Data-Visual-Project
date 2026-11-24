@@ -41,6 +41,8 @@
   // 1. BASE CLASS: BaseChart (Lifecycle & SVG Container Manager)
   // ═══════════════════════════════════════════════════════════════
   class BaseChart {
+    static COMPACT_PX = 560;
+
     constructor(parentElement, data = [], config = {}) {
       if (new.target === BaseChart) {
         throw new TypeError('Cannot construct BaseChart instances directly; extend it instead.');
@@ -59,6 +61,9 @@
         duration: 750,
         ease: d3.easeCubicOut,
       }, config, { margin: mergedMargin });
+
+      // Desktop layout, kept so a resize can go back to it
+      this.base = { width: this.config.width, height: this.config.height, margin: Object.assign({}, mergedMargin) };
 
       this.tooltip = BaseChart.getTooltip();
       this.initVis();
@@ -95,7 +100,8 @@
       }
       container.selectAll('*').remove();
 
-      vis.fitLeftMargin();
+      vis.fitToContainer(container.node());
+      if (!vis.compact) vis.fitLeftMargin();
 
       vis.innerWidth  = Math.max(0, vis.config.width - vis.config.margin.left - vis.config.margin.right);
       vis.innerHeight = Math.max(0, vis.config.height - vis.config.margin.top - vis.config.margin.bottom);
@@ -117,6 +123,52 @@
       vis.xAxisG       = vis.g.append('g').attr('class', 'x-axis');
       vis.yAxisG       = vis.g.append('g').attr('class', 'y-axis');
       vis.legendG      = vis.svg.append('g').attr('class', 'legend-layer');
+
+      vis.watchResize(container.node());
+    }
+
+    /**
+     * Draw at the container's real width so text stays its normal size.
+     * Below COMPACT_PX the chart switches to its phone layout (subclasses
+     * read this.compact and may define compactMargin() / compactHeight()).
+     */
+    fitToContainer(node) {
+      const vis = this;
+      const cw = BaseChart.contentWidth(node);
+      vis.containerWidth = cw;
+      vis.compact = cw > 0 && cw < BaseChart.COMPACT_PX;
+      vis.config.width = cw > 0 ? Math.min(vis.base.width, Math.max(300, cw)) : vis.base.width;
+      vis.config.height = vis.compact && vis.compactHeight ? vis.compactHeight() : vis.base.height;
+      vis.config.margin = Object.assign({}, vis.base.margin,
+        vis.compact && vis.compactMargin ? vis.compactMargin() : {});
+    }
+
+    static contentWidth(node) {
+      if (!node || !node.isConnected) return 0;
+      const cs = getComputedStyle(node);
+      return Math.floor(node.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+    }
+
+    /** Redraw when the container width changes (phone rotation, window resize) */
+    watchResize(node) {
+      const vis = this;
+      if (vis._resizeObs || typeof ResizeObserver === 'undefined' || !node) return;
+      let timer = null;
+      vis._resizeObs = new ResizeObserver(() => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const cw = BaseChart.contentWidth(node);
+          if (!cw || Math.abs(cw - (vis.containerWidth || 0)) < 4) return;
+          const wanted = Math.min(vis.base.width, Math.max(300, cw));
+          if (wanted === vis.config.width && (cw < BaseChart.COMPACT_PX) === vis.compact) {
+            vis.containerWidth = cw;
+            return;
+          }
+          vis.initVis();
+          if (vis.displayData && vis.displayData.length) vis.renderVis();
+        }, 120);
+      });
+      vis._resizeObs.observe(node);
     }
 
     /**
@@ -385,13 +437,28 @@
       vis.renderVis();
     }
 
+    compactMargin() { return { left: 8, right: 16, top: 12 }; }
+    compactHeight() {
+      const n = Math.max(1, (this.displayData && this.displayData.length) || (this.rawData || []).length || 6);
+      return 12 + 45 + n * 54;
+    }
+
     renderVis() {
       const vis = this;
+      const compact = vis.compact;
+      if (compact) {
+        const h = vis.compactHeight();
+        vis.config.height = h;
+        vis.innerHeight = h - vis.config.margin.top - vis.config.margin.bottom;
+        vis.svg.attr('viewBox', `0 0 ${vis.config.width} ${h}`);
+      }
 
       vis.yScale = d3.scaleBand()
         .domain(vis.displayData.map(d => d.label))
         .range([0, vis.innerHeight])
-        .padding(0.35);
+        .padding(compact ? 0.1 : 0.35);
+      // Phone layout: the name sits above its stem, so the stem is pushed down a little
+      const cy = d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + (compact ? 9 : 0);
 
       vis.xScale = d3.scaleLinear()
         .domain([0, (d3.max(vis.displayData, d => d.value) || 10) * 1.15])
@@ -405,12 +472,19 @@
         .attr('stroke', 'rgba(0,0,0,0.06)')
         .attr('stroke-dasharray', '2 4');
 
-      vis.yAxisG.classed('axis-category', true)
-        .call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12));
+      if (compact) {
+        vis.yAxisG.selectAll('*').remove();
+        vis.plotG.selectAll('.lollipop-name').data(vis.displayData, d => d.label).join('text')
+          .attr('class', 'lollipop-name').attr('x', 0).attr('y', d => cy(d) - 15).text(d => d.label);
+      } else {
+        vis.plotG.selectAll('.lollipop-name').remove();
+        vis.yAxisG.classed('axis-category', true)
+          .call(d3.axisLeft(vis.yScale).tickSize(0).tickPadding(12));
+      }
 
       vis.xAxisG
         .attr('transform', `translate(0,${vis.innerHeight})`)
-        .call(d3.axisBottom(vis.xScale).ticks(6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d));
+        .call(d3.axisBottom(vis.xScale).ticks(compact ? 4 : 6).tickFormat(d => d >= 1000 ? `${d / 1000}k` : d));
 
       vis.xAxisG.selectAll('.axis-title').data([vis.config.xLabel])
         .join('text')
@@ -436,15 +510,15 @@
             .attr('class', 'lollipop-line')
             .attr('x1', 0)
             .attr('x2', 0)
-            .attr('y1', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
-            .attr('y2', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
+            .attr('y1', cy)
+            .attr('y2', cy)
             .attr('stroke', '#cbd5e1')
             .attr('stroke-width', 2.5)
             .call(enter => enter.transition().duration(vis.config.duration).ease(vis.config.ease)
               .attr('x2', d => vis.xScale(d.value))),
           update => update
-            .attr('y1', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
-            .attr('y2', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
+            .attr('y1', cy)
+            .attr('y2', cy)
             .attr('x2', d => vis.xScale(d.value)),
           exit => exit.remove()
         );
@@ -456,7 +530,7 @@
           enter => enter.append('circle')
             .attr('class', 'lollipop-dot')
             .attr('cx', 0)
-            .attr('cy', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
+            .attr('cy', cy)
             .attr('r', 6.5)
             .attr('fill', (d, i) => vis.dotFill(d, i))
             .attr('stroke', '#ffffff')
@@ -464,7 +538,7 @@
             .call(enter => enter.transition().duration(vis.config.duration).ease(vis.config.ease)
               .attr('cx', d => vis.xScale(d.value))),
           update => update
-            .attr('cy', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2)
+            .attr('cy', cy)
             .attr('cx', d => vis.xScale(d.value))
             .attr('fill', (d, i) => vis.dotFill(d, i)),
           exit => exit.remove()
@@ -479,12 +553,12 @@
         .join(
           enter => enter.append('text')
             .attr('class', 'lollipop-label')
-            .attr('x', d => vis.xScale(d.value) + 12)
-            .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
+            .attr('x', d => (compact ? vis.innerWidth : vis.xScale(d.value) + 12))
+            .attr('y', d => (compact ? cy(d) - 15 : cy(d) + 4))
             .text(labelText),
           update => update
-            .attr('x', d => vis.xScale(d.value) + 12)
-            .attr('y', d => vis.yScale(d.label) + vis.yScale.bandwidth() / 2 + 4)
+            .attr('x', d => (compact ? vis.innerWidth : vis.xScale(d.value) + 12))
+            .attr('y', d => (compact ? cy(d) - 15 : cy(d) + 4))
             .text(labelText),
           exit => exit.remove()
         );
@@ -495,7 +569,10 @@
       vis.plotG.selectAll('.lollipop-dot').attr('opacity', d => (faded(d) ? 0.2 : 1))
         .attr('r', d => (hl && d.key === hl ? 9 : 6.5));
       vis.plotG.selectAll('.lollipop-line').attr('opacity', d => (faded(d) ? 0.3 : 1));
-      vis.plotG.selectAll('.lollipop-label').attr('opacity', d => (faded(d) ? 0.4 : 1));
+      vis.plotG.selectAll('.lollipop-label').attr('opacity', d => (faded(d) ? 0.4 : 1))
+        .attr('text-anchor', compact ? 'end' : null);
+      vis.plotG.selectAll('.lollipop-name').attr('opacity', d => (faded(d) ? 0.45 : 1))
+        .style('font-weight', d => (hl && d.key === hl ? 700 : null));
       vis.yAxisG.selectAll('.tick text')
         .style('opacity', label => (faded(vis.displayData.find(d => d.label === label) || {}) ? 0.45 : 1))
         .style('font-weight', label => (hl && (vis.displayData.find(d => d.label === label) || {}).key === hl ? 700 : null));
@@ -508,7 +585,7 @@
         .attr('class', 'lollipop-hitbox')
         .attr('y', d => vis.yScale(d.label))
         .attr('x', -vis.config.margin.left)
-        .attr('width', vis.innerWidth + vis.config.margin.left)
+        .attr('width', vis.innerWidth + vis.config.margin.left + (compact ? vis.config.margin.right : 0))
         .attr('height', vis.yScale.bandwidth())
         .attr('fill', 'transparent')
         .attr('tabindex', onClick ? 0 : null)
@@ -528,8 +605,10 @@
             `);
         })
         .on('mousemove', function (event) {
+          const w = vis.tooltip.node().offsetWidth;
+          const left = event.clientX + 16 + w > window.innerWidth - 8 ? event.pageX - 16 - w : event.pageX + 14;
           vis.tooltip
-            .style('left', `${event.pageX + 14}px`)
+            .style('left', `${Math.max(8, left)}px`)
             .style('top', `${event.pageY - 28}px`);
         })
         .on('mouseleave', function () {
