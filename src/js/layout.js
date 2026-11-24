@@ -257,7 +257,7 @@ function renderPhotoCredits() {
       themeBtn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
     };
     paintTheme();
-    themeBtn.addEventListener('click', () => SiteTheme.toggle());
+    themeBtn.addEventListener('click', () => switchThemeWithHeadlights(themeBtn));
     document.addEventListener('themechange', paintTheme);
   }
 
@@ -325,3 +325,69 @@ function initJumpHighlight() {
     window.addEventListener('load', () => highlightHash(location.hash), { once: true });
   }
 }
+
+/**
+ * Theme switch as headlights: the new theme spreads out from the sun / moon
+ * button in a widening circle, with a warm flash of light at the button.
+ * Uses the browser's View Transitions; without them (or with reduced
+ * motion) the theme simply switches.
+ */
+function switchThemeWithHeadlights(btn) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!document.startViewTransition || reduced) { SiteTheme.toggle(); return; }
+
+  const r = btn.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  const root = document.documentElement;
+  // The page is captured as flat pictures during the sweep, and a picture
+  // cannot keep the nav's live background blur (it would turn see-through).
+  // So for those 0.7 s the nav gets a near-solid fill that looks the same.
+  root.classList.add('theme-sweeping');
+
+  const flash = document.createElement('div');
+  flash.className = 'headlight-flash';
+  flash.style.setProperty('--hx', `${x}px`);
+  flash.style.setProperty('--hy', `${y}px`);
+
+  const t = document.startViewTransition(() => SiteTheme.toggle());
+  t.ready.then(() => {
+    root.animate(
+      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+      { duration: 720, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', pseudoElement: '::view-transition-new(root)' });
+    document.body.appendChild(flash);
+    flash.animate([{ opacity: 0.95 }, { opacity: 0 }], { duration: 900, easing: 'ease-out' })
+      .finished.then(() => flash.remove(), () => flash.remove());
+  }).catch(() => {});
+  t.finished.finally(() => root.classList.remove('theme-sweeping'));
+}
+
+/**
+ * Lane-line parallax (plan §10): the yellow dashes in the hero and the
+ * chapter band slide left as the page scrolls down, like road markings
+ * passing under a car. Decorative only; off under reduced motion.
+ */
+(function laneParallax() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const run = () => {
+    const els = [...document.querySelectorAll('.apple-hero, .chapter-band')];
+    if (!els.length) return;
+    let queued = false;
+    const paint = () => {
+      queued = false;
+      const vh = innerHeight;
+      els.forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > vh) return;            // off screen: leave it
+        // Distance the band has travelled through the viewport, in px
+        el.style.setProperty('--lane-shift', `${Math.round(-(vh - r.top) * 0.45)}px`);
+      });
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(paint); } }, { passive: true });
+    addEventListener('resize', paint, { passive: true });
+    paint();
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+})();

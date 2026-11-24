@@ -27,7 +27,46 @@ const GlobalFilter = (function () {
   let state = restore();
   let slider = null;
 
+  // ── Shareable views (plan §10) ─────────────────────────────────
+  // The view lives in the address as a query string, so a link opens the
+  // page exactly as it was:  ?ru=Pedal%20cyclist&y=2015-2021&zoom=QLD
+  // (# stays free for the in-page section links). A link beats what was
+  // saved in this tab.
+  function fromUrl() {
+    const q = new URLSearchParams(location.search);
+    const out = {};
+    const ru = q.get('ru');
+    if (ru && (ru === 'all' || ROAD_USER_BY_KEY.has(ru))) out.roadUser = ru;
+    const m = /^(\d{4})(?:-(\d{4}))?$/.exec(q.get('y') || '');
+    if (m) {
+      const y0 = Math.max(PERIOD.first, Math.min(PERIOD.last, +m[1]));
+      const y1 = Math.max(y0, Math.min(PERIOD.last, +(m[2] || m[1])));
+      out.years = [y0, y1];
+    }
+    return out;
+  }
+
+  /** Write the view into the address bar (no new history entry, no reload) */
+  function writeUrl(extra = {}) {
+    if (!window.history || !history.replaceState) return;
+    const q = new URLSearchParams(location.search);
+    const isDefaultYears = state.years[0] === PERIOD.first && state.years[1] === PERIOD.last;
+    if (state.roadUser === 'all') q.delete('ru'); else q.set('ru', state.roadUser);
+    if (isDefaultYears) q.delete('y'); else q.set('y', rangeText(state.years).replace('–', '-'));
+    Object.entries(extra).forEach(([k, v]) => (v == null ? q.delete(k) : q.set(k, v)));
+    const qs = q.toString().replace(/\+/g, '%20');
+    history.replaceState(history.state, '', `${location.pathname}${qs ? `?${qs}` : ''}${location.hash}`);
+  }
+
+  /** Read or write one extra part of the view (e.g. the map zoom) */
+  function param(name) { return new URLSearchParams(location.search).get(name); }
+  function setParam(name, value) { writeUrl({ [name]: value }); }
+
   function restore() {
+    const url = fromUrl();
+    if (url.roadUser || url.years) {
+      return { years: url.years || [...DEFAULT.years], roadUser: url.roadUser || DEFAULT.roadUser };
+    }
     try {
       const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
       if (saved && Array.isArray(saved.years) && saved.years.length === 2) {
@@ -54,6 +93,7 @@ const GlobalFilter = (function () {
         next.roadUser === state.roadUser) return;
     state = next;
     save();
+    if (!playTimer) writeUrl();   // Play steps through years; the address keeps the reader's choice
     syncControls();
     listeners.forEach(fn => fn(get()));
   }
@@ -275,6 +315,13 @@ const GlobalFilter = (function () {
           <button type="button" class="gf-play" id="gf-play" aria-pressed="false"
                   title="Show each year from ${PERIOD.first} to ${PERIOD.last}, one at a time"></button>
           <button type="button" class="gf-reset" id="gf-reset">Reset</button>
+          <button type="button" class="gf-share" id="gf-share" aria-label="Copy link to this view"
+                  title="Copy a link that opens this page with the same filter and map zoom">
+            <svg class="icon-link" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L12 5.6M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4L12 18.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg class="icon-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="gf-share-tip" aria-hidden="true">Link copied</span>
+          </button>
+          <span class="visually-hidden" id="gf-share-status" aria-live="polite"></span>
         </div>
       </div>
       </div>`;
@@ -285,6 +332,7 @@ const GlobalFilter = (function () {
       .addEventListener('click', () => { stopPlay(); set({ years: [...DEFAULT.years], roadUser: 'all' }); });
     slider = yearSlider('#gf-year-slider', years => { stopPlay(); set({ years }); });
     document.getElementById('gf-play').addEventListener('click', () => (playTimer ? stopPlay() : startPlay()));
+    document.getElementById('gf-share').addEventListener('click', copyLink);
     paintPlay();
     syncControls();
   }
@@ -323,7 +371,28 @@ const GlobalFilter = (function () {
     if (!playTimer) return;
     clearInterval(playTimer);
     playTimer = null;
+    writeUrl();
     paintPlay();
+  }
+
+  /** "Copy link": the address already holds the view; copy it and say so */
+  let shareTimer = null;
+  function copyLink() {
+    writeUrl();
+    const btn = document.getElementById('gf-share');
+    const tip = btn.querySelector('.gf-share-tip');
+    const status = document.getElementById('gf-share-status');
+    const done = ok => {
+      tip.textContent = ok ? 'Link copied' : 'Copy it from the address bar';
+      btn.classList.toggle('is-done', ok);
+      btn.classList.add('show-tip');
+      status.textContent = ok ? 'Link to this view copied' : 'Could not copy; the address bar holds the link';
+      clearTimeout(shareTimer);
+      shareTimer = setTimeout(() => btn.classList.remove('is-done', 'show-tip'), 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(location.href).then(() => done(true), () => done(false));
+    } else done(false);
   }
 
   function syncControls() {
@@ -343,5 +412,5 @@ const GlobalFilter = (function () {
     syncScopes();
   });
 
-  return { get, set, subscribe, toggleRoadUser, roadUserChips, isDefault };
+  return { get, set, subscribe, toggleRoadUser, roadUserChips, isDefault, param, setParam };
 })();

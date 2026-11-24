@@ -46,6 +46,7 @@ const DetailPanel = (function () {
         </button>
       </div>
       <div class="detail-chart"></div>
+      <p class="detail-spark-hint">Point at the line, or Tab to it and use ← → to read each year. <span class="detail-spark-readout visually-hidden" aria-live="polite"></span></p>
       <dl class="detail-stats"></dl>
       <p class="detail-note"></p>`;
     document.body.appendChild(panel);
@@ -76,10 +77,60 @@ const DetailPanel = (function () {
     svg.append('path').attr('d', d3.line().curve(d3.curveMonotoneX)(pts))
       .attr('fill', 'none').attr('stroke', s.color || '#0A5FC2').attr('stroke-width', 2.5);
     [0, pts.length - 1].forEach(i => {
-      svg.append('circle').attr('cx', pts[i][0]).attr('cy', pts[i][1]).attr('r', 3.5).attr('fill', s.color || '#0A5FC2');
+      svg.append('circle').attr('class', 'detail-spark-end')
+        .attr('cx', pts[i][0]).attr('cy', pts[i][1]).attr('r', 3.5).attr('fill', s.color || '#0A5FC2');
       svg.append('text').attr('class', 'detail-spark-label')
         .attr('x', pts[i][0]).attr('y', H - 4).attr('text-anchor', i ? 'end' : 'start').text(s.years[i]);
     });
+
+    // Hover, tap or arrow keys: read any year's number off the line
+    const color = s.color || '#0A5FC2';
+    const focus = svg.append('g').attr('class', 'detail-spark-focus').style('display', 'none');
+    focus.append('line').attr('y1', m.t - 6).attr('y2', H - m.b)
+      .style('stroke', 'var(--c-ink-3)').attr('stroke-dasharray', '2 3');
+    focus.append('circle').attr('r', 4.5).attr('fill', color).style('stroke', 'var(--c-surface)').attr('stroke-width', 2);
+    const tag = focus.append('g');
+    const tagBg = tag.append('rect').attr('rx', 6).attr('height', 22).attr('y', -11);
+    const tagText = tag.append('text').attr('class', 'detail-spark-tag').attr('dy', '0.35em');
+    const readout = el.parentNode.querySelector('.detail-spark-readout');
+
+    let current = -1;
+    const show = i => {
+      current = i;
+      const [px, py] = pts[i];
+      focus.style('display', null);
+      focus.select('line').attr('x1', px).attr('x2', px);
+      focus.select('circle').attr('cx', px).attr('cy', py);
+      tagText.text(`${s.years[i]}: ${fmt(s.values[i])}`);
+      const w = tagText.node().getComputedTextLength() + 16;
+      // Keep the tag inside the box, above the point when there is room
+      const tx = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, px));
+      const ty = py - 18 < 10 ? py + 20 : py - 18;
+      tag.attr('transform', `translate(${tx},${ty})`);
+      tagBg.attr('x', -w / 2).attr('width', w);
+      tagText.attr('text-anchor', 'middle');
+      if (readout) readout.textContent = `${s.years[i]}: ${fmt(s.values[i])} hospitalised`;
+    };
+    const hide = () => { current = -1; focus.style('display', 'none'); };
+    const nearest = event => {
+      const [mx] = d3.pointer(event, svg.node());
+      return d3.leastIndex(pts, p => Math.abs(p[0] - mx));
+    };
+    svg.append('rect').attr('class', 'detail-spark-hit')
+      .attr('x', 0).attr('y', 0).attr('width', W).attr('height', H).attr('fill', 'transparent')
+      .on('pointermove pointerdown', event => show(nearest(event)))
+      .on('pointerleave', hide);
+    svg.attr('tabindex', 0)
+      .attr('aria-describedby', null)
+      .on('focus', () => show(current < 0 ? pts.length - 1 : current))
+      .on('blur', hide)
+      .on('keydown', event => {
+        const step = { ArrowLeft: -1, ArrowRight: 1, Home: -Infinity, End: Infinity }[event.key];
+        if (step == null) return;
+        event.preventDefault();
+        show(Math.max(0, Math.min(pts.length - 1, (current < 0 ? pts.length - 1 : current) + step)));
+      });
+    tag.raise();
   }
 
   function open(opts) {

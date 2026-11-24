@@ -54,7 +54,14 @@ Tick an item when it is built **and** checked in the browser. Last updated 24 No
 
 **Tier 3 (stretch)**
 
-- [ ] Section 10 ideas
+- [x] Hospital stay as days: under Figure 5.2, two-week calendars (one square per day, the last day part-filled) for the longest stay, the chosen road user (or car drivers) and the shortest. They follow the filter.
+- [x] Shareable views: the filter and map zoom are kept in the address (`?ru=Pedal%20cyclist&y=2015-2021&zoom=QLD`). A link opens the page in that state, and a "Copy link" button sits in the filter bar.
+- [x] Theme switch as headlights: the new theme spreads out from the sun/moon button with a warm flash, using View Transitions. Without View Transitions, or with reduced motion, the theme switches instantly.
+- [x] Lane-line parallax: the yellow dashes in the hero and the chapter band slide as you scroll. Off under reduced motion.
+- [ ] ~~Car driving along the timeline during Play~~: skipped (it repeats the stepper car).
+- [ ] Map morphs into the bar chart (Figure 3.1)
+- [ ] "Where do you fit?" personaliser
+- [ ] Scrollytelling summary on the Overview
 
 **Constraint:** the stack stays as it is (static HTML + vanilla JS + D3 v7 on Vercel). Everything here can be built with `d3-zoom`, `d3-transition` and `IntersectionObserver`, all of which are already available. **We should not add GSAP, React or a framework.**
 

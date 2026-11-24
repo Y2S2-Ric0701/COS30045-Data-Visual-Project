@@ -33,6 +33,8 @@
   const MAP_W = 850, MAP_H = 600, VIEW_H = 540;   // VIEW_H: map area above the legend
   // The zoom survives redraws (filter changes, Play), so it is kept here
   const mapZoom = { code: null, transform: d3.zoomIdentity };
+  // A shared link can open the map already zoomed: ?zoom=QLD (js/global-filter.js)
+  { const z = (GlobalFilter.param('zoom') || '').toUpperCase(); if (z in STATE_NAMES) mapZoom.code = z; }
 
   // Linked hover (js/highlight.js): hovering a state's line in Figure 3.3
   // (or its bar) outlines that state on the map, and the reverse
@@ -264,6 +266,7 @@
 
     function zoomToState(code, animate = true) {
       mapZoom.code = code;
+      GlobalFilter.setParam('zoom', code);
       paintFocus();
       zoomTo(transformFor(code), animate);
     }
@@ -283,6 +286,7 @@
 
     function zoomBy(f) {
       mapZoom.code = null;
+      GlobalFilter.setParam('zoom', null);
       paintFocus();
       const ms = Motion.dur(350);
       if (ms) svg.transition().duration(ms).call(zoom.scaleBy, f);

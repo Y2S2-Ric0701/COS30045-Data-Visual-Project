@@ -51,8 +51,9 @@ const Motion = (function () {
   }
 
   // ── Chart entrances ────────────────────────────────────────────
+  // Fades up to the element's own opacity (the faint map year stays faint)
   const fadeIn = (el, delay, duration = 400) => el.animate(
-    [{ opacity: 0 }, { opacity: 1 }],
+    [{ opacity: 0 }, { opacity: getComputedStyle(el).opacity }],
     { duration, delay, easing: 'ease-out', fill: 'backwards' });
 
   /** Light-to-dark order of a fill colour (darker = more cases = earlier) */

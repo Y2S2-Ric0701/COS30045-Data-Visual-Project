@@ -156,6 +156,8 @@ function updateKeyNumbers(states, people) {
   const change = (val(riser.key, last.year) - val(riser.key, first.year)) / val(riser.key, first.year);
   setText('callout-riser', riser.plural);
   setText('callout-riser-change', signed(change));
+  setText('callout-riser-counts', `${val(riser.key, first.year).toLocaleString()} → ${val(riser.key, last.year).toLocaleString()}`);
+  setText('callout-riser-label', `patients, ${first.year} to ${last.year} (Figure 2.3)`);
 
   // Sparklines under each number: the same measure, every year 2011–2021
   const big3 = d => (d.NSW + d.VIC + d.QLD) / d3.sum(STATE_CODES, st => d[st]);
@@ -163,7 +165,7 @@ function updateKeyNumbers(states, people) {
   drawSpark('#spark-states', states.map(d => ({ year: d.year, value: big3(d) })), '#0072B2');
   drawSpark('#spark-riser', YEARS.map(y => ({ year: y, value: val(riser.key, y) })), riser.color);
 
-  ['callout-total', 'callout-states'].forEach(id => Motion.countUpOnView(document.getElementById(id)));
+  ['callout-total', 'callout-states', 'callout-riser-change'].forEach(id => Motion.countUpOnView(document.getElementById(id)));
 }
 
 /**
