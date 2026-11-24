@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Question 5: What are the most severe consequences of hospitalised road crash injuries? – Hospitalised Injuries from Road Crashes in Australia" />
+  <meta name="description" content="Question 5: Which road users are hurt the worst in Australian road crashes? – Hospitalised Injuries from Road Crashes in Australia" />
 
-  <title>Q5: What are the most severe consequences of hospitalised road crash injuries? | Road Crash Analytics</title>
+  <title>Q5: Who is hurt the worst? | Road Crash Analytics</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,7 +16,6 @@
 
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
-
 </head>
 <body data-page="severity">
 
@@ -26,74 +25,92 @@
   <header class="apple-hero">
     <div class="container hero-container">
       <div class="hero-eyebrow">
-        <span>Research Question 5</span>
+        <span>Question 5 of 5</span>
       </div>
-      <h1 class="hero-title">What are the most severe consequences of hospitalised road crash injuries?</h1>
-      <p class="hero-subtitle">Understanding the most serious outcomes of road crash hospitalisations.</p>
+      <h1 class="hero-title">Who is hurt the worst?</h1>
+      <p class="hero-subtitle">So far we have counted injuries, but a broken wrist and a fatal head injury both count as one case. This page measures how bad the injuries are: who dies in hospital, and who stays longest.</p>
+      <p class="hero-bridge">Short answer: <strong>pedestrians</strong>, by a long way.</p>
       <div class="hero-chips">
-        <a href="#mortality-risk" class="hero-chip">Mortality Risk</a>
-        <a href="#length-of-stay" class="hero-chip">Length of Stay</a>
-        <a href="#injury-severity" class="hero-chip">Injury Severity</a>
+        <a href="#mortality-risk" class="hero-chip">Who is most likely to die?</a>
+        <a href="#length-of-stay" class="hero-chip">Who stays longest?</a>
+        <a href="#injury-severity" class="hero-chip">Biggest group = worst hurt?</a>
       </div>
     </div>
   </header>
 
+  <!-- Filter bar for every chart on this page (js/global-filter.js) -->
+  <div id="global-filter"></div>
+
   <main class="container">
 
-    <!-- ── Figure 5.1: Mortality Risk ── -->
+    <!-- ── Figure 5.1: Deaths ── -->
     <section id="mortality-risk" class="apple-section">
       <div class="apple-chart-card">
         <div class="chart-card-header">
           <div>
-            <div class="section-kicker">Figure 5.1 &bull; Clinical Mortality Risk</div>
-            <h2 class="chart-card-title">In-Hospital Mortality Rate per 1,000 Cases</h2>
-            <p class="chart-card-desc">Baseline in-hospital mortality (2011–2019) showing pedestrians facing catastrophic risk (21.9 deaths / 1,000 admissions)—nearly triple any other category.</p>
+            <div class="section-kicker">Figure 5.1 &bull; Dying in hospital</div>
+            <h2 class="chart-card-title">Who is most likely to die?</h2>
+            <p class="chart-card-answer">Pedestrians. About 22 in every 1,000 pedestrians admitted to hospital die there, around 4 times the rate for car drivers (6 per 1,000). <span class="answer-note">(This sentence describes 2011–2019.)</span></p>
+            <p class="chart-card-why"><strong>Why it matters:</strong> a pedestrian has nothing between them and the vehicle, and Figure 4.2 showed 88% of them are hit by a car. Of all the road users, they are the most likely not to survive.</p>
+            <p class="figure-scope" data-road-user="highlight" data-years="deaths"></p>
           </div>
         </div>
         <div class="responsive-svg-container" id="chart-mortality-risk">
           <!-- D3 SVG injected here -->
         </div>
+        <div class="chart-note data-limit-note">
+          <strong>Why does this stop at 2019?</strong> The AIHW published this data in September 2023, but deaths
+          after June 2020 had not yet been supplied by the states, so the death column is blank from July 2020 onward
+          (blank, not zero). Including 2020–2021 would make every death rate look about a fifth lower than it really is.
+          So every death and hospital-stay figure on this site uses 2011–2019, and both measures describe the same patients.
+        </div>
       </div>
     </section>
 
-    <!-- ── Figure 5.2: Length of Stay ── -->
+    <!-- ── Figure 5.2: Hospital stay ── -->
     <section id="length-of-stay" class="apple-section">
       <div class="apple-chart-card">
         <div class="chart-card-header">
           <div>
-            <div class="section-kicker">Figure 5.2 &bull; Resource Burden</div>
-            <h2 class="chart-card-title">Average Inpatient Bed Days per Case</h2>
-            <p class="chart-card-desc">Mean duration of hospital admission, demonstrating the disproportionate acute bed utilization required by pedestrians (8.9 days) and vehicle occupants.</p>
+            <div class="section-kicker">Figure 5.2 &bull; Time in hospital</div>
+            <h2 class="chart-card-title">Who stays in hospital longest?</h2>
+            <p class="chart-card-answer">Pedestrians again: about 9 days on average, three times as long as cyclists (3 days). <span class="answer-note">(This sentence describes 2011–2019.)</span></p>
+            <p class="chart-card-why"><strong>Why it matters:</strong> a longer stay means a more serious injury and a longer recovery. It is also the cost the hospital system carries.</p>
+            <p class="figure-scope" data-road-user="highlight" data-years="deaths"></p>
           </div>
         </div>
         <div class="responsive-svg-container" id="chart-length-of-stay">
           <!-- D3 SVG injected here -->
         </div>
+        <p class="chart-note">Average number of days in hospital per case (bed days ÷ cases), 2011–2019, the same years as Figure 5.1.</p>
       </div>
     </section>
 
-    <!-- ── Figure 5.3: Injury Severity ── -->
+    <!-- ── Figure 5.3: Size vs harm ── -->
     <section id="injury-severity" class="apple-section">
       <div class="apple-chart-card">
         <div class="chart-card-header">
           <div>
-            <div class="section-kicker">Figure 5.3 &bull; Synthesis Risk Matrix</div>
-            <h2 class="chart-card-title">Volume vs. Severity: Multi-Dimensional Risk Matrix</h2>
-            <p class="chart-card-desc">Integrating total crash volume (X), in-hospital mortality rate (Y), and hospital stay duration (bubble size). Use the cohort filter or hover over bubbles and legend chips for spotlight inspection.</p>
-          </div>
-          <div class="apple-segmented-control" id="severity-filter-control" role="group" aria-label="Filter road user cohort">
-            <button class="filter-btn active" data-filter="all">All Cohorts (9)</button>
-            <button class="filter-btn" data-filter="vulnerable">Vulnerable Users</button>
-            <button class="filter-btn" data-filter="occupants">Vehicle Occupants</button>
-            <button class="filter-btn" data-filter="freight">Freight & Transport</button>
+            <div class="section-kicker">Figure 5.3 &bull; Size vs harm</div>
+            <h2 class="chart-card-title">Is the biggest group also the worst hurt?</h2>
+            <p class="chart-card-answer">No. Car drivers are the biggest group (33% of cases), and their share of deaths is about the same (32%). Pedestrians are only 7% of cases but 26% of deaths, while cyclists are 18% of cases but only 6% of deaths. <span class="answer-note">(This sentence describes 2011–2019.)</span></p>
+            <p class="chart-card-why"><strong>Why it matters:</strong> this is the answer to the whole story. Counting who ends up in hospital (Question 1) is not the same as knowing who is hurt worst. Saving lives means focusing on pedestrians, even though they are a small group.</p>
+            <p class="figure-scope" data-road-user="highlight" data-years="deaths"></p>
           </div>
         </div>
         <div class="responsive-svg-container" id="chart-injury-severity">
           <!-- D3 SVG injected here -->
         </div>
-        <div class="interactive-bubble-legend" id="bubble-interactive-legend" aria-label="Interactive road user spotlight legend">
-          <!-- Populated interactively by charts-severity.js -->
-        </div>
+        <p class="chart-note"><strong>How to read it:</strong> for each road user, the <strong>grey bar</strong> is its share of all hospital cases and the <strong>dark blue bar</strong> is its share of all deaths in hospital. When the dark blue bar is longer, that group dies more often than its size would suggest. The number on the right says how many times more: 3.6&times; for pedestrians (in orange, because it stands out), 0.3&times; for cyclists.</p>
+      </div>
+    </section>
+
+    <!-- ── What this page tells us ── -->
+    <section class="apple-section">
+      <div class="apple-card page-summary">
+        <div class="section-kicker">What we learned</div>
+        <p class="apple-card-text">The road users we see most in hospital (<strong>drivers and cyclists</strong>) are not the ones hurt worst. <strong>Pedestrians</strong> are a small group, but they die most often and stay in hospital longest.</p>
+        <p class="apple-card-text text-secondary">The Overview page sums up all five answers and what they mean for road safety.</p>
       </div>
     </section>
 
@@ -104,7 +121,11 @@
 
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/shared-constants.js"></script>
+  <script src="js/site-data.js"></script>
+  <script src="js/global-filter.js"></script>
   <script src="js/vis-components.js"></script>
+  <script src="js/vis-story-charts.js"></script>
   <script src="js/charts-severity.js"></script>
 
 </body>

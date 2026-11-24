@@ -10,15 +10,50 @@
      <script src="js/layout.js"></script>
    ═══════════════════════════════════════════════════════════════ */
 
-// Single source of truth for page links – add/rename pages here only
+// Single source of truth for page links – add/rename pages here only.
+// The order is the order of the story; Back / Next buttons follow it.
 const NAV_PAGES = [
-  { key: 'home',      href: 'index.html',                  label: 'Overview' },
-  { key: 'who',       href: 'who-is-affected.html',        label: 'Who' },
-  { key: 'trends',    href: 'trends-over-time.html',       label: 'Trends' },
-  { key: 'where',     href: 'geographic-distribution.html', label: 'Where' },
-  { key: 'crash',     href: 'crash-characteristics.html',  label: 'Crash Factors' },
-  { key: 'severity',  href: 'injury-severity.html',        label: 'Severity' },
+  { key: 'home',     href: 'index.html',                   label: 'Overview',
+    step: 'Overview',   question: 'Who gets hurt, and who gets hurt worst?' },
+  { key: 'who',      href: 'who-is-affected.html',         label: 'Who',
+    step: 'Question 1', question: 'Who ends up in hospital?' },
+  { key: 'trends',   href: 'trends-over-time.html',        label: 'Trends',
+    step: 'Question 2', question: 'Is it getting better or worse?' },
+  { key: 'where',    href: 'geographic-distribution.html', label: 'Where',
+    step: 'Question 3', question: 'Where does it happen?' },
+  { key: 'crash',    href: 'crash-characteristics.html',   label: 'Crash Factors',
+    step: 'Question 4', question: 'What did they crash into?' },
+  { key: 'severity', href: 'injury-severity.html',         label: 'Severity',
+    step: 'Question 5', question: 'Who is hurt the worst?' },
 ];
+
+/** Back / Next buttons at the bottom of every page, in story order */
+function renderStepper(activeKey) {
+  const i = NAV_PAGES.findIndex(p => p.key === activeKey);
+  if (i < 0) return '';
+  const prev = NAV_PAGES[i - 1];
+  // After the last question, "Next" returns to the Overview's summary
+  const next = NAV_PAGES[i + 1] ||
+    { href: 'index.html#conclusion', step: 'Summary', question: 'What should change? Back to the Overview' };
+  const link = (p, dir) => {
+    const arrow = `<span class="stepper-arrow" aria-hidden="true">${dir === 'prev' ? '&larr;' : '&rarr;'}</span>`;
+    const text = `
+        <span class="stepper-text">
+          <span class="stepper-step"><span class="stepper-word">${dir === 'prev' ? 'Back' : 'Next'} &middot; </span>${p.step}</span>
+          <span class="stepper-question">${p.question}</span>
+        </span>`;
+    return `
+      <a class="stepper-link stepper-${dir}" href="${p.href}"
+         aria-label="${dir === 'prev' ? 'Back' : 'Next'}: ${p.step}, ${p.question}">
+        ${dir === 'prev' ? arrow + text : text + arrow}
+      </a>`;
+  };
+  return `
+  <nav class="page-stepper container" aria-label="Previous and next page">
+    ${prev ? link(prev, 'prev') : '<span class="stepper-spacer"></span>'}
+    ${link(next, 'next')}
+  </nav>`;
+}
 
 function renderNav(activeKey) {
   const links = NAV_PAGES.map(p => {
@@ -33,7 +68,11 @@ function renderNav(activeKey) {
         <span class="apple-brand-badge">COS30045</span>
         <span class="apple-brand-title">Road Crash Analytics</span>
       </a>
-      <div class="apple-nav-links">${links}</div>
+      <button class="apple-nav-toggle" type="button" aria-label="Open menu"
+              aria-expanded="false" aria-controls="site-nav-links">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="apple-nav-links" id="site-nav-links">${links}</div>
     </div>
   </nav>`;
 }
@@ -97,4 +136,85 @@ function renderFooter() {
 
   if (navSlot) navSlot.outerHTML = renderNav(activeKey);
   if (footerSlot) footerSlot.outerHTML = renderFooter();
+
+  const main = document.querySelector('main');
+  if (main) main.insertAdjacentHTML('afterend', renderStepper(activeKey));
+
+  // Mobile / tablet menu toggle
+  const nav = document.querySelector('.apple-nav');
+  const toggle = nav && nav.querySelector('.apple-nav-toggle');
+  if (toggle) {
+    const setOpen = open => {
+      nav.classList.toggle('nav-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    };
+    toggle.addEventListener('click', () => setOpen(!nav.classList.contains('nav-open')));
+    nav.querySelectorAll('.apple-nav-links a').forEach(a => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+  }
+
+  initJumpHighlight();
 })();
+
+/* ── Jump highlight ──────────────────────────────────────────────
+   When a link scrolls the page to a section (#key-statistics, #filters,
+   #age-group, …) the destination glows blue for 1 second once the scroll
+   has finished, so the reader knows exactly where to look. Also runs when
+   arriving from another page with a #hash in the URL. */
+const JUMP_HIGHLIGHT_MS = 1000;
+
+/** Prefer the visible card inside a section (sections themselves have no box). */
+function jumpHighlightTarget(el) {
+  if (el.classList.contains('apple-section')) {
+    const card = el.querySelector(':scope > .apple-card, :scope > .apple-chart-card, :scope > .filter-wrapper');
+    if (card) return card;
+  }
+  return el;
+}
+
+/** Wait until the (smooth) scroll stops moving, then call done(). */
+function afterScrollSettles(done) {
+  let lastY = window.scrollY;
+  let still = 0;
+  const started = performance.now();
+  (function check() {
+    const y = window.scrollY;
+    still = Math.abs(y - lastY) < 1 ? still + 1 : 0;
+    lastY = y;
+    // ~5 still frames ≈ scroll finished; give up waiting after 2.5 s
+    if (still >= 5 || performance.now() - started > 2500) done();
+    else requestAnimationFrame(check);
+  })();
+}
+
+function flashElement(el) {
+  const target = jumpHighlightTarget(el);
+  target.classList.remove('jump-highlight');
+  void target.offsetWidth;               // restart the animation if clicked twice
+  target.classList.add('jump-highlight');
+  clearTimeout(target._jumpTimer);
+  target._jumpTimer = setTimeout(() => target.classList.remove('jump-highlight'), JUMP_HIGHLIGHT_MS);
+}
+
+function highlightHash(hash) {
+  if (!hash || hash.length < 2) return;
+  let el;
+  try { el = document.querySelector(decodeURIComponent(hash)); } catch (e) { return; }
+  if (el) afterScrollSettles(() => flashElement(el));
+}
+
+function initJumpHighlight() {
+  // Same-page links: <a href="#section">
+  document.addEventListener('click', e => {
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+    highlightHash(link.getAttribute('href'));
+  });
+
+  // Arriving from another page (e.g. injury-severity.html#mortality-risk).
+  // Charts load asynchronously and change the page height, so wait for load.
+  if (location.hash) {
+    window.addEventListener('load', () => highlightHash(location.hash), { once: true });
+  }
+}

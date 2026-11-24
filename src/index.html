@@ -38,14 +38,18 @@
         Hospitalised Injuries from Road Crashes in Australia
       </h1>
       <p class="hero-subtitle">
-        An interactive empirical exploration into national road trauma patterns,
-        injury severity trajectories, and jurisdictional distributions across Australia.
+        One question runs through this site: <strong>who gets hurt on Australian roads, and who gets hurt worst?</strong>
+        Five short questions answer it, one page each.
       </p>
-      <div class="hero-chips">
-        <span class="hero-chip">AIHW &amp; BITRE Official Data</span>
-        <span class="hero-chip">2015 &ndash; 2023 Reporting Window</span>
-        <span class="hero-chip chip-accent">Munzner &amp; Tufte Visual Encoding</span>
-      </div>
+      <nav class="hero-chips" aria-label="Jump to section">
+        <a href="#questions" class="hero-chip">The five questions &darr;</a>
+        <a href="#key-statistics" class="hero-chip">Key numbers &darr;</a>
+        <a href="#explore" class="hero-chip">Compare states &darr;</a>
+        <a href="#conclusion" class="hero-chip">What should change &darr;</a>
+      </nav>
+      <p class="hero-meta">
+        Data: <a href="#citations">AIHW national hospital data</a> &bull; Injuries 2011&ndash;2021 &bull; Deaths in hospital 2011&ndash;2019
+      </p>
     </div>
   </header>
 
@@ -57,18 +61,18 @@
     <!-- ── Introduction / Context Card ───────────────────────── -->
     <section id="introduction" class="apple-section">
       <div class="apple-card intro-card">
-        <div class="section-kicker">Research Context</div>
-        <h2 class="apple-card-title">Understanding Australia's Road Crash Burden</h2>
+        <div class="section-kicker">Why this matters</div>
+        <h2 class="apple-card-title">Road deaths make the news. Road injuries fill the hospitals.</h2>
         <p class="apple-card-text">
-          Road traffic injuries represent one of Australia's most persistent public
-          health and economic challenges. While headline road fatalities are closely
-          monitored, hospitalised injuries present a broader, multi-faceted measure
-          of trauma severity, long-term disability, and healthcare system strain.
+          Far more people survive a road crash with a serious injury than die in one. In 2021, about
+          <strong>108 Australians a day</strong> were admitted to hospital after a crash on a public road,
+          and that number is rising.
         </p>
         <p class="apple-card-text text-secondary">
-          Through systematic visual storytelling, this dashboard unpacks the nuances
-          between minor injuries, serious trauma, and critical intensive-care admissions
-          across all eight Australian states and territories.
+          This site follows those patients, using the national hospital data published by the Australian
+          Institute of Health and Welfare (AIHW). Each question builds on the one before: first <em>who</em>,
+          then <em>whether it is getting worse</em>, <em>where</em> and <em>how</em> it happens, and finally
+          <em>who is hurt the worst</em>.
         </p>
       </div>
     </section>
@@ -82,28 +86,28 @@
       <div class="question-grid">
         <a href="who-is-affected.html" class="question-card">
           <div class="card-eyebrow">QUESTION 1</div>
-          <h3 class="question-card-title">Who is most affected by hospitalised road crash injuries?</h3>
-          <p class="question-card-meta">Age group &bull; Gender &bull; Road user type</p>
+          <h3 class="question-card-title">Who ends up in hospital?</h3>
+          <p class="question-card-meta">Road users &bull; Men and women &bull; Age</p>
         </a>
         <a href="trends-over-time.html" class="question-card">
           <div class="card-eyebrow">QUESTION 2</div>
-          <h3 class="question-card-title">How have hospitalised road crash injuries changed between 2011 and 2021?</h3>
-          <p class="question-card-meta">Year &bull; Injury count &bull; Demographic trends</p>
+          <h3 class="question-card-title">Is it getting better or worse?</h3>
+          <p class="question-card-meta">The total &bull; Each road user &bull; Who changed most</p>
         </a>
         <a href="geographic-distribution.html" class="question-card">
           <div class="card-eyebrow">QUESTION 3</div>
-          <h3 class="question-card-title">Where are hospitalised road crash injuries most common?</h3>
-          <p class="question-card-meta">State &amp; territory &bull; Metro vs regional &bull; Geographic distribution</p>
+          <h3 class="question-card-title">Where does it happen?</h3>
+          <p class="question-card-meta">States &bull; City or country &bull; Each state over time</p>
         </a>
         <a href="crash-characteristics.html" class="question-card">
           <div class="card-eyebrow">QUESTION 4</div>
-          <h3 class="question-card-title">What crash characteristics are associated with hospitalised injuries?</h3>
-          <p class="question-card-meta">Collision type &bull; Counterparty &bull; Crash scenario</p>
+          <h3 class="question-card-title">What did they crash into?</h3>
+          <p class="question-card-meta">What they hit &bull; By road user &bull; Deadliest crashes</p>
         </a>
         <a href="injury-severity.html" class="question-card">
           <div class="card-eyebrow">QUESTION 5</div>
-          <h3 class="question-card-title">What are the most severe consequences of hospitalised road crash injuries?</h3>
-          <p class="question-card-meta">Mortality risk &bull; Length of stay &bull; Injury severity</p>
+          <h3 class="question-card-title">Who is hurt the worst?</h3>
+          <p class="question-card-meta">Dying in hospital &bull; Time in hospital &bull; Size vs harm</p>
         </a>
       </div>
     </section>
@@ -111,57 +115,87 @@
     <!-- ── Key Callout Metric Cards (Apple Health / Watch style) ── -->
     <section id="key-statistics" class="apple-section">
       <div class="section-header-compact">
-        <div class="section-kicker">Summary Benchmarks</div>
-        <h2 class="section-heading">Key Statistics at a Glance</h2>
+        <div class="section-kicker">Key numbers</div>
+        <h2 class="section-heading">Three numbers to remember</h2>
       </div>
 
+      <!-- Numbers are calculated from the data by js/main-narrative.js -->
       <div class="callout-grid">
-        <div class="callout-card">
-          <div class="card-eyebrow">NATIONAL ADMISSIONS (2023)</div>
-          <div class="callout-number" id="callout-total">20,135</div>
+        <a class="callout-card" href="trends-over-time.html#total">
+          <div class="card-eyebrow">Hospitalised in <span id="callout-year">2021</span></div>
+          <div class="callout-number" id="callout-total">39,505</div>
           <div class="callout-footer">
-            <span class="trend-badge trend-up">+5.1%</span>
-            <span class="callout-label">vs. previous period</span>
+            <span class="trend-badge trend-up" id="callout-change">+16%</span>
+            <span class="callout-label" id="callout-change-label">since 2011 (Figure 2.1)</span>
           </div>
-        </div>
+        </a>
 
-        <div class="callout-card">
-          <div class="card-eyebrow">HIGH-CONCENTRATION REGION</div>
-          <div class="callout-number" id="callout-trend">NSW &amp; VIC</div>
+        <a class="callout-card" href="geographic-distribution.html#state-territory">
+          <div class="card-eyebrow">NSW, Victoria &amp; Queensland</div>
+          <div class="callout-number" id="callout-states">79%</div>
           <div class="callout-footer">
-            <span class="trend-badge trend-neutral">61.4%</span>
-            <span class="callout-label">of all national hospital admissions</span>
+            <span class="trend-badge trend-neutral">2011&ndash;2021</span>
+            <span class="callout-label">of all cases (Figure 3.1)</span>
           </div>
-        </div>
+        </a>
 
-        <div class="callout-card">
-          <div class="card-eyebrow">SERIOUS &amp; CRITICAL SHARE</div>
-          <div class="callout-number" id="callout-severity">41.8%</div>
+        <a class="callout-card" href="trends-over-time.html#change">
+          <div class="card-eyebrow">Fastest-rising group</div>
+          <div class="callout-number" id="callout-riser">Cyclists</div>
           <div class="callout-footer">
-            <span class="trend-badge trend-alert">High Trauma</span>
-            <span class="callout-label">requiring extended inpatient care</span>
+            <span class="trend-badge trend-alert" id="callout-riser-change">+51%</span>
+            <span class="callout-label">since 2011 (Figure 2.3)</span>
           </div>
-        </div>
+        </a>
       </div>
     </section>
+
+    <!-- ═══ Explore by Jurisdiction: one filter drives Figure 1 AND Figure 2 ═══ -->
+    <div class="explore-group" id="explore">
+    <div class="section-header-compact explore-group-header">
+      <div class="section-kicker">Interactive &bull; Figures 1 &amp; 2</div>
+      <h2 class="section-heading">Compare States and Territories</h2>
+    </div>
 
     <!-- ── Filters (Apple iOS Segmented Control) ─────────────── -->
     <section id="filters" class="apple-section">
       <div class="filter-wrapper">
         <div class="filter-label-wrap">
-          <span class="filter-headline">Filter by Jurisdiction:</span>
-          <span class="filter-subheadline">Select a state or territory to highlight specific regional trajectories</span>
+          <span class="filter-headline">Filter by Jurisdiction &mdash; updates Figure 1 and Figure 2 below</span>
+          <span class="filter-subheadline">
+            Australia is divided into six states and two territories (together called
+            &ldquo;jurisdictions&rdquo;). Select one to highlight it in Figure 1 and to show only
+            its numbers in Figure 2.
+          </span>
         </div>
-        <div id="filters-container" class="apple-segmented-control" role="tablist">
-          <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">All States</button>
-          <button class="filter-btn" data-filter="NSW" role="tab" aria-selected="false">NSW</button>
-          <button class="filter-btn" data-filter="VIC" role="tab" aria-selected="false">VIC</button>
-          <button class="filter-btn" data-filter="QLD" role="tab" aria-selected="false">QLD</button>
-          <button class="filter-btn" data-filter="WA" role="tab" aria-selected="false">WA</button>
-          <button class="filter-btn" data-filter="SA" role="tab" aria-selected="false">SA</button>
-          <button class="filter-btn" data-filter="TAS" role="tab" aria-selected="false">TAS</button>
-          <button class="filter-btn" data-filter="ACT" role="tab" aria-selected="false">ACT</button>
-          <button class="filter-btn" data-filter="NT" role="tab" aria-selected="false">NT</button>
+        <div id="filters-container" class="apple-segmented-control jurisdiction-control" role="tablist">
+          <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">
+            <span class="filter-code">All</span><span class="filter-name">All of Australia</span>
+          </button>
+          <button class="filter-btn" data-filter="NSW" role="tab" aria-selected="false">
+            <span class="filter-code">NSW</span><span class="filter-name">New South Wales</span>
+          </button>
+          <button class="filter-btn" data-filter="VIC" role="tab" aria-selected="false">
+            <span class="filter-code">VIC</span><span class="filter-name">Victoria</span>
+          </button>
+          <button class="filter-btn" data-filter="QLD" role="tab" aria-selected="false">
+            <span class="filter-code">QLD</span><span class="filter-name">Queensland</span>
+          </button>
+          <button class="filter-btn" data-filter="WA" role="tab" aria-selected="false">
+            <span class="filter-code">WA</span><span class="filter-name">Western Australia</span>
+          </button>
+          <button class="filter-btn" data-filter="SA" role="tab" aria-selected="false">
+            <span class="filter-code">SA</span><span class="filter-name">South Australia</span>
+          </button>
+          <button class="filter-btn" data-filter="TAS" role="tab" aria-selected="false">
+            <span class="filter-code">TAS</span><span class="filter-name">Tasmania</span>
+          </button>
+          <button class="filter-btn" data-filter="ACT" role="tab" aria-selected="false">
+            <span class="filter-code">ACT</span><span class="filter-name">Australian Capital Territory</span>
+          </button>
+          <button class="filter-btn" data-filter="NT" role="tab" aria-selected="false">
+            <span class="filter-code">NT</span><span class="filter-name">Northern Territory</span>
+          </button>
         </div>
       </div>
     </section>
@@ -171,16 +205,17 @@
       <div class="apple-chart-card">
         <div class="chart-card-header">
           <div>
-            <div class="section-kicker">Figure 1 • Empirical Distribution</div>
-            <h2 class="chart-card-title">Total Hospitalised Injuries by Jurisdiction</h2>
+            <div class="section-kicker">Figure 1 &bull; States and territories</div>
+            <a href="#filters" class="filter-scope" data-filter-scope>Showing: <strong class="filter-scope-value">All of Australia</strong> <span class="filter-scope-change">Change &uarr;</span></a>
+            <h2 class="chart-card-title">Which states have the most injuries?</h2>
+            <p class="chart-card-answer">New South Wales, Victoria and Queensland, which are also where most Australians live.</p>
             <p class="chart-card-desc">
-              Comparative volume across Australian states with pre-attentive emphasis
-              applied to the leading jurisdiction following the <em>Muted Baseline + Bold Accent</em> rule.
+              All hospitalised road injuries, 2011&ndash;2021 added up. Darker blue = more cases.
+              Selecting a jurisdiction in the filter highlights it in orange. Question 3 explores this further.
             </p>
           </div>
           <div class="chart-legend-box" id="chart-1-legend">
-            <span class="legend-chip"><span class="swatch swatch-accent"></span> Focal Insight (Highest)</span>
-            <span class="legend-chip"><span class="swatch swatch-baseline"></span> Baseline Jurisdictions</span>
+            <span class="legend-chip">Fewer <span class="swatch swatch-gradient"></span> More hospitalisations</span>
           </div>
         </div>
 
@@ -195,17 +230,15 @@
       <div class="apple-chart-card">
         <div class="chart-card-header">
           <div>
-            <div class="section-kicker">Figure 2 • Severity Stratification</div>
-            <h2 class="chart-card-title">Hospitalisation Trends by Injury Severity</h2>
+            <div class="section-kicker">Figure 2 &bull; Every year</div>
+            <a href="#filters" class="filter-scope" data-filter-scope>Showing: <strong class="filter-scope-value">All of Australia</strong> <span class="filter-scope-change">Change &uarr;</span></a>
+            <h2 class="chart-card-title">Is it going up?</h2>
+            <p class="chart-card-answer" id="chart-2-answer">Yes. Australia went from 34,033 cases in 2011 to 39,505 in 2021 (+16%).</p>
             <p class="chart-card-desc">
-              National distribution across Minor, Serious, and Critical trauma categories
-              encoded using an accessible, color-blind safe palette (Munzner, 2014).
+              Hospitalised road injuries per year, 2011&ndash;2021, for the whole country or the jurisdiction selected
+              in the filter. Dashed lines mark the years Victoria (2012) and NSW (2017) stopped counting patients
+              treated only in emergency, so a drop there is partly a counting change. Question 2 explores this further.
             </p>
-          </div>
-          <div class="chart-legend-box" id="chart-2-legend">
-            <span class="legend-chip"><span class="swatch swatch-minor"></span> Minor</span>
-            <span class="legend-chip"><span class="swatch swatch-serious"></span> Serious</span>
-            <span class="legend-chip"><span class="swatch swatch-critical"></span> Critical</span>
           </div>
         </div>
 
@@ -214,33 +247,57 @@
         </div>
       </div>
     </section>
+    </div><!-- /.explore-group -->
 
     <!-- ── Narrative Conclusion (Apple Card) ─────────────────── -->
     <section id="conclusion" class="apple-section">
       <div class="apple-card conclusion-card">
-        <div class="section-kicker">Summary Insights &amp; Policy</div>
-        <h2 class="apple-card-title">Implications for Australia's National Road Safety Strategy</h2>
+        <div class="section-kicker">Summary &amp; what should change</div>
+        <h2 class="apple-card-title">The biggest group is not the worst hurt</h2>
         <p class="apple-card-text">
-          The analysis demonstrates persistent clustering of hospitalised trauma in the
-          most populous eastern seaboard states (NSW, VIC, QLD), where serious and critical
-          injuries represent over 40% of admissions. While absolute fatality counts have
-          stabilized due to vehicular crash protection, non-fatal hospitalisations remain elevated.
+          The five questions in one paragraph: most patients are <strong>car drivers, motorcyclists and cyclists</strong>
+          (Q1); the total is <strong>rising, led by cyclists</strong> (Q2); most cases are in the three biggest states, but
+          <strong>regional patients die more often</strong> (Q3); most crashes involve a car, but
+          <strong>trucks and buses are the deadliest</strong> (Q4); and <strong>pedestrians</strong>, only 7% of cases,
+          account for a quarter of deaths in hospital (Q5).
         </p>
-        <div class="conclusion-highlights">
-          <div class="highlight-item">
-            <span class="highlight-icon">✦</span>
-            <div>
-              <strong>Targeted Vulnerable Road User Infrastructure:</strong>
-              Separated cycling corridors and pedestrian crossings significantly reduce high-severity impacts.
+        <p class="apple-card-text text-secondary">Two findings stand out for road safety policy:</p>
+        <div class="insight-list">
+          <!-- Insight 1: one number, one sentence, one action, one chart -->
+          <article class="insight-row">
+            <div class="insight-text">
+              <div class="insight-kicker">Vulnerable road users</div>
+              <div class="insight-number">4&times;</div>
+              <p class="insight-headline">
+                Once in hospital, <strong>pedestrians are about 4 times more likely to die</strong>
+                than car drivers.
+              </p>
+              <p class="insight-action"><span aria-hidden="true">&rarr;</span> Policy: safer crossings and lower speeds where people walk.</p>
             </div>
-          </div>
-          <div class="highlight-item">
-            <span class="highlight-icon">✦</span>
-            <div>
-              <strong>Regional Emergency Response Timing:</strong>
-              Critical-injury recovery outcomes depend heavily on rapid transit to trauma centers in non-metro areas.
+            <figure class="summary-chart">
+              <figcaption class="summary-chart-title">Deaths per 1,000 hospitalised cases (2011&ndash;2019)</figcaption>
+              <div class="summary-chart-svg" id="summary-chart-road-users"></div>
+              <p class="summary-chart-source">Source: AIHW &bull; <a href="injury-severity.html#mortality-risk">See Figure 5.1</a></p>
+            </figure>
+          </article>
+
+          <!-- Insight 2 -->
+          <article class="insight-row">
+            <div class="insight-text">
+              <div class="insight-kicker">Regional areas</div>
+              <div class="insight-number">+25%</div>
+              <p class="insight-headline">
+                People injured in <strong>regional areas have a 25% higher death rate</strong>
+                in hospital than people in major cities.
+              </p>
+              <p class="insight-action"><span aria-hidden="true">&rarr;</span> Policy: faster transfer to trauma centres outside the cities.</p>
             </div>
-          </div>
+            <figure class="summary-chart">
+              <figcaption class="summary-chart-title">Deaths per 1,000 hospitalised cases (2011&ndash;2019)</figcaption>
+              <div class="summary-chart-svg" id="summary-chart-remoteness"></div>
+              <p class="summary-chart-source">Source: AIHW &bull; <a href="geographic-distribution.html#metro-regional">See Figure 3.2</a></p>
+            </figure>
+          </article>
         </div>
       </div>
     </section>
@@ -301,8 +358,9 @@
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="js/shared-constants.js"></script>
-  <script src="js/load-data.js"></script>
+  <script src="js/site-data.js"></script>
   <script src="js/main-narrative.js"></script>
+  <script src="js/summary-charts.js"></script>
 
 </body>
 </html>

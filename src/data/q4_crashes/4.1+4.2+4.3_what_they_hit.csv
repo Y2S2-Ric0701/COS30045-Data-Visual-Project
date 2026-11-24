@@ -1,0 +1,571 @@
+year,road_user,counterparty,hospitalisations,cases,deaths,bed_days
+2011,Bus occupant,"Car, ute or van",28,28,0,61
+2011,Bus occupant,Fixed object,11,11,0,23
+2011,Bus occupant,No other vehicle,139,139,0,502
+2011,Bus occupant,Not recorded,20,20,0,91
+2011,Bus occupant,Something else,4,5,1,25
+2011,Bus occupant,Truck or bus,12,12,0,53
+2011,Car driver,"Car, ute or van",5768,5799,31,21446
+2011,Car driver,Fixed object,2774,2802,28,15185
+2011,Car driver,No other vehicle,1619,1626,7,7097
+2011,Car driver,Not recorded,132,133,1,469
+2011,Car driver,Something else,132,135,3,695
+2011,Car driver,Truck or bus,523,534,11,3331
+2011,Car passenger,"Car, ute or van",2480,2497,17,9509
+2011,Car passenger,Fixed object,1058,1070,12,5752
+2011,Car passenger,No other vehicle,974,983,9,4510
+2011,Car passenger,Not recorded,95,96,1,279
+2011,Car passenger,Something else,71,71,0,746
+2011,Car passenger,Truck or bus,175,183,8,1336
+2011,Motorcyclist,"Car, ute or van",1810,1826,16,13674
+2011,Motorcyclist,Fixed object,653,659,6,5111
+2011,Motorcyclist,No other vehicle,3044,3050,6,11536
+2011,Motorcyclist,Not recorded,1677,1679,2,5109
+2011,Motorcyclist,Something else,293,297,4,1568
+2011,Motorcyclist,Truck or bus,88,88,0,742
+2011,Other or not recorded,"Car, ute or van",135,137,2,698
+2011,Other or not recorded,Fixed object,43,45,2,270
+2011,Other or not recorded,No other vehicle,104,104,0,323
+2011,Other or not recorded,Not recorded,1195,1200,5,5204
+2011,Other or not recorded,Something else,12,12,0,83
+2011,Other or not recorded,Truck or bus,10,10,0,176
+2011,Pedal cyclist,"Car, ute or van",1239,1247,8,4673
+2011,Pedal cyclist,Fixed object,274,275,1,907
+2011,Pedal cyclist,No other vehicle,2353,2355,2,5853
+2011,Pedal cyclist,Not recorded,1175,1176,1,2481
+2011,Pedal cyclist,Something else,297,299,2,831
+2011,Pedal cyclist,Truck or bus,53,55,2,549
+2011,Pedestrian,"Car, ute or van",2437,2492,55,18049
+2011,Pedestrian,Not recorded,71,71,0,510
+2011,Pedestrian,Something else,134,138,4,1283
+2011,Pedestrian,Truck or bus,112,121,9,1391
+2011,Truck occupant,"Car, ute or van",50,50,0,202
+2011,Truck occupant,Fixed object,66,67,1,502
+2011,Truck occupant,No other vehicle,323,323,0,1223
+2011,Truck occupant,Not recorded,38,38,0,156
+2011,Truck occupant,Something else,13,13,0,31
+2011,Truck occupant,Truck or bus,72,72,0,450
+2011,Ute or van occupant,"Car, ute or van",67,68,1,241
+2011,Ute or van occupant,Fixed object,54,55,1,356
+2011,Ute or van occupant,No other vehicle,87,89,2,395
+2011,Ute or van occupant,Not recorded,13,13,0,39
+2011,Ute or van occupant,Something else,2,2,0,2
+2011,Ute or van occupant,Truck or bus,24,24,0,231
+2012,Bus occupant,"Car, ute or van",31,31,0,60
+2012,Bus occupant,Fixed object,13,13,0,44
+2012,Bus occupant,No other vehicle,124,124,0,524
+2012,Bus occupant,Not recorded,28,28,0,172
+2012,Bus occupant,Something else,5,5,0,12
+2012,Bus occupant,Truck or bus,16,16,0,77
+2012,Car driver,"Car, ute or van",5607,5638,31,20632
+2012,Car driver,Fixed object,2754,2784,30,14845
+2012,Car driver,No other vehicle,1709,1718,9,8512
+2012,Car driver,Not recorded,140,140,0,592
+2012,Car driver,Something else,135,136,1,472
+2012,Car driver,Truck or bus,461,469,8,2688
+2012,Car passenger,"Car, ute or van",2341,2358,17,9494
+2012,Car passenger,Fixed object,1017,1026,9,5149
+2012,Car passenger,No other vehicle,1072,1082,10,4837
+2012,Car passenger,Not recorded,76,76,0,192
+2012,Car passenger,Something else,69,70,1,403
+2012,Car passenger,Truck or bus,163,170,7,869
+2012,Motorcyclist,"Car, ute or van",1889,1909,20,13136
+2012,Motorcyclist,Fixed object,656,669,13,4278
+2012,Motorcyclist,No other vehicle,3026,3033,7,11792
+2012,Motorcyclist,Not recorded,1762,1766,4,5455
+2012,Motorcyclist,Something else,316,318,2,1816
+2012,Motorcyclist,Truck or bus,79,79,0,1198
+2012,Other or not recorded,"Car, ute or van",154,154,0,803
+2012,Other or not recorded,Fixed object,40,40,0,309
+2012,Other or not recorded,No other vehicle,104,104,0,395
+2012,Other or not recorded,Not recorded,1142,1145,3,4940
+2012,Other or not recorded,Something else,10,10,0,39
+2012,Other or not recorded,Truck or bus,8,9,1,63
+2012,Pedal cyclist,"Car, ute or van",1292,1296,4,4904
+2012,Pedal cyclist,Fixed object,292,292,0,893
+2012,Pedal cyclist,No other vehicle,2419,2422,3,5693
+2012,Pedal cyclist,Not recorded,1237,1237,0,2591
+2012,Pedal cyclist,Something else,311,312,1,1098
+2012,Pedal cyclist,Truck or bus,70,71,1,570
+2012,Pedestrian,"Car, ute or van",2341,2389,48,16442
+2012,Pedestrian,Not recorded,79,79,0,456
+2012,Pedestrian,Something else,131,135,4,733
+2012,Pedestrian,Truck or bus,121,128,7,1705
+2012,Truck occupant,"Car, ute or van",64,64,0,305
+2012,Truck occupant,Fixed object,62,62,0,367
+2012,Truck occupant,No other vehicle,274,274,0,1102
+2012,Truck occupant,Not recorded,31,31,0,78
+2012,Truck occupant,Something else,7,7,0,68
+2012,Truck occupant,Truck or bus,73,74,1,512
+2012,Ute or van occupant,"Car, ute or van",67,68,1,375
+2012,Ute or van occupant,Fixed object,65,67,2,311
+2012,Ute or van occupant,No other vehicle,87,87,0,486
+2012,Ute or van occupant,Not recorded,20,20,0,74
+2012,Ute or van occupant,Something else,4,4,0,13
+2012,Ute or van occupant,Truck or bus,30,31,1,207
+2013,Bus occupant,"Car, ute or van",35,35,0,105
+2013,Bus occupant,Fixed object,14,14,0,37
+2013,Bus occupant,No other vehicle,139,139,0,544
+2013,Bus occupant,Not recorded,25,25,0,140
+2013,Bus occupant,Something else,6,6,0,32
+2013,Bus occupant,Truck or bus,7,7,0,120
+2013,Car driver,"Car, ute or van",5580,5603,23,17793
+2013,Car driver,Fixed object,2762,2784,22,13700
+2013,Car driver,No other vehicle,1746,1753,7,7277
+2013,Car driver,Not recorded,151,151,0,555
+2013,Car driver,Something else,155,155,0,435
+2013,Car driver,Truck or bus,548,557,9,2924
+2013,Car passenger,"Car, ute or van",2436,2446,10,8639
+2013,Car passenger,Fixed object,1016,1026,10,5297
+2013,Car passenger,No other vehicle,1046,1052,6,4331
+2013,Car passenger,Not recorded,91,91,0,403
+2013,Car passenger,Something else,72,73,1,282
+2013,Car passenger,Truck or bus,167,170,3,989
+2013,Motorcyclist,"Car, ute or van",1997,2011,14,13057
+2013,Motorcyclist,Fixed object,749,755,6,5025
+2013,Motorcyclist,No other vehicle,3279,3286,7,11996
+2013,Motorcyclist,Not recorded,1579,1585,6,4927
+2013,Motorcyclist,Something else,330,331,1,1652
+2013,Motorcyclist,Truck or bus,84,86,2,1067
+2013,Other or not recorded,"Car, ute or van",118,120,2,370
+2013,Other or not recorded,Fixed object,27,27,0,119
+2013,Other or not recorded,No other vehicle,87,88,1,343
+2013,Other or not recorded,Not recorded,1103,1109,6,4831
+2013,Other or not recorded,Something else,14,14,0,16
+2013,Other or not recorded,Truck or bus,5,5,0,37
+2013,Pedal cyclist,"Car, ute or van",1387,1394,7,4869
+2013,Pedal cyclist,Fixed object,294,295,1,871
+2013,Pedal cyclist,No other vehicle,2786,2788,2,6904
+2013,Pedal cyclist,Not recorded,1288,1289,1,2588
+2013,Pedal cyclist,Something else,443,444,1,1353
+2013,Pedal cyclist,Truck or bus,64,67,3,759
+2013,Pedestrian,"Car, ute or van",2318,2369,51,15982
+2013,Pedestrian,Not recorded,64,66,2,314
+2013,Pedestrian,Something else,143,145,2,756
+2013,Pedestrian,Truck or bus,132,138,6,1461
+2013,Truck occupant,"Car, ute or van",55,55,0,348
+2013,Truck occupant,Fixed object,73,73,0,522
+2013,Truck occupant,No other vehicle,256,259,3,1074
+2013,Truck occupant,Not recorded,17,17,0,47
+2013,Truck occupant,Something else,4,4,0,6
+2013,Truck occupant,Truck or bus,79,79,0,545
+2013,Ute or van occupant,"Car, ute or van",73,73,0,255
+2013,Ute or van occupant,Fixed object,43,43,0,310
+2013,Ute or van occupant,No other vehicle,78,78,0,612
+2013,Ute or van occupant,Not recorded,12,12,0,40
+2013,Ute or van occupant,Something else,6,6,0,28
+2013,Ute or van occupant,Truck or bus,18,19,1,108
+2014,Bus occupant,"Car, ute or van",54,54,0,156
+2014,Bus occupant,Fixed object,20,20,0,176
+2014,Bus occupant,No other vehicle,167,169,2,802
+2014,Bus occupant,Not recorded,30,30,0,294
+2014,Bus occupant,Truck or bus,18,18,0,56
+2014,Car driver,"Car, ute or van",5880,5898,18,18245
+2014,Car driver,Fixed object,2832,2859,27,13314
+2014,Car driver,No other vehicle,1605,1615,10,7602
+2014,Car driver,Not recorded,143,146,3,488
+2014,Car driver,Something else,149,149,0,565
+2014,Car driver,Truck or bus,513,524,11,2118
+2014,Car passenger,"Car, ute or van",2352,2371,19,8970
+2014,Car passenger,Fixed object,954,960,6,4747
+2014,Car passenger,No other vehicle,991,998,7,4996
+2014,Car passenger,Not recorded,94,95,1,229
+2014,Car passenger,Something else,53,53,0,257
+2014,Car passenger,Truck or bus,181,184,3,668
+2014,Motorcyclist,"Car, ute or van",2076,2086,10,12277
+2014,Motorcyclist,Fixed object,755,758,3,4648
+2014,Motorcyclist,No other vehicle,3448,3458,10,12419
+2014,Motorcyclist,Not recorded,1606,1608,2,4431
+2014,Motorcyclist,Something else,369,370,1,1930
+2014,Motorcyclist,Truck or bus,80,81,1,785
+2014,Other or not recorded,"Car, ute or van",136,136,0,484
+2014,Other or not recorded,Fixed object,36,36,0,224
+2014,Other or not recorded,No other vehicle,72,73,1,312
+2014,Other or not recorded,Not recorded,982,986,4,3652
+2014,Other or not recorded,Something else,2,2,0,19
+2014,Other or not recorded,Truck or bus,8,8,0,43
+2014,Pedal cyclist,"Car, ute or van",1413,1423,10,4837
+2014,Pedal cyclist,Fixed object,361,362,1,1021
+2014,Pedal cyclist,No other vehicle,3008,3010,2,7021
+2014,Pedal cyclist,Not recorded,1395,1395,0,2958
+2014,Pedal cyclist,Something else,394,395,1,1099
+2014,Pedal cyclist,Truck or bus,65,67,2,571
+2014,Pedestrian,"Car, ute or van",2205,2252,47,14548
+2014,Pedestrian,Not recorded,77,78,1,453
+2014,Pedestrian,Something else,140,145,5,1088
+2014,Pedestrian,Truck or bus,132,136,4,1988
+2014,Truck occupant,"Car, ute or van",69,69,0,385
+2014,Truck occupant,Fixed object,64,64,0,414
+2014,Truck occupant,No other vehicle,254,254,0,1308
+2014,Truck occupant,Not recorded,21,21,0,62
+2014,Truck occupant,Something else,9,9,0,23
+2014,Truck occupant,Truck or bus,63,63,0,376
+2014,Ute or van occupant,"Car, ute or van",73,73,0,191
+2014,Ute or van occupant,Fixed object,40,41,1,247
+2014,Ute or van occupant,No other vehicle,94,94,0,442
+2014,Ute or van occupant,Not recorded,13,14,1,58
+2014,Ute or van occupant,Something else,2,2,0,2
+2014,Ute or van occupant,Truck or bus,17,17,0,161
+2015,Bus occupant,"Car, ute or van",34,35,1,115
+2015,Bus occupant,Fixed object,16,16,0,22
+2015,Bus occupant,No other vehicle,151,152,1,1107
+2015,Bus occupant,Not recorded,23,23,0,134
+2015,Bus occupant,Something else,11,11,0,20
+2015,Bus occupant,Truck or bus,11,11,0,69
+2015,Car driver,"Car, ute or van",6530,6555,25,23749
+2015,Car driver,Fixed object,2996,3030,34,19584
+2015,Car driver,No other vehicle,1822,1831,9,8870
+2015,Car driver,Not recorded,140,140,0,642
+2015,Car driver,Something else,128,129,1,971
+2015,Car driver,Truck or bus,547,562,15,4612
+2015,Car passenger,"Car, ute or van",2560,2569,9,10586
+2015,Car passenger,Fixed object,1034,1049,15,6834
+2015,Car passenger,No other vehicle,1030,1035,5,5481
+2015,Car passenger,Not recorded,80,80,0,525
+2015,Car passenger,Something else,57,58,1,197
+2015,Car passenger,Truck or bus,197,200,3,1083
+2015,Motorcyclist,"Car, ute or van",2131,2149,18,16811
+2015,Motorcyclist,Fixed object,751,764,13,6790
+2015,Motorcyclist,No other vehicle,3412,3418,6,12594
+2015,Motorcyclist,Not recorded,1535,1537,2,5571
+2015,Motorcyclist,Something else,381,382,1,2267
+2015,Motorcyclist,Truck or bus,88,91,3,1112
+2015,Other or not recorded,"Car, ute or van",122,124,2,580
+2015,Other or not recorded,Fixed object,49,50,1,512
+2015,Other or not recorded,No other vehicle,66,66,0,341
+2015,Other or not recorded,Not recorded,1056,1061,5,5702
+2015,Other or not recorded,Something else,14,14,0,90
+2015,Other or not recorded,Truck or bus,8,8,0,79
+2015,Pedal cyclist,"Car, ute or van",1455,1458,3,5382
+2015,Pedal cyclist,Fixed object,350,351,1,1160
+2015,Pedal cyclist,No other vehicle,3004,3007,3,7133
+2015,Pedal cyclist,Not recorded,1415,1418,3,3101
+2015,Pedal cyclist,Something else,445,446,1,1418
+2015,Pedal cyclist,Truck or bus,47,48,1,868
+2015,Pedestrian,"Car, ute or van",2330,2381,51,19145
+2015,Pedestrian,Not recorded,77,77,0,770
+2015,Pedestrian,Something else,126,128,2,1351
+2015,Pedestrian,Truck or bus,94,100,6,1378
+2015,Truck occupant,"Car, ute or van",78,79,1,197
+2015,Truck occupant,Fixed object,66,66,0,427
+2015,Truck occupant,No other vehicle,285,286,1,1547
+2015,Truck occupant,Not recorded,12,12,0,141
+2015,Truck occupant,Something else,5,5,0,6
+2015,Truck occupant,Truck or bus,64,64,0,635
+2015,Ute or van occupant,"Car, ute or van",78,78,0,327
+2015,Ute or van occupant,Fixed object,42,42,0,350
+2015,Ute or van occupant,No other vehicle,100,100,0,525
+2015,Ute or van occupant,Not recorded,9,9,0,18
+2015,Ute or van occupant,Something else,2,2,0,5
+2015,Ute or van occupant,Truck or bus,18,18,0,155
+2016,Bus occupant,"Car, ute or van",37,38,1,193
+2016,Bus occupant,Fixed object,23,23,0,224
+2016,Bus occupant,No other vehicle,189,192,3,991
+2016,Bus occupant,Not recorded,20,21,1,188
+2016,Bus occupant,Something else,2,2,0,2
+2016,Bus occupant,Truck or bus,12,13,1,273
+2016,Car driver,"Car, ute or van",7366,7397,31,30518
+2016,Car driver,Fixed object,3227,3266,39,23932
+2016,Car driver,No other vehicle,1750,1758,8,8813
+2016,Car driver,Not recorded,152,153,1,919
+2016,Car driver,Something else,158,159,1,1295
+2016,Car driver,Truck or bus,541,551,10,4412
+2016,Car passenger,"Car, ute or van",2667,2683,16,11754
+2016,Car passenger,Fixed object,1021,1029,8,7061
+2016,Car passenger,No other vehicle,1039,1048,9,5908
+2016,Car passenger,Not recorded,86,86,0,505
+2016,Car passenger,Something else,75,75,0,565
+2016,Car passenger,Truck or bus,215,218,3,1323
+2016,Motorcyclist,"Car, ute or van",2302,2324,22,22083
+2016,Motorcyclist,Fixed object,785,794,9,6753
+2016,Motorcyclist,No other vehicle,3442,3444,2,14441
+2016,Motorcyclist,Not recorded,1557,1558,1,6906
+2016,Motorcyclist,Something else,359,361,2,2077
+2016,Motorcyclist,Truck or bus,81,81,0,1183
+2016,Other or not recorded,"Car, ute or van",123,127,4,1155
+2016,Other or not recorded,Fixed object,36,36,0,606
+2016,Other or not recorded,No other vehicle,64,65,1,218
+2016,Other or not recorded,Not recorded,1190,1197,7,6968
+2016,Other or not recorded,Something else,8,8,0,132
+2016,Other or not recorded,Truck or bus,7,7,0,148
+2016,Pedal cyclist,"Car, ute or van",1482,1489,7,5915
+2016,Pedal cyclist,Fixed object,415,416,1,1372
+2016,Pedal cyclist,No other vehicle,3053,3057,4,8339
+2016,Pedal cyclist,Not recorded,1432,1432,0,3097
+2016,Pedal cyclist,Something else,446,447,1,1519
+2016,Pedal cyclist,Truck or bus,76,78,2,490
+2016,Pedestrian,"Car, ute or van",2407,2464,57,25248
+2016,Pedestrian,Not recorded,70,71,1,599
+2016,Pedestrian,Something else,147,151,4,1859
+2016,Pedestrian,Truck or bus,119,127,8,3067
+2016,Truck occupant,"Car, ute or van",74,75,1,480
+2016,Truck occupant,Fixed object,49,49,0,643
+2016,Truck occupant,No other vehicle,275,276,1,1932
+2016,Truck occupant,Not recorded,18,18,0,139
+2016,Truck occupant,Something else,4,4,0,14
+2016,Truck occupant,Truck or bus,64,65,1,648
+2016,Ute or van occupant,"Car, ute or van",93,93,0,525
+2016,Ute or van occupant,Fixed object,51,51,0,557
+2016,Ute or van occupant,No other vehicle,99,99,0,625
+2016,Ute or van occupant,Not recorded,28,28,0,197
+2016,Ute or van occupant,Something else,4,4,0,17
+2016,Ute or van occupant,Truck or bus,23,23,0,329
+2017,Bus occupant,"Car, ute or van",49,51,2,169
+2017,Bus occupant,Fixed object,8,8,0,10
+2017,Bus occupant,No other vehicle,182,185,3,1220
+2017,Bus occupant,Not recorded,14,14,0,106
+2017,Bus occupant,Truck or bus,12,12,0,72
+2017,Car driver,"Car, ute or van",7473,7501,28,29155
+2017,Car driver,Fixed object,3061,3085,24,20994
+2017,Car driver,No other vehicle,1826,1830,4,9342
+2017,Car driver,Not recorded,157,158,1,888
+2017,Car driver,Something else,155,155,0,403
+2017,Car driver,Truck or bus,595,602,7,3235
+2017,Car passenger,"Car, ute or van",2766,2783,17,11871
+2017,Car passenger,Fixed object,1005,1013,8,6055
+2017,Car passenger,No other vehicle,998,1001,3,5233
+2017,Car passenger,Not recorded,76,76,0,456
+2017,Car passenger,Something else,66,66,0,214
+2017,Car passenger,Truck or bus,191,192,1,1215
+2017,Motorcyclist,"Car, ute or van",2371,2385,14,20516
+2017,Motorcyclist,Fixed object,814,819,5,8016
+2017,Motorcyclist,No other vehicle,3579,3581,2,14174
+2017,Motorcyclist,Not recorded,1454,1457,3,6773
+2017,Motorcyclist,Something else,412,413,1,1907
+2017,Motorcyclist,Truck or bus,109,110,1,1537
+2017,Other or not recorded,"Car, ute or van",132,132,0,947
+2017,Other or not recorded,Fixed object,29,29,0,1051
+2017,Other or not recorded,No other vehicle,61,62,1,733
+2017,Other or not recorded,Not recorded,1142,1147,5,7720
+2017,Other or not recorded,Something else,9,9,0,19
+2017,Other or not recorded,Truck or bus,4,4,0,244
+2017,Pedal cyclist,"Car, ute or van",1603,1610,7,6902
+2017,Pedal cyclist,Fixed object,419,419,0,1496
+2017,Pedal cyclist,No other vehicle,3094,3096,2,7885
+2017,Pedal cyclist,Not recorded,1437,1437,0,3397
+2017,Pedal cyclist,Something else,461,461,0,1537
+2017,Pedal cyclist,Truck or bus,62,62,0,398
+2017,Pedestrian,"Car, ute or van",2391,2436,45,27207
+2017,Pedestrian,Not recorded,83,84,1,582
+2017,Pedestrian,Something else,135,140,5,1284
+2017,Pedestrian,Truck or bus,105,113,8,2707
+2017,Truck occupant,"Car, ute or van",82,82,0,311
+2017,Truck occupant,Fixed object,74,75,1,563
+2017,Truck occupant,No other vehicle,262,264,2,1461
+2017,Truck occupant,Not recorded,20,20,0,74
+2017,Truck occupant,Something else,6,6,0,17
+2017,Truck occupant,Truck or bus,84,84,0,679
+2017,Ute or van occupant,"Car, ute or van",99,99,0,416
+2017,Ute or van occupant,Fixed object,41,41,0,368
+2017,Ute or van occupant,No other vehicle,87,87,0,711
+2017,Ute or van occupant,Not recorded,12,12,0,131
+2017,Ute or van occupant,Something else,11,11,0,19
+2017,Ute or van occupant,Truck or bus,21,22,1,200
+2018,Bus occupant,"Car, ute or van",44,45,1,258
+2018,Bus occupant,Fixed object,12,12,0,82
+2018,Bus occupant,No other vehicle,151,152,1,886
+2018,Bus occupant,Not recorded,25,25,0,205
+2018,Bus occupant,Something else,2,2,0,2
+2018,Bus occupant,Truck or bus,13,13,0,76
+2018,Car driver,"Car, ute or van",7572,7592,20,26034
+2018,Car driver,Fixed object,3134,3156,22,22182
+2018,Car driver,No other vehicle,1960,1967,7,10320
+2018,Car driver,Not recorded,162,163,1,943
+2018,Car driver,Something else,195,195,0,866
+2018,Car driver,Truck or bus,572,575,3,3635
+2018,Car passenger,"Car, ute or van",2733,2742,9,12058
+2018,Car passenger,Fixed object,1032,1044,12,6535
+2018,Car passenger,No other vehicle,1125,1136,11,6187
+2018,Car passenger,Not recorded,59,60,1,294
+2018,Car passenger,Something else,79,79,0,336
+2018,Car passenger,Truck or bus,178,179,1,1442
+2018,Motorcyclist,"Car, ute or van",2322,2336,14,18502
+2018,Motorcyclist,Fixed object,821,826,5,7116
+2018,Motorcyclist,No other vehicle,3586,3588,2,15750
+2018,Motorcyclist,Not recorded,1411,1415,4,6780
+2018,Motorcyclist,Something else,394,394,0,1813
+2018,Motorcyclist,Truck or bus,89,92,3,1346
+2018,Other or not recorded,"Car, ute or van",115,115,0,1570
+2018,Other or not recorded,Fixed object,31,31,0,721
+2018,Other or not recorded,No other vehicle,80,82,2,423
+2018,Other or not recorded,Not recorded,1215,1218,3,9001
+2018,Other or not recorded,Something else,12,12,0,158
+2018,Other or not recorded,Truck or bus,14,14,0,162
+2018,Pedal cyclist,"Car, ute or van",1494,1501,7,6232
+2018,Pedal cyclist,Fixed object,402,402,0,1266
+2018,Pedal cyclist,No other vehicle,3076,3079,3,7601
+2018,Pedal cyclist,Not recorded,1470,1471,1,3703
+2018,Pedal cyclist,Something else,459,460,1,1601
+2018,Pedal cyclist,Truck or bus,58,60,2,431
+2018,Pedestrian,"Car, ute or van",2347,2394,47,22166
+2018,Pedestrian,Not recorded,73,74,1,514
+2018,Pedestrian,Something else,144,148,4,1694
+2018,Pedestrian,Truck or bus,97,100,3,2348
+2018,Truck occupant,"Car, ute or van",80,81,1,349
+2018,Truck occupant,Fixed object,74,74,0,624
+2018,Truck occupant,No other vehicle,296,299,3,1669
+2018,Truck occupant,Not recorded,25,26,1,407
+2018,Truck occupant,Something else,6,6,0,7
+2018,Truck occupant,Truck or bus,72,72,0,524
+2018,Ute or van occupant,"Car, ute or van",98,98,0,944
+2018,Ute or van occupant,Fixed object,52,52,0,315
+2018,Ute or van occupant,No other vehicle,94,94,0,446
+2018,Ute or van occupant,Not recorded,12,12,0,57
+2018,Ute or van occupant,Something else,4,4,0,22
+2018,Ute or van occupant,Truck or bus,19,20,1,111
+2019,Bus occupant,"Car, ute or van",42,42,0,119
+2019,Bus occupant,Fixed object,17,17,0,71
+2019,Bus occupant,No other vehicle,168,168,0,616
+2019,Bus occupant,Not recorded,12,12,0,49
+2019,Bus occupant,Something else,2,2,0,2
+2019,Bus occupant,Truck or bus,14,14,0,76
+2019,Car driver,"Car, ute or van",7697,7714,17,26416
+2019,Car driver,Fixed object,3052,3079,27,21105
+2019,Car driver,No other vehicle,1868,1878,10,9018
+2019,Car driver,Not recorded,169,170,1,1027
+2019,Car driver,Something else,169,170,1,740
+2019,Car driver,Truck or bus,527,534,7,3532
+2019,Car passenger,"Car, ute or van",2678,2694,16,10715
+2019,Car passenger,Fixed object,1054,1060,6,6684
+2019,Car passenger,No other vehicle,946,955,9,4628
+2019,Car passenger,Not recorded,67,69,2,557
+2019,Car passenger,Something else,49,49,0,424
+2019,Car passenger,Truck or bus,195,198,3,1352
+2019,Motorcyclist,"Car, ute or van",2462,2471,9,21492
+2019,Motorcyclist,Fixed object,817,827,10,8210
+2019,Motorcyclist,No other vehicle,3577,3581,4,12853
+2019,Motorcyclist,Not recorded,1534,1539,5,7382
+2019,Motorcyclist,Something else,452,452,0,2540
+2019,Motorcyclist,Truck or bus,82,84,2,1509
+2019,Other or not recorded,"Car, ute or van",127,127,0,1191
+2019,Other or not recorded,Fixed object,33,33,0,439
+2019,Other or not recorded,No other vehicle,57,57,0,351
+2019,Other or not recorded,Not recorded,1176,1179,3,8888
+2019,Other or not recorded,Something else,10,10,0,179
+2019,Other or not recorded,Truck or bus,14,14,0,147
+2019,Pedal cyclist,"Car, ute or van",1585,1588,3,6536
+2019,Pedal cyclist,Fixed object,434,434,0,1769
+2019,Pedal cyclist,No other vehicle,3070,3073,3,8374
+2019,Pedal cyclist,Not recorded,1672,1672,0,4260
+2019,Pedal cyclist,Something else,501,502,1,1713
+2019,Pedal cyclist,Truck or bus,40,41,1,248
+2019,Pedestrian,"Car, ute or van",2365,2406,41,24552
+2019,Pedestrian,Not recorded,77,77,0,643
+2019,Pedestrian,Something else,159,162,3,1606
+2019,Pedestrian,Truck or bus,112,118,6,1896
+2019,Truck occupant,"Car, ute or van",73,73,0,332
+2019,Truck occupant,Fixed object,79,80,1,666
+2019,Truck occupant,No other vehicle,274,274,0,1644
+2019,Truck occupant,Not recorded,30,30,0,485
+2019,Truck occupant,Something else,9,9,0,144
+2019,Truck occupant,Truck or bus,59,60,1,319
+2019,Ute or van occupant,"Car, ute or van",80,81,1,330
+2019,Ute or van occupant,Fixed object,53,53,0,438
+2019,Ute or van occupant,No other vehicle,80,81,1,291
+2019,Ute or van occupant,Not recorded,13,13,0,87
+2019,Ute or van occupant,Something else,5,5,0,7
+2019,Ute or van occupant,Truck or bus,29,29,0,237
+2020,Bus occupant,"Car, ute or van",20,20,,75
+2020,Bus occupant,Fixed object,8,8,,73
+2020,Bus occupant,No other vehicle,123,123,,605
+2020,Bus occupant,Not recorded,9,9,,26
+2020,Bus occupant,Something else,4,4,,14
+2020,Bus occupant,Truck or bus,9,9,,52
+2020,Car driver,"Car, ute or van",6635,6644,,22899
+2020,Car driver,Fixed object,3076,3085,,19334
+2020,Car driver,No other vehicle,1768,1774,,8731
+2020,Car driver,Not recorded,123,123,,579
+2020,Car driver,Something else,144,145,,441
+2020,Car driver,Truck or bus,471,472,,3197
+2020,Car passenger,"Car, ute or van",2222,2227,,10063
+2020,Car passenger,Fixed object,987,989,,6719
+2020,Car passenger,No other vehicle,912,915,,5123
+2020,Car passenger,Not recorded,54,54,,395
+2020,Car passenger,Something else,36,36,,373
+2020,Car passenger,Truck or bus,133,134,,882
+2020,Motorcyclist,"Car, ute or van",2047,2057,,16933
+2020,Motorcyclist,Fixed object,955,956,,8679
+2020,Motorcyclist,No other vehicle,3782,3785,,12868
+2020,Motorcyclist,Not recorded,1408,1408,,6373
+2020,Motorcyclist,Something else,419,419,,1871
+2020,Motorcyclist,Truck or bus,73,73,,1024
+2020,Other or not recorded,"Car, ute or van",134,135,,1018
+2020,Other or not recorded,Fixed object,15,15,,297
+2020,Other or not recorded,No other vehicle,64,65,,869
+2020,Other or not recorded,Not recorded,1087,1089,,7026
+2020,Other or not recorded,Something else,7,7,,79
+2020,Other or not recorded,Truck or bus,6,6,,123
+2020,Pedal cyclist,"Car, ute or van",1599,1606,,7044
+2020,Pedal cyclist,Fixed object,500,500,,1522
+2020,Pedal cyclist,No other vehicle,3853,3854,,9370
+2020,Pedal cyclist,Not recorded,1895,1897,,4522
+2020,Pedal cyclist,Something else,443,443,,1930
+2020,Pedal cyclist,Truck or bus,42,42,,311
+2020,Pedestrian,"Car, ute or van",1852,1874,,18366
+2020,Pedestrian,Not recorded,68,68,,720
+2020,Pedestrian,Something else,105,106,,1115
+2020,Pedestrian,Truck or bus,78,78,,1471
+2020,Truck occupant,"Car, ute or van",70,70,,359
+2020,Truck occupant,Fixed object,62,62,,404
+2020,Truck occupant,No other vehicle,281,281,,1455
+2020,Truck occupant,Not recorded,22,22,,171
+2020,Truck occupant,Something else,2,2,,102
+2020,Truck occupant,Truck or bus,63,63,,654
+2020,Ute or van occupant,"Car, ute or van",89,89,,307
+2020,Ute or van occupant,Fixed object,53,53,,337
+2020,Ute or van occupant,No other vehicle,122,122,,683
+2020,Ute or van occupant,Not recorded,16,16,,103
+2020,Ute or van occupant,Something else,2,2,,23
+2020,Ute or van occupant,Truck or bus,18,18,,83
+2021,Bus occupant,"Car, ute or van",42,42,,65
+2021,Bus occupant,Fixed object,8,8,,40
+2021,Bus occupant,No other vehicle,97,97,,485
+2021,Bus occupant,Not recorded,13,13,,92
+2021,Bus occupant,Something else,2,2,,7
+2021,Bus occupant,Truck or bus,7,7,,64
+2021,Car driver,"Car, ute or van",7589,7589,,26556
+2021,Car driver,Fixed object,3064,3064,,18824
+2021,Car driver,No other vehicle,1821,1821,,11192
+2021,Car driver,Not recorded,143,143,,614
+2021,Car driver,Something else,166,166,,488
+2021,Car driver,Truck or bus,544,544,,3730
+2021,Car passenger,"Car, ute or van",2303,2303,,8801
+2021,Car passenger,Fixed object,970,970,,6504
+2021,Car passenger,No other vehicle,941,941,,4239
+2021,Car passenger,Not recorded,58,58,,261
+2021,Car passenger,Something else,62,62,,356
+2021,Car passenger,Truck or bus,161,161,,1309
+2021,Motorcyclist,"Car, ute or van",2317,2317,,19134
+2021,Motorcyclist,Fixed object,920,920,,6805
+2021,Motorcyclist,No other vehicle,3759,3759,,13470
+2021,Motorcyclist,Not recorded,1387,1387,,6519
+2021,Motorcyclist,Something else,434,434,,2243
+2021,Motorcyclist,Truck or bus,66,66,,1750
+2021,Other or not recorded,"Car, ute or van",125,125,,979
+2021,Other or not recorded,Fixed object,31,31,,543
+2021,Other or not recorded,No other vehicle,53,53,,606
+2021,Other or not recorded,Not recorded,1089,1089,,8673
+2021,Other or not recorded,Something else,13,13,,73
+2021,Other or not recorded,Truck or bus,7,7,,168
+2021,Pedal cyclist,"Car, ute or van",1575,1575,,8134
+2021,Pedal cyclist,Fixed object,466,466,,2386
+2021,Pedal cyclist,No other vehicle,3705,3705,,9720
+2021,Pedal cyclist,Not recorded,1854,1854,,4096
+2021,Pedal cyclist,Something else,514,514,,1603
+2021,Pedal cyclist,Truck or bus,49,49,,826
+2021,Pedestrian,"Car, ute or van",2063,2063,,19719
+2021,Pedestrian,Not recorded,66,66,,604
+2021,Pedestrian,Something else,122,122,,853
+2021,Pedestrian,Truck or bus,83,83,,1557
+2021,Truck occupant,"Car, ute or van",71,71,,269
+2021,Truck occupant,Fixed object,71,71,,562
+2021,Truck occupant,No other vehicle,230,230,,1321
+2021,Truck occupant,Not recorded,22,22,,132
+2021,Truck occupant,Something else,7,7,,23
+2021,Truck occupant,Truck or bus,74,74,,564
+2021,Ute or van occupant,"Car, ute or van",107,107,,603
+2021,Ute or van occupant,Fixed object,66,66,,377
+2021,Ute or van occupant,No other vehicle,122,122,,776
+2021,Ute or van occupant,Not recorded,12,12,,14
+2021,Ute or van occupant,Something else,5,5,,38
+2021,Ute or van occupant,Truck or bus,29,29,,167

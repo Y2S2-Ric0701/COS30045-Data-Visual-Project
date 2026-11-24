@@ -1,83 +1,97 @@
 /* ═══════════════════════════════════════════════════════════════
-   charts-trends.js – Page Controller for Question 2 (Trends)
+   charts-trends.js – Question 2: Is it getting better or worse?
    COS30045 Data Visualisation Project
-   Pattern: Object-Oriented Component Instantiation
+
+   2.1 Did the total go up?                    (stacked area + total line)
+   2.2 Which groups are rising, which falling? (one labelled line per road user)
+   2.3 Who changed the most?                   (% change, first → last chosen year)
+   Time charts always draw 2011–2021 and grey out the years outside the
+   filter; Figure 2.3 measures the change between the chosen years.
    ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
-  d3.csv('data/rq2_trends.csv').then(function (rawData) {
+  const fmt = d3.format(',');
+  const highlightOf = state => (state.roadUser === 'all' ? null : state.roadUser);
+  const keys = ROAD_USERS.map(r => r.key);
 
-    // ── Figure 2.1: Multi-series 10-Year Line Trajectory ──────────
-    new Vis.LineChart('#chart-year', rawData, {
-      xKey: 'Calendar year',
-      series: [
-        { key: 'Car driver',    color: '#0072B2', label: 'Car Driver' },
-        { key: 'Motorcyclist',  color: '#E69F00', label: 'Motorcyclist' },
-        { key: 'Pedal cyclist', color: '#009E73', label: 'Pedal Cyclist', highlight: true },
-        { key: 'Car passenger', color: '#56B4E9', label: 'Car Passenger' },
-        { key: 'Pedestrian',    color: '#D55E00', label: 'Pedestrian' },
-      ],
-      breaks: [
-        { year: 2012, label: '2012: Vic ED break' },
-        { year: 2017, label: '2017: NSW ED break' },
-      ],
-      yLabel: 'Annual Hospitalisations',
+  // Plain-language notes for the two changes in how patients were counted
+  const BREAKS = [
+    { year: 2012, lines: ['2012: Victoria stopped counting', 'patients treated only in emergency'] },
+    { year: 2017, lines: ['2017: NSW made the', 'same change'] },
+  ];
+
+  SiteData.trends().then(function (rows) {
+    // year × road user table
+    const sums = SiteData.sumBy(rows, d => `${d.year}|${d.road_user}`, ['hospitalisations']);
+    const table = YEARS.map(year => {
+      const row = { year };
+      keys.forEach(k => { row[k] = (sums.get(`${year}|${k}`) || {}).hospitalisations || 0; });
+      return row;
     });
+    // Biggest group at the bottom of the stack
+    const stackKeys = [...keys].sort((a, b) => d3.sum(table, d => d[b]) - d3.sum(table, d => d[a]));
 
-    // ── Figure 2.2: 10-Year Net Change (2011 vs 2021) ─────────────
-    const row2011 = rawData.find(d => +d['Calendar year'] === 2011);
-    const row2021 = rawData.find(d => +d['Calendar year'] === 2021);
+    const initial = GlobalFilter.get();
 
-    if (row2011 && row2021) {
-      const targetKeys = [
-        { key: 'Pedal cyclist', label: 'Pedal Cyclist' },
-        { key: 'Car driver',    label: 'Car Driver' },
-        { key: 'Motorcyclist',  label: 'Motorcyclist' },
-        { key: 'Car passenger', label: 'Car Passenger' },
-        { key: 'Pedestrian',    label: 'Pedestrian' },
-      ];
+    // ── Figure 2.1: Did the total go up? ─────────────────────────
+    const totalChart = new Vis.StackedAreaChart('#chart-total', table, {
+      keys: stackKeys,
+      colorOf: roadUserColor,
+      labelOf: roadUserPlural,
+      highlight: highlightOf(initial),
+      band: initial.years,
+      onClick: k => GlobalFilter.toggleRoadUser(k),
+    });
+    GlobalFilter.roadUserChips('#chips-total', stackKeys);
 
-      const changeData = targetKeys.map(k => {
-        const val11 = +row2011[k.key] || 0;
-        const val21 = +row2021[k.key] || 0;
-        const diff = val21 - val11;
-        return {
-          user: k.label,
-          shift: val11 > 0 ? Math.round((diff / val11) * 1000) / 10 : 0, // e.g. +51.4%
-          val2021: val21,
-        };
-      });
+    // ── Figure 2.2: Which groups are rising, which are falling? ──
+    const linesChart = new Vis.TrendLinesChart('#chart-by-group', table, {
+      series: ROAD_USERS.map(r => ({ key: r.key, label: r.plural, color: r.color })),
+      breaks: BREAKS,
+      highlight: highlightOf(initial),
+      band: initial.years,
+      onClick: k => GlobalFilter.toggleRoadUser(k),
+    });
+    GlobalFilter.roadUserChips('#chips-by-group');
 
-      new Vis.BarChart('#chart-injury-count', changeData, {
-        labelKey: 'user',
-        valueKey: 'val2021',
-        gradient: true,
-        xLabel: '2021 Final Counts (Ranked)',
-      });
+    // ── Figure 2.3: Who changed the most? ────────────────────────
+    function changeData([y0, y1]) {
+      const r0 = table.find(d => d.year === y0);
+      const r1 = table.find(d => d.year === y1);
+      return ROAD_USERS.map(r => ({
+        key: r.key, label: r.plural, from: r0[r.key], to: r1[r.key], y0, y1,
+        value: y0 === y1 || !r0[r.key] ? null : (r1[r.key] - r0[r.key]) / r0[r.key],
+      }));
     }
-
-    // ── Figure 2.3: Demographic Composition over Time ─────────────
-    new Vis.StackedBarChart('#chart-demographic-trends', rawData, {
-      categoryKey: 'Calendar year',
-      seriesKeys: ['Car driver', 'Motorcyclist', 'Pedal cyclist', 'Car passenger', 'Pedestrian'],
-      colorMap: {
-        'Car driver': '#0072B2',
-        'Motorcyclist': '#E69F00',
-        'Pedal cyclist': '#009E73',
-        'Car passenger': '#56B4E9',
-        'Pedestrian': '#D55E00',
-      },
-      legendItems: [
-        { label: 'Car Driver', color: '#0072B2' },
-        { label: 'Motorcyclist', color: '#E69F00' },
-        { label: 'Pedal Cyclist', color: '#009E73' },
-        { label: 'Car Passenger', color: '#56B4E9' },
-        { label: 'Pedestrian', color: '#D55E00' },
-      ],
+    const fmtChange = v => `${v >= 0 ? '+' : '−'}${d3.format('.0%')(Math.abs(v))}`;
+    const changeChart = new Vis.RankedBarChart('#chart-change', changeData(initial.years), {
+      tickFormat: v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${d3.format('.0%')(Math.abs(v))}`,
+      valueText: d => fmtChange(d.value),
+      colorOf: d => (d.value >= 0 ? COLORS.diverging.increase : COLORS.diverging.decrease),
+      labelColor: d => (d.value >= 0 ? '#b25900' : '#1b7a34'),
+      margin: { top: 24, right: 90, bottom: 54, left: 200 },
+      rowHeight: 40,
+      nullText: 'pick two or more years',
+      emptyText: 'Pick two or more years in the filter bar to see a change',
+      onClick: d => GlobalFilter.toggleRoadUser(d.key),
+      tooltip: d => [d.label, [
+        [`${d.y0}:`, fmt(d.from)],
+        [`${d.y1}:`, fmt(d.to)],
+        ['Change:', `${d.to - d.from >= 0 ? '+' : '−'}${fmt(Math.abs(d.to - d.from))} (${fmtChange(d.value)})`, true],
+      ]],
     });
 
-  }).catch(err => console.error('Error loading rq2_trends.csv:', err));
-
+    GlobalFilter.subscribe(state => {
+      const hl = highlightOf(state);
+      totalChart.update({ highlight: hl, band: state.years });
+      linesChart.update({ highlight: hl, band: state.years });
+      changeChart.config.highlight = hl;
+      changeChart.config.xLabel = state.years[0] === state.years[1]
+        ? 'Change (pick two or more years in the filter bar)'
+        : `Change in hospitalised injuries, ${state.years[0]} to ${state.years[1]}`;
+      changeChart.wrangleData(changeData(state.years));
+    });
+  }).catch(err => console.error('Error loading data/q2_trends/:', err));
 });
