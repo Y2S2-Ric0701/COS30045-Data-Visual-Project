@@ -40,16 +40,17 @@ Tick an item when it is built **and** checked in the browser. Last updated 24 No
 - [x] Road photos in `src/asset/` (1600px and 3840px for 4K / high-density screens, 800px for cards), credits in every footer and `asset/CREDITS.md`
 - [x] Photo behind each page hero and on each question card
 - [x] Fit to mobile and desktop: charts draw at the screen's width and switch to a phone layout below 560px (names above bars, key under line charts, slanted heatmap headers, larger map labels). The "swipe sideways" scrolling is gone. Checked at 390, 768 and 1440px with no sideways page scroll.
+- [x] Full-width nav (brand at the far left, links and theme button at the far right). It collapses into the menu at 1000px and has tighter links between 1001 and 1120px, so it fits laptop and tablet-landscape widths. The filter's year slider is drawn at its real width and redraws on resize. Checked at 390, 768, 900, 1024, 1180 and 1440px.
 
 **Tier 2 (Process Book)**
 
-- [ ] 11. Per-capita map toggle
-- [ ] 12. Linked highlight and brushing between charts
-- [ ] 13. Detail panel on click
-- [ ] 14. Chapter dividers with waffle charts
-- [ ] 15. Chart annotations
-- [ ] 16. Dark mode
-- [ ] 17. Accessibility pass and "View as table"
+- [ ] 11. Per-capita map toggle: **blocked.** Neither workbook in `analysis/dataset` has population or rate data. Adding ABS population would bring in a new source and change the analysis, so it is left out. Possible in-dataset option: a "change since the first year" map view.
+- [x] 12. Linked highlight and brushing between charts: road-user and state hover is linked across charts (`js/highlight.js`). In Figure 2.1, dragging along the years sets the year filter.
+- [x] 13. Detail panel on click: states (Q3 map and bars) and road users (Q1) open a panel with a sparkline, total, share, rank and change against Australia (`js/detail-panel.js`). It is a bottom sheet on phones; Esc closes it.
+- [x] 14. Chapter dividers with waffle charts: an asphalt band, "Pedestrians are 7% of patients but a quarter of deaths in hospital", with two 10×10 waffles computed from the Q5 data for 2011–2019 (`js/chapter-divider.js`). It appears on the Overview before the conclusion and on Question 5 before Figure 5.3.
+- [x] 15. Chart annotations: the COVID-19 note on Figure 2.1, and "Biggest rise" notes on Figures 2.2 and 3.3.
+- [x] 16. Dark mode: a sun/moon button in the nav, saved per reader. It follows the system setting until the reader chooses. Chart cards turn dim slate in dark mode. Chart text, gridlines and halos follow theme tokens (`--c-*`). The blue scale runs from dim to bright (bigger = brighter), and charts redraw when the theme is switched. The stepper car faces the way it drives, and is lane-yellow in dark mode. The nav and footer follow the theme: frosted paper in light mode, and in dark mode Apple-style glass (translucent blurred panels over a soft glow). Back/Next use SVG arrows that recolour per theme.
+- [x] 17. Accessibility pass and "View as table": every figure has a "View as table" toggle (`js/data-table.js`) that follows the filter, and charts without a written description get one from the same numbers.
 
 **Tier 3 (stretch)**
 
@@ -229,7 +230,6 @@ Implementation: add an `animateIn()` method to `BaseChart` that each subclass ov
 │   ● ● ● ● ● ● ● ● ● ● ● ● ● ●     coloured by road user      │
 │   ...                             (hover a dot → who)        │
 │                                                              │
-│   Since you opened this page: 0 → 1 → 2 people               │
 │   ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ (lane line) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─         │
 │   [ Start the journey ↓ ]   [ Jump to a question ▾ ]         │
 └──────────────────────────────────────────────────────────────┘
@@ -237,7 +237,7 @@ Implementation: add an `animateIn()` method to `BaseChart` that each subclass ov
 
 - **The hook number comes from our data:** 39,505 cases in 2021 ÷ 365 ≈ 108 a day, which is about one every 13.3 minutes. Label it "at 2021 rates".
 - **Unit chart:** 108 dots, coloured by the 2021 road-user mix using `ROAD_USERS` colours. On hover or tap a dot shows "Cyclist", and a legend sits below. On load the dots fill in one by one over about 1.5 s; with reduced motion they appear at once.
-- **"Since you opened this page" counter:** it ticks up by one every ~13.3 minutes of time on the page. It is a quiet, honest live element. Keep it small, below the main headline.
+- ~~"Since you opened this page" counter~~: built, then removed. It showed "0 people admitted" for the first 13 minutes, which read as broken.
 
 ### 5.2 Key numbers → "Three signs on the road" [T1]
 

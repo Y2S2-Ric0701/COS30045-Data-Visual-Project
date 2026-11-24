@@ -43,19 +43,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Figure 2.1: Did the total go up? ─────────────────────────
     const totalChart = new Vis.StackedAreaChart('#chart-total', table, {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       keys: stackKeys,
       colorOf: roadUserColor,
       labelOf: roadUserPlural,
       highlight: highlightOf(initial),
       band: initial.years,
       onClick: k => GlobalFilter.toggleRoadUser(k),
+      onBrush: years => GlobalFilter.set({ years }),
+      notes: [{ year: 2020, lines: ['2020: COVID-19', 'fewer trips, fewer crashes'], short: ['2020:', 'COVID-19'],
+        side: 'above', len: 62, anchor: 'end', dx: -26 }],
     });
     GlobalFilter.roadUserChips('#chips-total', stackKeys);
 
     // ── Figure 2.2: Which groups are rising, which are falling? ──
     const linesChart = new Vis.TrendLinesChart('#chart-by-group', table, {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       series: ROAD_USERS.map(r => ({ key: r.key, label: r.plural, short: SHORT_NAMES[r.key], color: r.color })),
       breaks: BREAKS,
+      noteRiser: true,
       highlight: highlightOf(initial),
       band: initial.years,
       onClick: k => GlobalFilter.toggleRoadUser(k),
@@ -73,10 +79,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     const fmtChange = v => `${v >= 0 ? '+' : '−'}${d3.format('.0%')(Math.abs(v))}`;
     const changeChart = new Vis.RankedBarChart('#chart-change', changeData(initial.years), {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       tickFormat: v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${d3.format('.0%')(Math.abs(v))}`,
       valueText: d => fmtChange(d.value),
       colorOf: d => (d.value >= 0 ? COLORS.diverging.increase : COLORS.diverging.decrease),
-      labelColor: d => (d.value >= 0 ? '#b25900' : '#1b7a34'),
+      labelColor: d => (d.value >= 0 ? 'var(--badge-orange-text)' : 'var(--badge-green-text)'),
       margin: { top: 24, right: 90, bottom: 54, left: 200 },
       rowHeight: 40,
       nullText: 'pick two or more years',

@@ -91,8 +91,12 @@
     const y = d3.scaleBand().domain(rows.map(r => r.key)).range([0, innerHeight]).paddingInner(0.08);
 
     // Same blue family as the rest of the site; 0% gets a neutral tint
-    const color = d3.scaleSequential().domain([0, 0.9]).interpolator(t => d3.interpolateBlues(0.06 + t * 0.94));
-    const textFill = d => (d.pct >= 0.4 ? '#ffffff' : '#1d1d1f');
+    // Dark mode: dim → bright blue (bigger share = brighter), so pale cells don't glare
+    const dark = Vis.isDark();
+    const color = d3.scaleSequential().domain([0, 0.9]).interpolator(dark
+      ? d3.interpolateHcl('#22364D', '#B5DAFF')
+      : t => d3.interpolateBlues(0.06 + t * 0.94));
+    const textFill = d => (dark ? (d.pct >= 0.4 ? '#14171A' : '#E7EAEE') : (d.pct >= 0.4 ? '#ffffff' : '#1d1d1f'));
     const faded = key => hl && key !== hl;
 
     // Column headers
@@ -102,13 +106,13 @@
         const cx = x(cp) + x.bandwidth() / 2;
         g.append('text').attr('text-anchor', 'start')
           .attr('transform', `translate(${cx - 4},-10) rotate(-50)`)
-          .style('font-size', '12px').style('font-weight', '600').style('fill', '#1d1d1f')
+          .style('font-size', '12px').style('font-weight', '600').style('fill', 'var(--c-ink)')
           .text(compact ? COL_SHORT[cp] || cp : cp);
         return;
       }
       const t = g.append('text').attr('text-anchor', 'middle')
         .attr('x', x(cp) + x.bandwidth() / 2).attr('y', -36)
-        .style('font-size', '13px').style('font-weight', '600').style('fill', '#1d1d1f');
+        .style('font-size', '13px').style('font-weight', '600').style('fill', 'var(--c-ink)');
       COL_LINES[cp].forEach((line, i) => t.append('tspan')
         .attr('x', x(cp) + x.bandwidth() / 2).attr('dy', i ? 16 : 0).text(line));
     });
@@ -118,14 +122,14 @@
       .attr('x', compact ? -8 : -12).attr('y', r => y(r.key) + y.bandwidth() / 2).attr('dy', '0.35em')
       .attr('text-anchor', 'end')
       .style('font-size', compact ? '12.5px' : '13.5px').style('font-weight', r => (r.key === hl ? 700 : 600))
-      .style('fill', '#1d1d1f').style('opacity', r => (faded(r.key) ? 0.45 : 1))
+      .style('fill', 'var(--c-ink)').style('opacity', r => (faded(r.key) ? 0.45 : 1))
       .text(r => (compact ? USER_SHORT[r.key] || r.user : r.user));
     if (!compact) {
     g.append('text').attr('x', innerWidth + 14).attr('y', -20)
-      .style('font-size', '12px').style('font-weight', '600').style('fill', '#55555a').text('Cases');
+      .style('font-size', '12px').style('font-weight', '600').style('fill', 'var(--c-ink-2)').text('Cases');
     g.append('g').selectAll('text').data(rows).join('text')
       .attr('x', innerWidth + 14).attr('y', r => y(r.key) + y.bandwidth() / 2).attr('dy', '0.35em')
-      .style('font-size', '12.5px').style('fill', '#55555a')
+      .style('font-size', '12.5px').style('fill', 'var(--c-ink-2)')
       .text(r => fmt(r.total));
     }
 
@@ -139,9 +143,9 @@
     cellG.append('rect')
       .attr('class', 'heat-cell')
       .attr('width', x.bandwidth()).attr('height', y.bandwidth()).attr('rx', 6)
-      .attr('fill', d => (d.pct > 0 ? color(d.pct) : '#f5f5f7'))
+      .style('fill', d => (d.pct > 0 ? color(d.pct) : 'var(--c-empty)'))
       // Outline each row's largest share so the main pattern pops out
-      .attr('stroke', d => (d.pct > 0 && d.pct === rowMax.get(d.key) ? '#1d1d1f' : 'none'))
+      .style('stroke', d => (d.pct > 0 && d.pct === rowMax.get(d.key) ? 'var(--c-ink)' : 'none'))
       .attr('stroke-width', 1.5);
 
     cellG.append('text')
@@ -149,7 +153,7 @@
       .attr('text-anchor', 'middle').style('pointer-events', 'none')
       .style('font-size', d => (compact ? (d.pct >= 0.1 ? '12px' : '11px') : d.pct >= 0.1 ? '14px' : '12.5px'))
       .style('font-weight', d => (d.pct >= 0.1 ? '700' : '500'))
-      .style('fill', d => (d.pct > 0 ? textFill(d) : '#94a3b8'))
+      .style('fill', d => (d.pct > 0 ? textFill(d) : 'var(--c-muted)'))
       .text(d => (d.pct >= 0.005 ? pct0(d.pct) : d.pct > 0 ? '<1%' : '–'));
 
     // Crosshair hover; click a row to follow that road user
@@ -177,19 +181,30 @@
     const grad = svg.append('defs').append('linearGradient').attr('id', gradId);
     d3.range(0, 1.01, 0.1).forEach(t => grad.append('stop')
       .attr('offset', `${t * 100}%`).attr('stop-color', color(t * 0.9)));
-    legend.append('text').attr('y', 4).style('font-size', '12px').style('fill', '#55555a').text('Share of row');
+    legend.append('text').attr('y', 4).style('font-size', '12px').style('fill', 'var(--c-ink-2)').text('Share of row');
     legend.append('rect').attr('x', 82).attr('y', -6).attr('width', lw).attr('height', 12).attr('rx', 3)
       .attr('fill', `url(#${gradId})`);
-    legend.append('text').attr('x', 82).attr('y', 24).style('font-size', '11px').style('fill', '#55555a').text('0%');
+    legend.append('text').attr('x', 82).attr('y', 24).style('font-size', '11px').style('fill', 'var(--c-ink-2)').text('0%');
     legend.append('text').attr('x', 82 + lw).attr('y', 24).attr('text-anchor', 'end')
-      .style('font-size', '11px').style('fill', '#55555a').text('90%');
+      .style('font-size', '11px').style('fill', 'var(--c-ink-2)').text('90%');
     // On a phone the "outlined" note goes on its own line under the colour bar
     const stack = compact || width < 820;
     const ox = stack ? 0 : 340, oy = stack ? 40 : 0;
     legend.append('rect').attr('x', ox).attr('y', oy - 7).attr('width', 14).attr('height', 14).attr('rx', 3)
-      .attr('fill', '#ffffff').attr('stroke', '#1d1d1f').attr('stroke-width', 1.5);
-    legend.append('text').attr('x', ox + 22).attr('y', oy + 4).style('font-size', '12px').style('fill', '#55555a')
+      .style('fill', 'var(--c-surface)').style('stroke', 'var(--c-ink)').attr('stroke-width', 1.5);
+    legend.append('text').attr('x', ox + 22).attr('y', oy + 4).style('font-size', '12px').style('fill', 'var(--c-ink-2)')
       .text(compact ? 'Outlined = hit most often' : 'Outlined = what that road user hit most often');
+
+    // "View as table" (js/data-table.js): each row adds up to 100%
+    if (typeof DataTable !== 'undefined') {
+      const pc = d3.format('.0%');
+      DataTable.register(container.node(), () => ({
+        columns: ['Road user', ...COLS, 'Patients'],
+        rows: rows.map(r => [r.user,
+          ...COLS.map(cp => pc((matrix.find(m => m.key === r.key && m.cp === cp) || {}).pct || 0)),
+          d3.format(',')(r.total)]),
+      }));
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════

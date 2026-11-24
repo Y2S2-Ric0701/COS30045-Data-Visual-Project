@@ -129,6 +129,10 @@ const Motion = (function () {
       container.classList.add('reveal-wait');
       whenVisible(container, () => whenDrawn(container, svg => {
         container.classList.remove('reveal-wait');
+        // Annotations (.chart-annotation) wait until the entrance is over:
+        // data first, then what it means (plan §6.8)
+        container.classList.add('is-entering');
+        setTimeout(() => container.classList.remove('is-entering'), dur(1100));
         try { animateSvg(svg); } catch (e) { /* never leave a chart hidden */ }
       }), 0.25);
     });

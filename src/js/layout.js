@@ -36,7 +36,8 @@ function renderStepper(activeKey) {
   const next = NAV_PAGES[i + 1] ||
     { href: 'index.html#conclusion', step: 'Summary', question: 'What should change? Back to the Overview' };
   const link = (p, dir) => {
-    const arrow = `<span class="stepper-arrow" aria-hidden="true">${dir === 'prev' ? '&larr;' : '&rarr;'}</span>`;
+    const arrow = `<span class="stepper-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${dir === 'prev'
+      ? 'M19 12H5.5M11 5.5 4.5 12l6.5 6.5' : 'M5 12h13.5M13 5.5l6.5 6.5-6.5 6.5'}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
     const text = `
         <span class="stepper-text">
           <span class="stepper-step"><span class="stepper-word">${dir === 'prev' ? 'Back' : 'Next'} &middot; </span>${p.step}</span>
@@ -80,10 +81,18 @@ function renderRoute(current) {
     <div class="route" style="--car-next:${at(nextI)};--car-prev:${at(prevI)}">
       <div class="route-road" aria-hidden="true"></div>
       ${stops}
-      <svg class="route-car" style="left:${at(current)}" viewBox="0 0 26 16" aria-hidden="true">
-        <path fill="currentColor" d="M5 6 8 1.5h9L21 6h2.5A1.5 1.5 0 0 1 25 7.5V12h-2.2a2.8 2.8 0 0 0-5.6 0H8.8a2.8 2.8 0 0 0-5.6 0H1V8a2 2 0 0 1 2-2z"/>
-        <circle cx="6" cy="12.5" r="2.2" fill="currentColor"/><circle cx="20" cy="12.5" r="2.2" fill="currentColor"/>
-        <path fill="#F5C518" d="M9.2 2.8h3.3V6H7.3zM14 2.8h2.6L18.8 6H14z"/>
+      <svg class="route-car" style="left:${at(current)}" viewBox="0 0 41.5 22" aria-hidden="true">
+        <!-- Side-view hatchback facing right (the way it drives); colours from --car-* in css/story.css -->
+        <g transform="matrix(-1 0 0 1 41.5 0)">
+          <path style="fill:var(--car-body)" d="M3 15.5V12.2c0-1.3.8-2.4 2-2.8l5.2-1.6 4.6-4.4A4 4 0 0 1 17.6 2.3h9.1a4 4 0 0 1 3 1.4l3.9 4.6 2.6.7A3 3 0 0 1 38.5 12v3.5a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 15.5z"/>
+          <path style="fill:var(--car-window)" d="M13.2 8.4 16.6 5a2 2 0 0 1 1.4-.6h3.8v4z"/>
+          <path style="fill:var(--car-window)" d="M23.6 4.4h3.1a2 2 0 0 1 1.5.7l2.7 3.3h-7.3z"/>
+          <path style="fill:none;stroke:var(--car-trim)" stroke-width="1" stroke-linecap="round" d="M22.7 9.6v5.2M5 12.4h32"/>
+          <circle cx="11" cy="17" r="3.8" style="fill:var(--car-wheel)"/><circle cx="11" cy="17" r="1.5" style="fill:var(--car-hub)"/>
+          <circle cx="30" cy="17" r="3.8" style="fill:var(--car-wheel)"/><circle cx="30" cy="17" r="1.5" style="fill:var(--car-hub)"/>
+        </g>
+        <rect x="35.4" y="10.4" width="2.6" height="1.7" rx=".85" style="fill:var(--car-light)"/>
+        <rect x="3.3" y="10" width="1.6" height="2.4" rx=".8" style="fill:var(--car-tail)"/>
       </svg>
     </div>`;
 }
@@ -102,11 +111,17 @@ function renderNav(activeKey) {
         <span class="apple-brand-badge">COS30045</span>
         <span class="apple-brand-title">Road Crash Analytics</span>
       </a>
-      <button class="apple-nav-toggle" type="button" aria-label="Open menu"
-              aria-expanded="false" aria-controls="site-nav-links">
-        <span></span><span></span><span></span>
-      </button>
       <div class="apple-nav-links" id="site-nav-links">${links}</div>
+      <div class="nav-actions">
+        <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.8 6.8 0 0 0 10.7 10.7z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>
+        </button>
+        <button class="apple-nav-toggle" type="button" aria-label="Open menu"
+                aria-expanded="false" aria-controls="site-nav-links">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
     <div class="read-progress" aria-hidden="true"><span></span></div>
   </nav>`;
@@ -231,6 +246,19 @@ function renderPhotoCredits() {
     toggle.addEventListener('click', () => setOpen(!nav.classList.contains('nav-open')));
     nav.querySelectorAll('.apple-nav-links a').forEach(a => a.addEventListener('click', () => setOpen(false)));
     document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+  }
+
+  // Light / dark switch (js/theme.js keeps the choice)
+  const themeBtn = document.querySelector('.theme-toggle');
+  if (themeBtn && window.SiteTheme) {
+    const paintTheme = () => {
+      const dark = SiteTheme.get() === 'dark';
+      themeBtn.setAttribute('aria-pressed', String(dark));
+      themeBtn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    };
+    paintTheme();
+    themeBtn.addEventListener('click', () => SiteTheme.toggle());
+    document.addEventListener('themechange', paintTheme);
   }
 
   initJumpHighlight();

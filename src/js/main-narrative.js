@@ -109,9 +109,11 @@ function createResponsiveSVG(selector) {
  * Vis.barGradient in vis-components.js so all pages match.
  */
 function barGradient(domain) {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   return d3.scaleSequential()
     .domain(domain)
-    .interpolator(t => d3.interpolateBlues(0.3 + t * 0.7));
+    // Dark mode: dim → bright blue (bigger = brighter), as in vis-components.js
+    .interpolator(dark ? d3.interpolateHcl('#2B5C8F', '#B5DAFF') : t => d3.interpolateBlues(0.3 + t * 0.7));
 }
 
 /** Figure 1 legend: gradient key normally, accent key when a state is selected */
@@ -201,7 +203,7 @@ function drawSpark(selector, series, color) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   HERO: "Every 13 minutes" + one day as 108 dots + live clock
+   HERO: "Every 13 minutes" + one day as 108 dots
    All three numbers come from the data (latest year), not hard-coded.
    ═══════════════════════════════════════════════════════════════ */
 function renderHero(states, people) {
@@ -290,33 +292,8 @@ function renderHero(states, people) {
     }, 0.3);
   }
 
-  startHeroClock(minutes);
 }
 
-/** "Since you opened this page: N people admitted" – one every `minutes` on average */
-function startHeroClock(minutes) {
-  const box = document.getElementById('hero-clock');
-  if (!box) return;
-  const intervalMs = minutes * 60000;
-  const whole = Math.floor(minutes);
-  const secs = Math.round((minutes - whole) * 60);
-  document.getElementById('hero-clock-interval').textContent = `${whole} min ${secs} s`;
-  const count = document.getElementById('hero-clock-count');
-  const unit = document.getElementById('hero-clock-unit');
-  const fill = document.getElementById('hero-clock-fill');
-  const t0 = Date.now();
-  if (!Motion.REDUCED) fill.style.transition = 'transform 1s linear';
-  const tick = () => {
-    const elapsed = Date.now() - t0;
-    const n = Math.floor(elapsed / intervalMs);
-    count.textContent = n;
-    unit.textContent = n === 1 ? 'person admitted' : 'people admitted';
-    fill.style.transform = `scaleX(${(elapsed % intervalMs) / intervalMs})`;
-  };
-  box.hidden = false;
-  tick();
-  setInterval(tick, 1000);
-}
 
 /**
  * Figure 1: Which states have the most injuries? (2011–2021 added up)
@@ -331,6 +308,13 @@ function renderRegionalChart(filterState = 'all') {
     .map(state => ({ state, total: d3.sum(stateRows, d => d[state]) }))
     .sort((a, b) => b.total - a.total);
   const grandTotal = d3.sum(stateData, d => d.total);
+  if (typeof DataTable !== 'undefined') {
+    DataTable.register('#chart-1', () => ({
+      columns: ['State or territory', 'Hospitalised, 2011–2021', 'Share of all states'],
+      rows: stateData.map(d => [stateLabel(d.state), d.total.toLocaleString(), `${((d.total / grandTotal) * 100).toFixed(1)}%`]),
+      summary: `Hospitalised road injuries by state or territory, 2011–2021: ${stateData.map(d => `${d.state} ${d.total.toLocaleString()}`).join(', ')}.`,
+    }));
+  }
 
   const x = d3.scaleBand().domain(stateData.map(d => d.state)).range([0, INNER_WIDTH]).padding(0.32);
   const y = d3.scaleLinear().domain([0, d3.max(stateData, d => d.total) * 1.15]).nice().range([INNER_HEIGHT, 0]);
@@ -389,6 +373,14 @@ function renderTrendChart(filterState = 'all') {
   const place = filterState === 'all' ? 'Australia' : STATE_NAMES[filterState];
   const series = stateRows.map(d => ({ year: d.year, value: d[key] }));
   const color = filterState === 'all' ? '#0072B2' : COLORS.storytelling.accent;
+  if (typeof DataTable !== 'undefined') {
+    DataTable.register('#chart-2', () => ({
+      columns: ['Year', `Hospitalised (${place})`, 'Change from year before'],
+      rows: series.map((d, i) => [d.year, d.value.toLocaleString(), i
+        ? `${d.value >= series[i - 1].value ? '+' : '−'}${Math.abs(d.value - series[i - 1].value).toLocaleString()}` : '']),
+      summary: `Hospitalised road injuries per year, ${place}: ${series.map(d => `${d.year} ${d.value.toLocaleString()}`).join(', ')}.`,
+    }));
+  }
 
   const x = d3.scaleLinear().domain(d3.extent(series, d => d.year)).range([0, INNER_WIDTH]);
   const y = d3.scaleLinear().domain([0, d3.max(series, d => d.value) * 1.18]).nice().range([INNER_HEIGHT, 0]);
@@ -410,10 +402,10 @@ function renderTrendChart(filterState = 'all') {
   [[2012, 'VIC'], [2017, 'NSW']].forEach(([yr, st]) => {
     const on = filterState === 'all' || filterState === st;
     g.append('line').attr('x1', x(yr)).attr('x2', x(yr)).attr('y1', 0).attr('y2', INNER_HEIGHT)
-      .attr('stroke', '#94a3b8').attr('stroke-dasharray', '3 3').attr('opacity', on ? 1 : 0.35);
+      .style('stroke', 'var(--c-muted)').attr('stroke-dasharray', '3 3').attr('opacity', on ? 1 : 0.35);
     if (!compact) {
       g.append('text').attr('class', 'tick').attr('x', x(yr) + 5).attr('y', 12)
-        .style('font-size', '13px').style('fill', '#55555a').attr('opacity', on ? 1 : 0.5)
+        .style('font-size', '13px').style('fill', 'var(--c-ink-2)').attr('opacity', on ? 1 : 0.5)
         .text(`${yr}: ${st} counting change`);
     }
   });
@@ -424,7 +416,7 @@ function renderTrendChart(filterState = 'all') {
 
   g.selectAll('.trend-dot').data(series).join('circle').attr('class', 'trend-dot')
     .attr('cx', d => x(d.year)).attr('cy', d => y(d.value)).attr('r', 5)
-    .attr('fill', color).attr('stroke', '#ffffff').attr('stroke-width', 2)
+    .attr('fill', color).style('stroke', 'var(--c-surface)').attr('stroke-width', 2)
     .style('cursor', 'pointer')
     .on('mouseenter', function (event, d) {
       d3.select(this).attr('r', 7);
@@ -514,4 +506,6 @@ document.addEventListener('DOMContentLoaded', function () {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(renderOverviewCharts, 150);
   });
+  // Light / dark switch: redraw so the bar gradient follows the theme
+  document.addEventListener('themechange', () => { if (stateRows.length) renderOverviewCharts(); });
 });

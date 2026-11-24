@@ -60,8 +60,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const initial = GlobalFilter.get();
 
+    // ── Detail panel (plan §6.4): click a road user in Figure 1.1 ──
+    let panelKey = null;
+    const fmtChange = v => (v == null ? '–' : `${v >= 0 ? '+' : '−'}${pct0(Math.abs(v))}`);
+    function openRoadUserPanel(key, years, returnEl, focus = true) {
+      panelKey = key;
+      const r = ROAD_USER_BY_KEY.get(key);
+      const perYear = ru => YEARS.map(yr => d3.sum(userRows, d => (d.year === yr && (!ru || d.road_user === ru) ? d.hospitalisations : 0)));
+      const mine = perYear(key), all = perYear(null);
+      const rows = roadUserData(years).sort((a, b) => b.value - a.value);
+      const total = rows.find(d => d.key === key).value;
+      const sum = d3.sum(rows, d => d.value);
+      const [y0, y1] = years;
+      const at = (arr, yr) => arr[YEARS.indexOf(yr)];
+      const change = arr => (at(arr, y0) ? (at(arr, y1) - at(arr, y0)) / at(arr, y0) : null);
+      DetailPanel.open({
+        kicker: 'Road user · followed on every page',
+        title: r.plural,
+        series: { years: YEARS, values: mine, color: r.color, band: years },
+        stats: [
+          { label: `Hospitalised, ${rangeText(years)}`, value: fmt(total) },
+          { label: 'Share of all patients', value: pct0(total / sum) },
+          { label: 'Rank by cases', value: `${rows.findIndex(d => d.key === key) + 1} of ${rows.length}` },
+          y0 === y1
+            ? { label: 'Change', value: '–', note: 'Choose two or more years' }
+            : { label: `Change ${y0}–${y1}`, value: fmtChange(change(mine)), note: `All road users: ${fmtChange(change(all))}` },
+        ],
+        note: 'Every chart on the site now follows this road user. Click it again, or press Reset in the filter bar, to show everyone.',
+        returnFocus: returnEl || document.activeElement,
+        focus,
+        onClose: () => { panelKey = null; },
+      });
+    }
+    function clickRoadUserWithPanel(d) {
+      const returnEl = document.activeElement;
+      clickRoadUser(d);
+      if (GlobalFilter.get().roadUser === d.key) openRoadUserPanel(d.key, GlobalFilter.get().years, returnEl);
+      else DetailPanel.close();
+    }
+
     // ── Figure 1.1: Which road users are hurt most? ──────────────
     const roadChart = new Vis.LollipopChart('#chart-road-user-type', roadUserData(initial.years), {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       labelKey: 'label',
       valueKey: 'value',
       minValue: 0,
@@ -70,12 +110,13 @@ document.addEventListener('DOMContentLoaded', function () {
       margin: { top: 25, right: 130, bottom: 50, left: 200 },
       gradient: true,          // one blue: darker = more cases
       xLabel: `Hospitalised, ${rangeText(initial.years)}`,
-      onClick: clickRoadUser,
+      onClick: clickRoadUserWithPanel,
     });
 
     // ── Figure 1.2: Are men and women hurt differently? ──────────
     const g0 = genderData(initial.years);
     const genderChart = new Vis.RankedBarChart('#chart-gender', g0.data, {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       xMin: 0,
       xMax: 1,
       tickFormat: pct0,
@@ -141,6 +182,12 @@ document.addEventListener('DOMContentLoaded', function () {
       genderChart.wrangleData(g.data);
 
       renderAge(state);
+
+      // Keep an open panel in step with the filter
+      if (panelKey && DetailPanel.isOpen()) {
+        if (state.roadUser !== panelKey) DetailPanel.close();
+        else openRoadUserPanel(panelKey, state.years, null, false);
+      }
     });
   }).catch(err => console.error('Error loading the Q1 data (data/q1_who/):', err));
 });

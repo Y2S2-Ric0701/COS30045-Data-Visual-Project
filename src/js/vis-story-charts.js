@@ -21,6 +21,19 @@
   const fmtK = d => (Math.abs(d) >= 1000 ? `${d3.format('~s')(d).replace('G', 'B')}` : d3.format('~')(d));
   const keyOf = d => d.key ?? d.label;
 
+  /** Year-by-year table for the line and area charts (band = chosen years) */
+  function yearTable(data, cols, band, withTotal, what) {
+    const rows = data.filter(d => !band || (d.year >= band[0] && d.year <= band[1]));
+    const total = d => d3.sum(cols, s => +d[s.key] || 0);
+    const first = rows[0], last = rows[rows.length - 1];
+    const range = first && last ? `${first.year}–${last.year}` : '';
+    return {
+      columns: ['Year', ...cols.map(s => s.label), ...(withTotal ? ['Total'] : [])],
+      rows: rows.map(d => [d.year, ...cols.map(s => fmtComma(d[s.key] ?? 0)), ...(withTotal ? [fmtComma(total(d))] : [])]),
+      summary: first ? `${what}, ${range}. ${cols.map(s => `${s.label}: ${fmtComma(first[s.key] ?? 0)} to ${fmtComma(last[s.key] ?? 0)}`).join('; ')}.` : null,
+    };
+  }
+
   // ── Shared helpers ───────────────────────────────────────────
   function tipHtml(title, rows) {
     return `<div class="tooltip-title">${title}</div>` + rows.map(([k, v, accent]) =>
@@ -59,7 +72,7 @@
     const dim = (x0, x1) => {
       if (x1 - x0 <= 0) return;
       g.append('rect').attr('x', x0).attr('width', x1 - x0).attr('y', 0).attr('height', vis.innerHeight)
-        .attr('fill', '#ffffff').attr('opacity', 0.72);
+        .style('fill', 'var(--c-surface)').attr('opacity', 0.72);
     };
     dim(0, Math.max(0, left));
     dim(Math.min(vis.innerWidth, right), vis.innerWidth);
@@ -123,6 +136,24 @@
     });
   }
 
+  /**
+   * On-chart note with a short leader line (plan §6.8).
+   * at: [x, y] point on the data; lines: text lines; side: 'above' | 'below'
+   */
+  function drawNote(g, at, lines, { side = 'above', dx = 0, len = 34, anchor = 'middle', color = 'var(--c-ink)' } = {}) {
+    const [px, py] = at;
+    const ty = side === 'above' ? py - len : py + len;
+    const note = g.append('g').attr('class', 'chart-annotation').style('pointer-events', 'none');
+    note.append('line').attr('x1', px).attr('y1', py + (side === 'above' ? -7 : 7))
+      .attr('x2', px + dx).attr('y2', ty + (side === 'above' ? 4 : -4))
+      .style('stroke', color).attr('stroke-width', 1);
+    const t = note.append('text').attr('class', 'note-label').attr('text-anchor', anchor).style('fill', color);
+    const first = side === 'above' ? ty - (lines.length - 1) * 14 : ty + 10;
+    lines.forEach((l, i) => t.append('tspan').attr('x', px + dx).attr('y', first + i * 14)
+      .style('font-weight', i === 0 ? 700 : null).text(l));
+    return note;
+  }
+
   /** Year axis + value axis for the time charts; fewer ticks on a phone */
   function drawTimeAxes(vis, x, y, nYears, yLabel) {
     const compact = vis.compact;
@@ -130,7 +161,7 @@
     const yearTicks = vis.innerWidth / nYears >= 40 ? nYears : Math.max(4, Math.floor(vis.innerWidth / 70));
     vis.gridG.call(d3.axisLeft(y).ticks(compact ? 5 : 6).tickSize(-vis.innerWidth).tickFormat(''))
       .call(g => g.select('.domain').remove())
-      .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
+      .selectAll('line').style('stroke', 'var(--c-grid)').attr('stroke-dasharray', '2 4');
     vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
       .call(d3.axisBottom(x).ticks(yearTicks).tickFormat(d3.format('d')));
     vis.yAxisG.call(d3.axisLeft(y).ticks(compact ? 5 : 6).tickFormat(fmtK));
@@ -228,7 +259,7 @@
 
       vis.gridG.call(d3.axisBottom(x).ticks(ticks).tickSize(vis.innerHeight).tickFormat(''))
         .call(g => g.select('.domain').remove())
-        .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
+        .selectAll('line').style('stroke', 'var(--c-grid)').attr('stroke-dasharray', '2 4');
 
       if (compact) {
         vis.yAxisG.selectAll('*').remove();
@@ -256,14 +287,14 @@
       // Zero line when some values are negative (e.g. % change)
       vis.annotationsG.selectAll('.zero-line').data(lo < 0 ? [0] : []).join('line')
         .attr('class', 'zero-line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', -6).attr('y2', vis.innerHeight)
-        .attr('stroke', '#1d1d1f').attr('stroke-width', 1);
+        .style('stroke', 'var(--c-ink)').attr('stroke-width', 1);
 
       // Reference lines (e.g. "all road users: 65%")
       const refs = vis.annotationsG.selectAll('.ref-line').data(c.refLines).join('g').attr('class', 'ref-line');
       refs.selectAll('*').remove();
       refs.append('line').attr('x1', d => x(d.value)).attr('x2', d => x(d.value))
         .attr('y1', -8).attr('y2', vis.innerHeight)
-        .attr('stroke', '#1d1d1f').attr('stroke-dasharray', '4 3').attr('stroke-width', 1.2);
+        .style('stroke', 'var(--c-ink)').attr('stroke-dasharray', '4 3').attr('stroke-width', 1.2);
       refs.append('text').attr('class', 'ref-label')
         .attr('x', d => x(d.value) + (d.anchor === 'start' ? 4 : d.anchor === 'end' ? -4 : 0)).attr('y', -14)
         .attr('text-anchor', d => d.anchor || 'middle').text(d => d.label);
@@ -287,7 +318,7 @@
         .attr('x', d => (compact ? vis.innerWidth
           : d.value == null ? x(0) + 8 : d.value >= 0 ? x(d.value) + 8 : x(d.value) - 8))
         .attr('text-anchor', d => (compact || (d.value != null && d.value < 0) ? 'end' : 'start'))
-        .style('fill', d => (d.value == null ? '#64748b' : (c.labelColor ? c.labelColor(d) : '#1d1d1f')))
+        .style('fill', d => (d.value == null ? 'var(--c-ink-3)' : (c.labelColor ? c.labelColor(d) : 'var(--c-ink)')))
         .attr('opacity', d => (faded(d) ? 0.45 : 1))
         .text(d => (d.value == null ? c.nullText : c.valueText(d)));
 
@@ -303,6 +334,7 @@
         .attr('aria-label', d => `${d.label}: ${d.value == null ? c.nullText : c.valueText(d)}`)
         .on('mouseenter', function (event, d) {
           vis.plotG.selectAll('.rbar').filter(b => keyOf(b) === keyOf(d)).attr('filter', 'brightness(0.9)');
+          vis.emitHover(keyOf(d));
           if (!c.tooltip) return;
           const [title, tipRows] = c.tooltip(d);
           vis.tooltip.classed('visible', true).html(tipHtml(title, tipRows));
@@ -311,12 +343,35 @@
         .on('mousemove', event => placeTip(vis.tooltip, event))
         .on('mouseleave', function () {
           vis.plotG.selectAll('.rbar').attr('filter', null);
+          vis.emitHover(null);
           vis.tooltip.classed('visible', false);
         });
       if (c.onClick) {
         hits.on('click', (event, d) => c.onClick(d));
         keyClick(hits, (event, d) => c.onClick(d));
       }
+    }
+
+    /** Linked hover: dim every bar except `key` (falls back to the filter's choice) */
+    preview(key) {
+      const vis = this;
+      const k = key || vis.config.highlight;
+      const faded = d => k && keyOf(d) !== k;
+      vis.plotG.selectAll('.rbar').interrupt().attr('opacity', d => (faded(d) ? 0.2 : 1));
+      vis.plotG.selectAll('.rbar-label, .rbar-name').attr('opacity', d => (faded(d) ? 0.45 : 1));
+      vis.yAxisG.selectAll('.tick text')
+        .style('opacity', label => (faded(vis.displayData.find(r => r.label === label) || {}) ? 0.45 : 1));
+    }
+
+    /** Numbers for "View as table" (js/data-table.js) */
+    tableData() {
+      const c = this.config;
+      const rows = this.displayData.map(d => [d.label, d.value == null ? c.nullText : c.valueText(d)]);
+      return {
+        columns: [c.tableLabel || 'Category', c.xLabel || 'Value'],
+        rows,
+        summary: c.ariaLabel ? null : `${c.xLabel || 'Values'}: ${rows.map(r => `${r[0]} ${r[1]}`).join('; ')}.`,
+      };
     }
   }
 
@@ -336,6 +391,8 @@
         yLabel: 'Hospitalised per year',
         height: 470,
         minLabelPx: 17,
+        notes: [],               // [{ year, lines: ['…'], side, dx }] pinned to the total line
+        onBrush: null,           // [y0, y1] => … ; adds a drag strip over the year axis
       }, config, {
         margin: Object.assign({ top: 44, right: 170, bottom: 48, left: 72 }, config.margin || {}),
       }));
@@ -353,6 +410,20 @@
     compactMargin() { return { left: 44, right: 14, top: 40, bottom: 44 + legendHeight(this.config.keys.length) }; }
     compactHeight() { return 300 + this.compactMargin().top + this.compactMargin().bottom; }
 
+    /** Linked hover: dim every layer except `key` */
+    preview(key) {
+      const k = key || this.config.highlight;
+      this.plotG.selectAll('.area-layer').interrupt().attr('opacity', s => (k && s.key !== k ? 0.18 : 0.92));
+      this.annotationsG.selectAll('.area-end-label').attr('opacity', d => (k && d.key !== k ? 0.4 : 1));
+    }
+
+    /** Numbers for "View as table": one row per year in the chosen range */
+    tableData() {
+      const c = this.config;
+      return yearTable(this.displayData, c.keys.map(k => ({ key: k, label: c.labelOf(k) })), c.band, true,
+        c.yLabel);
+    }
+
     renderVis() {
       const vis = this;
       const c = vis.config;
@@ -362,7 +433,9 @@
       const x = d3.scaleLinear().domain([first, last]).range([0, vis.innerWidth]);
       const series = d3.stack().keys(c.keys)(data);
       const totals = data.map(d => ({ year: d.year, total: d3.sum(c.keys, k => d[k]) }));
-      const y = d3.scaleLinear().domain([0, d3.max(totals, d => d.total) * 1.14]).nice().range([vis.innerHeight, 0]);
+      // Extra room above the total line when there is a note to write there
+      const headroom = c.notes.length ? 1.34 : 1.14;
+      const y = d3.scaleLinear().domain([0, d3.max(totals, d => d.total) * headroom]).nice().range([vis.innerHeight, 0]);
 
       drawTimeAxes(vis, x, y, data.length, c.yLabel);
 
@@ -372,9 +445,10 @@
 
       vis.plotG.selectAll('.area-layer').data(series, s => s.key).join('path')
         .attr('class', 'area-layer')
-        .attr('fill', s => c.colorOf(s.key)).attr('stroke', '#ffffff').attr('stroke-width', 0.8)
+        .attr('fill', s => c.colorOf(s.key)).style('stroke', 'var(--c-surface)').attr('stroke-width', 0.8)
         .style('cursor', c.onClick ? 'pointer' : null)
         .on('pointermove', function (event, s) {
+          vis.emitHover(s.key);
           const yr = Math.max(first, Math.min(last, yearAt(event)));
           const row = data.find(d => d.year === yr);
           const tot = d3.sum(c.keys, k => row[k]);
@@ -388,6 +462,7 @@
         })
         .on('pointerleave', function () {
           d3.select(this).attr('filter', null);
+          vis.emitHover(null);
           vis.tooltip.classed('visible', false);
         })
         .on('click', (event, s) => c.onClick && c.onClick(s.key))
@@ -398,7 +473,7 @@
       // Total line on top
       const line = d3.line().x(d => x(d.year)).y(d => y(d.total)).curve(d3.curveMonotoneX);
       vis.plotG.selectAll('.total-line').data([totals]).join('path').attr('class', 'total-line')
-        .attr('fill', 'none').attr('stroke', '#1d1d1f').attr('stroke-width', 2)
+        .attr('fill', 'none').style('stroke', 'var(--c-ink)').attr('stroke-width', 2)
         .style('pointer-events', 'none').attr('d', line);
 
       // "34,033 → 39,505 (+16%)" at the ends of the chosen range
@@ -413,7 +488,7 @@
       const ep = vis.annotationsG.selectAll('.total-point').data(endpoints).join('g').attr('class', 'total-point');
       ep.selectAll('*').remove();
       ep.append('circle').attr('cx', p => x(p.d.year)).attr('cy', p => y(p.d.total)).attr('r', 5)
-        .attr('fill', '#1d1d1f').attr('stroke', '#ffffff').attr('stroke-width', 2);
+        .style('fill', 'var(--c-ink)').style('stroke', 'var(--c-surface)').attr('stroke-width', 2);
       ep.append('text').attr('class', 'total-label')
         .attr('x', p => x(p.d.year) + (p.d.year === first ? 0 : p.d.year === last ? 0 : p.anchor === 'start' ? -6 : 6))
         .attr('y', p => y(p.d.total) - 14)
@@ -439,8 +514,36 @@
         .text(d => c.labelOf(d.key));
 
       drawYearBand(vis, x, c.band, first, last);
+      // Notes on the total line (e.g. the 2020 COVID-19 dip)
+      vis.annotationsG.selectAll('.chart-annotation').remove();
+      c.notes.filter(n => n.year >= first && n.year <= last).forEach(n => {
+        const tot = totals.find(d => d.year === n.year);
+        drawNote(vis.annotationsG, [x(n.year), y(tot.total)], compact && n.short ? n.short : n.lines,
+          { side: n.side || 'below', dx: n.dx || 0, len: n.len || 40, anchor: n.anchor || 'middle' });
+      });
       // Keep the total labels and layer names readable above the grey wash
-      vis.annotationsG.selectAll('.total-point, .area-end-label').raise();
+      vis.annotationsG.selectAll('.total-point, .area-end-label, .chart-annotation').raise();
+
+      // Brush: drag along the year axis to choose the years (plan §6.3).
+      // It sits on the axis strip so it never blocks the hover on the layers.
+      if (c.onBrush) {
+        const top = vis.innerHeight + 2, h = 30;
+        const brushG = vis.g.selectAll('.year-brush').data([0]).join('g').attr('class', 'year-brush');
+        const brush = d3.brushX().extent([[0, top], [vis.innerWidth, top + h]])
+          .on('end', event => {
+            if (!event.sourceEvent) return;               // moved by code, not by the reader
+            if (!event.selection) { c.onBrush([first, last]); return; }
+            const [a, b] = event.selection.map(px => Math.round(x.invert(px)));
+            c.onBrush([Math.max(first, Math.min(a, b)), Math.min(last, Math.max(a, b))]);
+          });
+        brushG.call(brush);
+        // selectAll, not select: select() would copy the group's data onto the
+        // overlay and break the brush
+        brushG.selectAll('.overlay').attr('aria-hidden', 'true');
+        const r = c.band && !(c.band[0] <= first && c.band[1] >= last) ? c.band : null;
+        const pad = r && r[0] === r[1] ? 8 : 0;
+        brushG.call(brush.move, r ? [Math.max(0, x(r[0]) - pad), Math.min(vis.innerWidth, x(r[1]) + pad)] : null);
+      }
     }
   }
 
@@ -459,6 +562,7 @@
         onClick: null,
         yLabel: 'Hospitalised per year',
         height: 500,
+        noteRiser: false,        // point out the line that rose the most over the chosen years
       }, config, {
         margin: Object.assign({ top: 64, right: 220, bottom: 48, left: 72 }, config.margin || {}),
       }));
@@ -475,6 +579,16 @@
     // Phone layout: short break notes, and a key with each line's change under the chart
     compactMargin() { return { left: 44, right: 14, top: 74, bottom: 44 + legendHeight(this.config.series.length) }; }
     compactHeight() { return 300 + this.compactMargin().top + this.compactMargin().bottom; }
+
+    /** Linked hover: thicken the line for `key`, fade the rest */
+    preview(key) { if (this._paint) this._paint(key || this.config.highlight); }
+
+    /** Numbers for "View as table": one row per year in the chosen range */
+    tableData() {
+      const c = this.config;
+      return yearTable(this.displayData, c.series.map(s => ({ key: s.key, label: s.short || s.label })), c.band, false,
+        c.yLabel);
+    }
 
     renderVis() {
       const vis = this;
@@ -493,7 +607,7 @@
       br.selectAll('*').remove();
       br.append('line').attr('x1', b => x(b.year)).attr('x2', b => x(b.year))
         .attr('y1', -34).attr('y2', vis.innerHeight)
-        .attr('stroke', '#94a3b8').attr('stroke-dasharray', '3 3');
+        .style('stroke', 'var(--c-muted)').attr('stroke-dasharray', '3 3');
       // On a phone a note near the right edge is written leftwards so it stays on screen
       const flip = b => compact && x(b.year) > vis.innerWidth * 0.72;
       br.append('text').attr('class', 'break-label').attr('y', -40)
@@ -553,14 +667,15 @@
           .style('font-weight', d => (d.s.key === activeKey ? 700 : null));
       }
       paint(c.highlight);
+      vis._paint = paint;
 
       // Hover: the nearest line lights up and the tooltip lists that year
       const focus = vis.annotationsG.selectAll('.trend-focus').data([0]).join('g')
         .attr('class', 'trend-focus').style('pointer-events', 'none').style('display', 'none');
       focus.selectAll('*').remove();
       const guide = focus.append('line').attr('y1', 0).attr('y2', vis.innerHeight)
-        .attr('stroke', '#475569').attr('stroke-dasharray', '3 3');
-      const dot = focus.append('circle').attr('r', 6).attr('stroke', '#ffffff').attr('stroke-width', 2);
+        .style('stroke', 'var(--c-ink-3)').attr('stroke-dasharray', '3 3');
+      const dot = focus.append('circle').attr('r', 6).style('stroke', 'var(--c-surface)').attr('stroke-width', 2);
       let hoverKey = null;
 
       vis.plotG.selectAll('.trend-overlay').data([0]).join('rect').attr('class', 'trend-overlay')
@@ -572,6 +687,7 @@
           const row = data.find(d => d.year === yr);
           const near = d3.least(c.series, s => Math.abs(y(row[s.key]) - my));
           hoverKey = near.key;
+          vis.emitHover(hoverKey);
           paint(c.highlight || hoverKey);
           focus.style('display', null);
           guide.attr('x1', x(yr)).attr('x2', x(yr));
@@ -583,11 +699,28 @@
         })
         .on('pointerleave', () => {
           hoverKey = null;
+          vis.emitHover(null);
           paint(c.highlight);
           focus.style('display', 'none');
           vis.tooltip.classed('visible', false);
         })
         .on('click', () => { if (c.onClick && hoverKey) c.onClick(hoverKey); });
+
+      // "Biggest rise" note on the line that grew the most (over the chosen years)
+      vis.annotationsG.selectAll('.chart-annotation').remove();
+      if (c.noteRiser && r0 !== r1) {
+        const top = d3.greatest(c.series, changeOf);
+        if (top && changeOf(top) > 0) {
+          const yr = Math.max(range[0], range[1] - 2);
+          const row = data.find(d => d.year === yr);
+          const py = y(row[top.key]);
+          // Point upward unless the line is near the top of the chart
+          const side = py > 70 ? 'above' : 'below';
+          drawNote(vis.annotationsG, [x(yr), py],
+            [`Biggest rise: ${compact ? top.short || top.label : top.label}`, `${fmtChange(changeOf(top))} since ${range[0]}`],
+            { side, len: 40, anchor: 'end', dx: -4, color: 'var(--c-ink)' });
+        }
+      }
 
       drawYearBand(vis, x, c.band, first, last);
       vis.annotationsG.select('.year-band').lower();
@@ -607,8 +740,8 @@
         autoFitLabels: true,
         aLabel: 'Share of all hospital cases',
         bLabel: 'Share of all deaths in hospital',
-        aColor: '#cbd5e1',
-        bColorOf: () => '#1e3a8a',
+        aColor: 'var(--c-pair-a)',
+        bColorOf: () => 'var(--c-pair-b)',
         highlight: null,
         onClick: null,
         rowHeight: 60,
@@ -628,6 +761,23 @@
 
     // Phone layout: names above each pair, the ratio column narrower
     compactMargin() { return { left: 6, right: 58, top: 96 }; }
+
+    /** Linked hover: dim every pair except `key` */
+    preview(key) {
+      const k = key || this.config.highlight;
+      this.plotG.selectAll('.pair-row').attr('opacity', d => (k && keyOf(d) !== k ? 0.25 : 1));
+    }
+
+    /** Numbers for "View as table" */
+    tableData() {
+      const c = this.config, pc = d3.format('.1%');
+      const rows = this.displayData.map(d => [d.label, pc(d.a), pc(d.b), d.a ? `${d3.format('.1f')(d.b / d.a)}×` : '']);
+      return {
+        columns: [c.tableLabel || 'Road user', c.aLabel, c.bLabel, 'Ratio'],
+        rows,
+        summary: `${c.aLabel} compared with ${c.bLabel.toLowerCase()}: ${rows.map(r => `${r[0]} ${r[1]} and ${r[2]}`).join('; ')}.`,
+      };
+    }
 
     renderVis() {
       const vis = this;
@@ -655,7 +805,7 @@
 
       vis.gridG.call(d3.axisBottom(x).ticks(5).tickSize(vis.innerHeight).tickFormat(''))
         .call(g => g.select('.domain').remove())
-        .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
+        .selectAll('line').style('stroke', 'var(--c-grid)').attr('stroke-dasharray', '2 4');
       vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
         .call(d3.axisBottom(x).ticks(5).tickFormat(pct));
       if (compact) {
@@ -672,9 +822,9 @@
         .attr('opacity', d => (faded(d) ? 0.25 : 1));
       g.selectAll('*').remove();
       if (compact) g.append('text').attr('class', 'rbar-name').attr('y', 8).attr('dy', '0.35em').text(d => d.label);
-      g.append('rect').attr('y', off + 1).attr('height', half - 3).attr('rx', 3).attr('fill', c.aColor)
+      g.append('rect').attr('y', off + 1).attr('height', half - 3).attr('rx', 3).style('fill', c.aColor)
         .attr('width', d => x(d.a));
-      g.append('rect').attr('y', off + half + 1).attr('height', half - 3).attr('rx', 3).attr('fill', d => c.bColorOf(d))
+      g.append('rect').attr('y', off + half + 1).attr('height', half - 3).attr('rx', 3).style('fill', d => c.bColorOf(d))
         .attr('width', d => x(d.b));
       g.append('text').attr('class', 'pair-value pair-value-a').attr('x', d => x(d.a) + 6).attr('y', off + half / 2 + 1)
         .attr('dy', '0.35em').text(d => pct(d.a));
@@ -684,7 +834,7 @@
       // Right-hand column: how many times more (or less) deadly than its size suggests
       const ratioText = d => (d.a ? `${d3.format('.1f')(d.b / d.a)}×` : '');
       // One accent only: groups that die far more often than their size suggests
-      const ratioColor = d => (d.b / d.a >= 1.25 ? '#D55E00' : '#55555a');
+      const ratioColor = d => (d.b / d.a >= 1.25 ? 'var(--c-accent)' : 'var(--c-ink-2)');
       g.append('text').attr('class', 'pair-ratio').attr('x', ratioX).attr('y', off + half)
         .attr('dy', '0.35em').attr('text-anchor', ratioAnchor).style('fill', ratioColor).text(ratioText);
 
@@ -699,13 +849,14 @@
         .attr('tabindex', c.onClick ? 0 : null).attr('role', c.onClick ? 'button' : null)
         .attr('aria-label', d => `${d.label}: ${pct(d.a)} of cases, ${pct(d.b)} of deaths`)
         .on('mouseenter', (event, d) => {
+          vis.emitHover(keyOf(d));
           if (!c.tooltip) return;
           const [title, tipRows] = c.tooltip(d);
           vis.tooltip.classed('visible', true).html(tipHtml(title, tipRows));
           placeTip(vis.tooltip, event);
         })
         .on('mousemove', event => placeTip(vis.tooltip, event))
-        .on('mouseleave', () => vis.tooltip.classed('visible', false));
+        .on('mouseleave', () => { vis.emitHover(null); vis.tooltip.classed('visible', false); });
       if (c.onClick) {
         hits.on('click', (event, d) => c.onClick(d));
         keyClick(hits, (event, d) => c.onClick(d));
@@ -715,7 +866,7 @@
       vis.legendG.attr('transform', `translate(${c.margin.left}, 18)`).selectAll('*').remove();
       [[c.aLabel, c.aColor], [c.bLabel, c.bColorOf({})]].forEach(([label, color], i) => {
         const item = vis.legendG.append('g').attr('transform', `translate(0, ${i * 22})`);
-        item.append('rect').attr('width', 22).attr('height', 11).attr('y', -1).attr('rx', 2).attr('fill', color);
+        item.append('rect').attr('width', 22).attr('height', 11).attr('y', -1).attr('rx', 2).style('fill', color);
         item.append('text').attr('x', 30).attr('y', 9).attr('class', 'pair-legend-text').text(label);
       });
     }

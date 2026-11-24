@@ -100,6 +100,12 @@
       ariaLabel: 'Deaths per 1,000 hospitalised cases: ' +
         roadUserData.map(d => `${d.label} ${d.value.toFixed(1)}`).join(', '),
     });
+    if (typeof DataTable !== 'undefined') {
+      DataTable.register(el.node(), () => ({
+        columns: ['Road user', 'Deaths per 1,000 hospitalised cases'],
+        rows: roadUserData.map(d => [d.label, d.value.toFixed(1)]),
+      }));
+    }
   }
 
   function renderRemoteness() {
@@ -113,6 +119,12 @@
       ariaLabel: 'Deaths per 1,000 cases: ' +
         remotenessData.map(d => `${d.label} ${d.deaths.toFixed(1)}`).join(', '),
     });
+    if (typeof DataTable !== 'undefined') {
+      DataTable.register(el.node(), () => ({
+        columns: ['Area', 'Deaths per 1,000 cases'],
+        rows: remotenessData.map(d => [d.label, d.deaths.toFixed(1)]),
+      }));
+    }
   }
 
   function renderAll() {
@@ -151,5 +163,6 @@
       clearTimeout(timer);
       timer = setTimeout(renderAll, 150);
     });
+    document.addEventListener('themechange', renderAll);
   });
 })();

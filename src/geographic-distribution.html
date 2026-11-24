@@ -14,6 +14,7 @@
     rel="stylesheet"
   />
 
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
   <link rel="stylesheet" href="css/story.css" />
@@ -69,7 +70,7 @@
         <div class="responsive-svg-container" id="chart-state-bars" hidden>
           <!-- Bar chart injected here -->
         </div>
-        <p class="chart-note">The map and the bar chart show the same numbers: darker blue = more cases. Use the years in the filter bar to see one year or add up several. About 7,600 cases (2%) have no state recorded and are left out. The state data is not split by road user, so the road-user filter does not change this figure.</p>
+        <p class="chart-note">The map and the bar chart show the same numbers: <span class="when-light">darker</span><span class="when-dark">brighter</span> blue = more cases. Use the years in the filter bar to see one year or add up several. About 7,600 cases (2%) have no state recorded and are left out. The state data is not split by road user, so the road-user filter does not change this figure.</p>
       </div>
     </section>
 
@@ -128,9 +129,12 @@
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="js/motion.js"></script>
+  <script src="js/highlight.js"></script>
+  <script src="js/detail-panel.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/site-data.js"></script>
   <script src="js/global-filter.js"></script>
+  <script src="js/data-table.js"></script>
   <script src="js/vis-components.js"></script>
   <script src="js/vis-story-charts.js"></script>
   <script src="js/charts-geography.js"></script>

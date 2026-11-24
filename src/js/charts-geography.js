@@ -34,7 +34,21 @@
   // The zoom survives redraws (filter changes, Play), so it is kept here
   const mapZoom = { code: null, transform: d3.zoomIdentity };
 
-  function drawMap(containerId, geo, cases, years) {
+  // Linked hover (js/highlight.js): hovering a state's line in Figure 3.3
+  // (or its bar) outlines that state on the map, and the reverse
+  let mapStatesSel = null;
+  if (typeof Highlight !== 'undefined') {
+    Highlight.on('state', code => {
+      if (!mapStatesSel || !mapStatesSel.node() || !mapStatesSel.node().isConnected) return;
+      mapStatesSel.each(function (d) {
+        const on = d.properties.code === code;
+        d3.select(this).style('stroke', on ? 'var(--c-ink)' : 'var(--c-surface)').attr('stroke-width', on ? 2.5 : 1.2);
+        if (on) d3.select(this).raise();
+      });
+    });
+  }
+
+  function drawMap(containerId, geo, cases, years, onSelect) {
     const container = d3.select(containerId);
     container.selectAll('*').remove();
 
@@ -69,7 +83,7 @@
     const [cMin, cMax] = d3.extent([...cases.values()]);
     const color = Vis.barGradient([cMin, cMax]);
     // White text on the darker half of the scale, dark text on the lighter half
-    const textOn = v => ((v - cMin) / (cMax - cMin || 1)) > 0.45 ? '#ffffff' : '#1d1d1f';
+    const textOn = v => Vis.textOnGradient((v - cMin) / (cMax - cMin || 1));
 
     // Everything that zooms is clipped to the map area, so it never covers the legend
     const clipId = 'state-map-clip';
@@ -78,7 +92,7 @@
     const viewport = svg.append('g').attr('clip-path', `url(#${clipId})`);
     viewport.append('rect').attr('class', 'map-bg')
       .attr('width', MAP_W).attr('height', VIEW_H).attr('fill', 'transparent')
-      .on('click', () => zoomToState(null));
+      .on('click', () => { zoomToState(null); if (onSelect) onSelect(null); });
 
     // Big faint year in the corner, so Play reads like a flip-book
     const yearMark = viewport.append('text').attr('class', 'map-year-mark')
@@ -108,7 +122,7 @@
       .attr('class', 'map-state')
       .attr('d', path)
       .attr('fill', d => color(cases.get(d.properties.code)))
-      .attr('stroke', '#ffffff')
+      .style('stroke', 'var(--c-surface)')
       .attr('stroke-width', 1.2)
       .attr('vector-effect', 'non-scaling-stroke')   // borders stay thin at any zoom
       .attr('stroke-linejoin', 'round')
@@ -117,7 +131,8 @@
       .attr('aria-label', d => `${fullName(d.properties.code)}: ${fmt(cases.get(d.properties.code))} hospitalised, ${yrs}. Press Enter to zoom.`)
       .style('cursor', 'pointer')
       .on('mouseenter focus', function (event, d) {
-        d3.select(this).raise().attr('stroke', '#1d1d1f').attr('stroke-width', 2);
+        d3.select(this).raise().style('stroke', 'var(--c-ink)').attr('stroke-width', 2);
+        if (typeof Highlight !== 'undefined') Highlight.set('state', d.properties.code);
         showTip(d);
         if (event.type === 'focus') {
           const [x, y] = mapZoom.transform.apply(path.centroid(d));
@@ -131,19 +146,22 @@
       })
       .on('mousemove', event => Vis.placeTip(tooltip, event))
       .on('mouseleave blur', function () {
-        d3.select(this).attr('stroke', '#ffffff').attr('stroke-width', 1.2);
+        d3.select(this).style('stroke', 'var(--c-surface)').attr('stroke-width', 1.2);
+        if (typeof Highlight !== 'undefined') Highlight.set('state', null);
         tooltip.classed('visible', false);
       })
-      .on('click', (event, d) => {
+      .on('click', function (event, d) {
         const st = d.properties.code;
         zoomToState(mapZoom.code === st ? null : st);
         showTip(d);
+        if (onSelect) onSelect(mapZoom.code, this);
       })
       .on('keydown', (event, d) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
         const st = d.properties.code;
         zoomToState(mapZoom.code === st ? null : st);
+        if (onSelect) onSelect(mapZoom.code, this);
       });
 
     // ── Labels: abbreviation + count + share inside each state ──
@@ -156,8 +174,9 @@
 
     const twoLine = (sel, anchor, fill, st, v) => {
       // Halo in the opposite tone keeps the text readable over any neighbour
-      const t = sel.append('text').attr('text-anchor', anchor).attr('fill', fill)
-        .attr('stroke', fill === '#ffffff' ? 'rgba(8, 48, 107, 0.55)' : 'rgba(255, 255, 255, 0.9)')
+      const t = sel.append('text').attr('text-anchor', anchor).style('fill', fill)
+        .style('stroke', fill === '#ffffff' ? 'rgba(8, 48, 107, 0.55)'
+          : fill === '#1d1d1f' || fill === '#14171A' ? 'rgba(255, 255, 255, 0.9)' : 'var(--c-surface)')
         .attr('stroke-width', 3 * ts).attr('stroke-linejoin', 'round').attr('paint-order', 'stroke');
       t.append('tspan').attr('x', 0).attr('y', -4 * ts)
         .style('font-size', `${15 * ts}px`).style('font-weight', '700').text(st);
@@ -166,6 +185,8 @@
         .style('font-size', `${12.5 * ts}px`).style('font-weight', '600')
         .text(compact ? d3.format('.0%')(v / totalCases) : `${fmt(v)} · ${fmtPct(v / totalCases)}`);
     };
+
+    mapStatesSel = states;
 
     const labelSpecs = [];
     geo.features.forEach(f => {
@@ -177,16 +198,16 @@
         const tx = 745, ty = cy + callouts[st];
         calloutsG.append('path')
           .attr('d', `M${cx},${cy} L${cx + 30},${ty} L${tx - 6},${ty}`)
-          .attr('fill', 'none').attr('stroke', '#1d1d1f').attr('stroke-width', 1);
+          .attr('fill', 'none').style('stroke', 'var(--c-ink)').attr('stroke-width', 1);
         calloutsG.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 3.5)
-          .attr('fill', '#1d1d1f').attr('stroke', '#ffffff').attr('stroke-width', 1.5);
-        twoLine(calloutsG.append('g').attr('transform', `translate(${tx},${ty + 1})`), 'start', '#1d1d1f', st, v);
+          .style('fill', 'var(--c-ink)').style('stroke', 'var(--c-surface)').attr('stroke-width', 1.5);
+        twoLine(calloutsG.append('g').attr('transform', `translate(${tx},${ty + 1})`), 'start', 'var(--c-ink)', st, v);
         labelSpecs.push({ st, v, x: cx, y: cy, anchor: 'middle', fill: textOn(v), zoomOnly: true });
         return;
       }
       if (st === 'TAS') {
         const [[, y0], [x1, y1]] = path.bounds(f);
-        labelSpecs.push({ st, v, x: x1 + 12 * ts, y: (y0 + y1) / 2, anchor: 'start', fill: '#1d1d1f' });
+        labelSpecs.push({ st, v, x: x1 + 12 * ts, y: (y0 + y1) / 2, anchor: 'start', fill: 'var(--c-ink)' });
         return;
       }
       const [dx, dy] = nudge[st] || [0, 0];
@@ -277,7 +298,7 @@
       .on('click', () => zoomBy(1 / 1.6));
     const resetBtn = controls.append('button').attr('type', 'button').attr('aria-label', 'Show all of Australia')
       .html('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>')
-      .on('click', () => zoomToState(null));
+      .on('click', () => { zoomToState(null); if (onSelect) onSelect(null); });
     const status = container.append('div').attr('class', 'map-zoom-status').attr('aria-live', 'polite');
 
     // Restore the zoom from before this redraw, without animating
@@ -297,15 +318,24 @@
     const legend = svg.append('g').attr('class', 'map-legend')
       .attr('transform', `translate(${legendX},${legendY}) scale(${ls})`);
     legend.append('text').attr('x', legendW / 2).attr('y', -8).attr('text-anchor', 'middle')
-      .style('font-size', '12px').style('fill', '#55555a')
-      .text(`Hospitalised injuries, ${yrs} (darker = more)`);
+      .style('font-size', '12px').style('fill', 'var(--c-ink-2)')
+      .text(`Hospitalised injuries, ${yrs} (${Vis.isDark() ? 'brighter' : 'darker'} = more)`);
     legend.append('rect').attr('width', legendW).attr('height', 12).attr('rx', 3).attr('fill', `url(#${gradId})`);
     const lx = d3.scaleLinear().domain([cMin, cMax]).range([0, legendW]);
     legend.append('g').attr('transform', 'translate(0,12)')
       .call(d3.axisBottom(lx).tickValues([cMin, (cMin + cMax) / 2, cMax]).tickSize(5)
         .tickFormat(d => fmt(Math.round(d))))
       .call(g => g.select('.domain').remove())
-      .selectAll('text').style('font-size', '11px').style('fill', '#55555a');
+      .selectAll('text').style('font-size', '11px').style('fill', 'var(--c-ink-2)');
+
+    // "View as table" (js/data-table.js): the svg already has its own aria-label
+    if (typeof DataTable !== 'undefined') {
+      const sorted = [...cases.entries()].sort((a, b) => b[1] - a[1]);
+      DataTable.register(container.node(), () => ({
+        columns: ['State or territory', `Hospitalised, ${yrs}`, 'Share of Australia', 'Rank'],
+        rows: sorted.map(([st, v]) => [fullName(st), fmt(v), totalCases ? d3.format('.1%')(v / totalCases) : '', rank.get(st)]),
+      }));
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -323,15 +353,56 @@
           return STATES.map(st => ({ key: st, label: fullName(st), value: cases.get(st), share: cases.get(st) / total }));
         };
         const stateBars = new Vis.RankedBarChart('#chart-state-bars', barData(stateTotals(stateRows, initial.years)), {
+          linkChannel: 'state',   // linked hover (js/highlight.js)
           valueText: d => `${fmt(d.value)} · ${d3.format('.0%')(d.share)}`,
           margin: { top: 24, right: 140, bottom: 54, left: 250 },
           rowHeight: 44,
           tooltip: d => [d.label, [['Hospitalised:', fmt(d.value)], ['Share of all states:', fmtPct(d.share), true]]],
+          onClick: d => openStatePanel(d.key, GlobalFilter.get().years, document.activeElement),
         });
+        // ── Detail panel (plan §6.4): click a state on the map or its bar ──
+        let panelCode = null;
+        const STATE_NOTES = {
+          VIC: 'Victoria stopped counting patients treated only in emergency in 2012, so part of its drop that year is a counting change, not fewer crashes.',
+          NSW: 'NSW made the same counting change in 2017, so part of its fall after 2017 is a counting change, not fewer crashes.',
+        };
+        function openStatePanel(code, years, returnEl, focus = true) {
+          panelCode = code;
+          const totals = stateTotals(stateRows, years);
+          const all = d3.sum([...totals.values()]);
+          const order = [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([st]) => st);
+          const row = yr => stateRows.find(d => d.year === yr) || {};
+          const [y0, y1] = years;
+          const change = (a, b) => (a ? (b - a) / a : null);
+          const fmtChange = v => (v == null ? '–' : `${v >= 0 ? '+' : '−'}${d3.format('.0%')(Math.abs(v))}`);
+          const stChange = change(+row(y0)[code], +row(y1)[code]);
+          const auChange = change(+row(y0).Total, +row(y1).Total);
+          DetailPanel.open({
+            kicker: 'State or territory',
+            title: fullName(code),
+            series: { years: YEARS, values: YEARS.map(yr => +row(yr)[code] || 0), color: STATE_COLORS[code], band: years },
+            stats: [
+              { label: `Hospitalised, ${rangeText(years)}`, value: fmt(totals.get(code)) },
+              { label: 'Share of all states', value: fmtPct(totals.get(code) / all) },
+              { label: 'Rank by cases', value: `${order.indexOf(code) + 1} of 8` },
+              y0 === y1
+                ? { label: 'Change', value: '–', note: 'Choose two or more years' }
+                : { label: `Change ${y0}–${y1}`, value: fmtChange(stChange), note: `Australia: ${fmtChange(auChange)}` },
+            ],
+            note: STATE_NOTES[code] || '',
+            returnFocus: returnEl || document.activeElement,
+            focus,
+            onClose: () => { panelCode = null; },
+          });
+        }
+
         function drawStates(years) {
           const cases = stateTotals(stateRows, years);
           if (view === 'map') {
-            drawMap('#chart-state-territory', geo, cases, years);
+            drawMap('#chart-state-territory', geo, cases, years, (code, el) => {
+              if (code) openStatePanel(code, years, el);
+              else DetailPanel.close();
+            });
           } else {
             stateBars.config.xLabel = `Hospitalised, ${rangeText(years)}`;
             stateBars.wrangleData(barData(cases));
@@ -397,17 +468,21 @@
           return Object.assign({ year }, Object.fromEntries(STATES.map(st => [st, +r[st] || 0])));
         });
         const trendChart = new Vis.TrendLinesChart('#chart-state-trends', stateTable, {
+          linkChannel: 'state',   // linked hover (js/highlight.js)
           series: STATES.map(st => ({ key: st, label: STATE_NAMES[st], short: st, color: STATE_COLORS[st] })),
           breaks: [
             { year: 2012, lines: ['2012: Victoria stopped counting', 'patients treated only in emergency'], short: ['2012: VIC', 'count change'] },
             { year: 2017, lines: ['2017: NSW made the', 'same change'], short: ['2017: NSW', 'same change'] },
           ],
           band: initial.years,
+          noteRiser: true,
           margin: { right: 260 },
         });
 
         GlobalFilter.subscribe(state => {
           drawStates(state.years);
+          // Keep an open panel in step with the chosen years
+          if (panelCode && DetailPanel.isOpen()) openStatePanel(panelCode, state.years, null, false);
           const dy = SiteData.deathYears(state.years);
           remChart.config.xLabel = dy ? `Deaths in hospital per 1,000 cases, ${rangeText(dy)}` : '';
           remChart.wrangleData(remotenessData(state));

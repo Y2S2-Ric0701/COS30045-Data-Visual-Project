@@ -64,6 +64,9 @@ const GlobalFilter = (function () {
   }
 
   /** Call fn(state) now and every time the filter changes */
+  // Light / dark switch: let every page redraw (map and heatmap colours)
+  document.addEventListener('themechange', () => listeners.forEach(fn => fn(get())));
+
   function subscribe(fn) {
     listeners.push(fn);
     fn(get());
@@ -135,9 +138,33 @@ const GlobalFilter = (function () {
   // same year they move together. Click the track or a year to move the
   // nearer button there. Keyboard: ←/→, Home, End.
   function yearSlider(container, onChange) {
+    // Drawn at the slider's real width so the year labels and knobs keep their
+    // size on any screen; rebuilt when that width changes.
+    const node = d3.select(container).node();
+    if (!node) return { set() {} };
+    let inner = buildYearSlider(node, onChange);
+    let lastW = node.clientWidth, timer = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const w = node.clientWidth;
+          if (!w || Math.abs(w - lastW) < 8) return;
+          lastW = w;
+          const hadFocus = node.contains(document.activeElement);
+          node.innerHTML = '';
+          inner = buildYearSlider(node, onChange);
+          if (hadFocus) { const k = node.querySelector('.year-knob'); if (k) k.focus(); }
+        }, 120);
+      }).observe(node);
+    }
+    return { set(r) { inner.set(r); } };
+  }
+
+  function buildYearSlider(container, onChange) {
     const years = YEARS;
     const first = years[0], last = years[years.length - 1];
-    const W = 500, H = 56;
+    const W = Math.max(240, Math.min(520, Math.round(container.clientWidth) || 500)), H = 56;
     const m = { top: 2, right: 20, bottom: 2, left: 20 };
     const iw = W - m.left - m.right;
     const trackY = 18;
@@ -156,7 +183,9 @@ const GlobalFilter = (function () {
       .attr('stroke', '#0071e3').attr('stroke-width', 4).attr('stroke-linecap', 'round');
     const ticks = g.selectAll('.year-tick').data(years).join('text').attr('class', 'year-tick')
       .attr('x', d => x(d)).attr('y', trackY + 32).attr('text-anchor', 'middle')
-      .style('font-size', '12.5px').text(d => `'${String(d).slice(2)}`);
+      .style('font-size', '12.5px').text(d => `'${String(d).slice(2)}`)
+      // Too narrow for 11 labels: show every second year (the chosen range is in the text above)
+      .style('display', (d, i) => (iw / (years.length - 1) < 30 && i % 2 ? 'none' : null));
     g.append('rect').attr('x', -m.left).attr('y', 0).attr('width', W).attr('height', H)
       .attr('fill', 'transparent').style('cursor', 'pointer')
       .on('click', event => {
@@ -172,12 +201,12 @@ const GlobalFilter = (function () {
       .attr('aria-label', i => (i === 0 ? 'First year' : 'Last year'))
       .style('cursor', 'grab');
     knobs.append('circle').attr('class', 'year-knob-ring').attr('r', R + 4).attr('fill', 'transparent');
-    knobs.append('circle').attr('class', 'year-knob-thumb').attr('r', R).attr('fill', '#ffffff')
+    knobs.append('circle').attr('class', 'year-knob-thumb').attr('r', R).style('fill', 'var(--c-knob)')
       .attr('stroke', 'rgba(0,0,0,0.08)').attr('stroke-width', 0.5);
 
     function paint(r) {
       fill.attr('x1', x(r[0])).attr('x2', x(r[1]));
-      ticks.style('fill', d => (d >= r[0] && d <= r[1] ? '#1d1d1f' : '#94a3b8'))
+      ticks.style('fill', d => (d >= r[0] && d <= r[1] ? 'var(--c-ink)' : 'var(--c-muted)'))
         .style('font-weight', d => (d === r[0] || d === r[1] ? '700' : '400'));
       knobs.attr('transform', i => `translate(${x(r[i])},${trackY})`)
         .attr('aria-valuenow', i => r[i]).attr('aria-valuetext', i => String(r[i]));

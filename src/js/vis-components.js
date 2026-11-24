@@ -30,11 +30,21 @@
   // consistent site-wide. The range is clamped so the smallest bar is
   // still clearly visible on the white card.
   const BAR_GRADIENT_RANGE = [0.3, 1.0];
+  const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+  // Dark mode: the scale runs dim → bright blue instead (bigger = brighter),
+  // so the largest bars stand out on the dark card instead of disappearing
+  const DARK_RAMP = d3.interpolateHcl('#2B5C8F', '#B5DAFF');
   function barGradient(domain, range = BAR_GRADIENT_RANGE) {
     const [lo, hi] = range;
     return d3.scaleSequential()
       .domain(domain)
-      .interpolator(t => d3.interpolateBlues(lo + t * (hi - lo)));
+      .interpolator(isDark()
+        ? t => DARK_RAMP(Math.max(0, Math.min(1, (lo - 0.3) / 0.7 + t * (hi - lo) / 0.7)))
+        : t => d3.interpolateBlues(lo + t * (hi - lo)));
+  }
+  /** Text on top of a gradient fill: white on the deep end, near-black on the pale end */
+  function textOnGradient(t) {
+    return isDark() ? (t > 0.45 ? '#14171A' : '#ffffff') : (t > 0.45 ? '#ffffff' : '#1d1d1f');
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -71,6 +81,28 @@
       if (this.rawData && this.rawData.length > 0) {
         this.wrangleData();
       }
+
+      // Linked hover (js/highlight.js): another chart's hover dims this one too
+      if (this.config.linkChannel && typeof Highlight !== 'undefined') {
+        Highlight.on(this.config.linkChannel, key => {
+          if (this.svg && this.displayData && this.displayData.length && this.preview) this.preview(key);
+        });
+      }
+
+      // Light / dark switch: redraw so gradients and halos follow the theme
+      document.addEventListener('themechange', () => {
+        if (this.svg && this.displayData && this.displayData.length && this.svg.node().isConnected) this.renderVis();
+      });
+
+      // "View as table" under the chart (js/data-table.js), unless the page opts out
+      if (this.tableData && this.config.table !== false && typeof DataTable !== 'undefined') {
+        DataTable.register(this.parentElement, () => (this.displayData && this.displayData.length ? this.tableData() : null));
+      }
+    }
+
+    /** Tell the other charts on the page what the pointer is over (null = nothing) */
+    emitHover(key) {
+      if (this.config.linkChannel && typeof Highlight !== 'undefined') Highlight.set(this.config.linkChannel, key);
     }
 
     /**
@@ -312,7 +344,7 @@
           .tickSize(vis.innerHeight)
           .tickFormat('')
       ).selectAll('line')
-        .attr('stroke', 'rgba(0,0,0,0.06)')
+        .style('stroke', 'var(--c-grid)')
         .attr('stroke-dasharray', '2 4');
 
       // Axes
@@ -469,7 +501,7 @@
       vis.gridG.call(
         d3.axisBottom(vis.xScale).ticks(6).tickSize(vis.innerHeight).tickFormat('')
       ).selectAll('line')
-        .attr('stroke', 'rgba(0,0,0,0.06)')
+        .style('stroke', 'var(--c-grid)')
         .attr('stroke-dasharray', '2 4');
 
       if (compact) {
@@ -512,7 +544,7 @@
             .attr('x2', 0)
             .attr('y1', cy)
             .attr('y2', cy)
-            .attr('stroke', '#cbd5e1')
+            .style('stroke', 'var(--c-line)')
             .attr('stroke-width', 2.5)
             .call(enter => enter.transition().duration(vis.config.duration).ease(vis.config.ease)
               .attr('x2', d => vis.xScale(d.value))),
@@ -533,7 +565,7 @@
             .attr('cy', cy)
             .attr('r', 6.5)
             .attr('fill', (d, i) => vis.dotFill(d, i))
-            .attr('stroke', '#ffffff')
+            .style('stroke', 'var(--c-surface)')
             .attr('stroke-width', 2)
             .call(enter => enter.transition().duration(vis.config.duration).ease(vis.config.ease)
               .attr('cx', d => vis.xScale(d.value))),
@@ -596,6 +628,7 @@
           if (onClick && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onClick(d); }
         })
         .on('mouseenter', function (event, d) {
+          vis.emitHover(d.key);
           vis.tooltip.classed('visible', true)
             .html(`
               <div class="tooltip-title">${d.label}</div>
@@ -612,8 +645,32 @@
             .style('top', `${event.pageY - 28}px`);
         })
         .on('mouseleave', function () {
+          vis.emitHover(null);
           vis.tooltip.classed('visible', false);
         });
+    }
+
+    /** Linked hover: dim every row except `key` (falls back to the filter's choice) */
+    preview(key) {
+      const vis = this;
+      const k = key || vis.config.highlight;
+      const faded = d => k && d.key !== k;
+      vis.plotG.selectAll('.lollipop-dot').attr('opacity', d => (faded(d) ? 0.2 : 1));
+      vis.plotG.selectAll('.lollipop-line').attr('opacity', d => (faded(d) ? 0.3 : 1));
+      vis.plotG.selectAll('.lollipop-label, .lollipop-name').attr('opacity', d => (faded(d) ? 0.4 : 1));
+      vis.yAxisG.selectAll('.tick text')
+        .style('opacity', label => (faded(vis.displayData.find(d => d.label === label) || {}) ? 0.45 : 1));
+    }
+
+    /** Numbers for "View as table" (js/data-table.js) */
+    tableData() {
+      const f = d3.format(','), pc = d3.format('.1%');
+      const rows = this.displayData.map(d => [d.label, f(d.value), this.totalSum ? pc(d.value / this.totalSum) : '']);
+      return {
+        columns: [this.config.tableLabel || 'Category', this.config.xLabel || 'Value', 'Share'],
+        rows,
+        summary: `${this.config.xLabel || 'Values'} by category, largest first: ${rows.map(r => `${r[0]} ${r[1]}`).join('; ')}.`,
+      };
     }
   }
 
@@ -680,7 +737,7 @@
         .attr('class', 'half-line')
         .attr('x1', vis.xScale(0.5)).attr('x2', vis.xScale(0.5))
         .attr('y1', 0).attr('y2', vis.innerHeight)
-        .attr('stroke', 'rgba(0,0,0,0.18)')
+        .style('stroke', 'var(--c-line)')
         .attr('stroke-dasharray', '3 3');
 
       // Layers
@@ -808,7 +865,7 @@
       vis.gridG.call(
         d3.axisLeft(vis.yScale).ticks(6).tickSize(-vis.innerWidth).tickFormat('')
       ).selectAll('line')
-        .attr('stroke', 'rgba(0,0,0,0.06)')
+        .style('stroke', 'var(--c-grid)')
         .attr('stroke-dasharray', '2 4');
 
       // Annotations (Reporting Breaks)
@@ -823,7 +880,7 @@
               .join('line')
               .attr('x1', vis.xScale(b.year)).attr('x2', vis.xScale(b.year))
               .attr('y1', 0).attr('y2', vis.innerHeight)
-              .attr('stroke', '#94a3b8')
+              .style('stroke', 'var(--c-muted)')
               .attr('stroke-dasharray', '3 3');
 
             grp.selectAll('text').data([b])
@@ -870,7 +927,7 @@
           .attr('cy', d => vis.yScale(d[s.key]))
           .attr('r', 3.5)
           .attr('fill', s.color)
-          .attr('stroke', '#ffffff')
+          .style('stroke', 'var(--c-surface)')
           .attr('stroke-width', 1.5)
           .on('mouseenter', function (event, d) {
             d3.select(this).attr('r', 6);
@@ -1026,7 +1083,7 @@
       vis.gridG.call(
         d3.axisLeft(vis.yScale).ticks(6).tickSize(-vis.innerWidth).tickFormat('')
       ).selectAll('line')
-        .attr('stroke', 'rgba(0,0,0,0.06)')
+        .style('stroke', 'var(--c-grid)')
         .attr('stroke-dasharray', '2 4');
 
       // Quadrant Reference Lines
@@ -1035,7 +1092,7 @@
         .attr('class', 'quad-x')
         .attr('x1', vis.xScale(50000)).attr('x2', vis.xScale(50000))
         .attr('y1', 0).attr('y2', vis.innerHeight)
-        .attr('stroke', '#e2e8f0')
+        .style('stroke', 'var(--c-line)')
         .attr('stroke-width', 1.5)
         .attr('stroke-dasharray', '4 4');
 
@@ -1044,7 +1101,7 @@
         .attr('class', 'quad-y')
         .attr('x1', 0).attr('x2', vis.innerWidth)
         .attr('y1', vis.yScale(6.0)).attr('y2', vis.yScale(6.0))
-        .attr('stroke', '#e2e8f0')
+        .style('stroke', 'var(--c-line)')
         .attr('stroke-width', 1.5)
         .attr('stroke-dasharray', '4 4');
 
@@ -1102,13 +1159,13 @@
         .attr('class', 'crosshair-layer');
 
       vis.crossLineX = vis.crosshairG.append('line')
-        .attr('stroke', '#64748b')
+        .style('stroke', 'var(--c-ink-3)')
         .attr('stroke-width', 1.5)
         .attr('stroke-dasharray', '3 3')
         .style('display', 'none');
 
       vis.crossLineY = vis.crosshairG.append('line')
-        .attr('stroke', '#64748b')
+        .style('stroke', 'var(--c-ink-3)')
         .attr('stroke-width', 1.5)
         .attr('stroke-dasharray', '3 3')
         .style('display', 'none');
@@ -1214,7 +1271,7 @@
             .attr('x', d => vis.labelX(d))
             .attr('y', d => vis.labelY(d))
             .attr('text-anchor', d => (vis.LABEL_OFFSETS[d.user] ? vis.LABEL_OFFSETS[d.user].anchor : 'middle'))
-            .style('fill', d => vis.config.colorMap[d.user] || '#1d1d1f')   // data-driven
+            .style('fill', d => vis.config.colorMap[d.user] || 'var(--c-ink)')   // data-driven
             // In "All" mode, only show the 5 landmark labels directly; cluster cohorts are revealed on hover or in filtered mode!
             .style('opacity', d => LANDMARK_OFFSETS[d.user] ? 1 : 0)
             .text(d => d.user),
@@ -1435,7 +1492,7 @@
         .range([0, vis.innerWidth]);
 
       vis.gridG.call(d3.axisBottom(vis.xScale).ticks(6).tickSize(vis.innerHeight).tickFormat(''))
-        .selectAll('line').attr('stroke', 'rgba(0,0,0,0.06)').attr('stroke-dasharray', '2 4');
+        .selectAll('line').style('stroke', 'var(--c-grid)').attr('stroke-dasharray', '2 4');
       vis.gridG.select('.domain').remove();
 
       vis.yAxisG.classed('axis-category', true)
@@ -1459,9 +1516,9 @@
         .attr('stroke', d => d.change >= 0 ? c.upColor : c.downColor)
         .attr('stroke-width', 4).attr('stroke-opacity', 0.45).attr('stroke-linecap', 'round');
       rows.append('circle').attr('cx', d => vis.xScale(d.start)).attr('cy', cy).attr('r', 7)
-        .attr('fill', c.startColor).attr('stroke', '#ffffff').attr('stroke-width', 2);
+        .attr('fill', c.startColor).style('stroke', 'var(--c-surface)').attr('stroke-width', 2);
       rows.append('circle').attr('cx', d => vis.xScale(d.end)).attr('cy', cy).attr('r', 8)
-        .attr('fill', c.endColor).attr('stroke', '#ffffff').attr('stroke-width', 2);
+        .attr('fill', c.endColor).style('stroke', 'var(--c-surface)').attr('stroke-width', 2);
       rows.append('text').attr('class', 'bar-label')
         .attr('x', d => vis.xScale(Math.max(d.start, d.end)) + 14).attr('y', d => cy(d) + 4)
         .style('fill', d => d.change >= 0 ? c.upColor : c.downColor)
@@ -1493,7 +1550,7 @@
         const item = vis.legendG.append('g').attr('transform', `translate(${i * 90}, 0)`);
         item.append('circle').attr('cx', 6).attr('cy', 6).attr('r', 6).attr('fill', color);
         item.append('text').attr('x', 18).attr('y', 10).attr('class', 'legend-text')
-          .style('font-size', '12px').style('fill', '#1d1d1f').text(label);
+          .style('font-size', '12px').style('fill', 'var(--c-ink)').text(label);
       });
     }
   }
@@ -1557,7 +1614,7 @@
       };
 
       donut.selectAll('path').data(pie(vis.displayData)).join('path')
-        .attr('d', arc).attr('fill', p => color(p.data)).attr('stroke', '#ffffff').attr('stroke-width', 1.5)
+        .attr('d', arc).attr('fill', p => color(p.data)).style('stroke', 'var(--c-surface)').attr('stroke-width', 1.5)
         .style('cursor', 'pointer')
         .on('mouseenter', (event, p) => { highlight(p.data.label, true); showTip(event, p.data); })
         .on('mousemove', moveTip)
@@ -1571,9 +1628,9 @@
         .text(p => fmtPercent(p.data.value / vis.total));
 
       donut.append('text').attr('text-anchor', 'middle').attr('y', -6)
-        .style('font-size', '26px').style('font-weight', '700').style('fill', '#1d1d1f').text(fmtComma(vis.total));
+        .style('font-size', '26px').style('font-weight', '700').style('fill', 'var(--c-ink)').text(fmtComma(vis.total));
       donut.append('text').attr('text-anchor', 'middle').attr('y', 16)
-        .style('font-size', '12px').style('fill', '#55555a').text(c.centerLabel);
+        .style('font-size', '12px').style('fill', 'var(--c-ink-2)').text(c.centerLabel);
 
       // Value table / legend on the right
       const tx = cx + r + 50, rowH = 64;
@@ -1588,16 +1645,18 @@
         .attr('fill', 'transparent');
       rows.append('rect').attr('y', -11).attr('width', 12).attr('height', 12).attr('rx', 3).attr('fill', color);
       rows.append('text').attr('x', 20).attr('y', 0)
-        .style('font-size', '14px').style('font-weight', '600').style('fill', '#1d1d1f')
+        .style('font-size', '14px').style('font-weight', '600').style('fill', 'var(--c-ink)')
         .text(d => `${d.label}  ·  ${fmtComma(d.value)} (${fmtPercent(d.value / vis.total)})`);
       rows.append('text').attr('x', 20).attr('y', 19)
-        .style('font-size', '12px').style('fill', '#55555a').text(d => c.descMap[d.label] || '');
+        .style('font-size', '12px').style('fill', 'var(--c-ink-2)').text(d => c.descMap[d.label] || '');
     }
   }
 
   // ── Global Export Namespace ──────────────────────────────────
   global.Vis = {
     barGradient,
+    isDark,
+    textOnGradient,
     BaseChart,
     BarChart,
     LollipopChart,

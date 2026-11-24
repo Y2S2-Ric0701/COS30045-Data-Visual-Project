@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Figure 5.1: Who is most likely to die? ───────────────────
     const deathChart = new Vis.RankedBarChart('#chart-mortality-risk', data0.map(d => ({ ...d, value: d.rate })), {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       valueText: d => `${fmtDec1(d.value)} per 1,000`,
       tickFormat: d3.format('~'),
       margin: { top: 24, right: 130, bottom: 54, left: 200 },
@@ -57,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Figure 5.2: Who stays in hospital longest? ───────────────
     const stayChart = new Vis.RankedBarChart('#chart-length-of-stay', data0.map(d => ({ ...d, value: d.stay })), {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       valueText: d => `${fmtDec1(d.value)} days`,
       tickFormat: d3.format('~'),
       margin: { top: 24, right: 110, bottom: 54, left: 200 },
@@ -68,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Figure 5.3: Is the biggest group also the worst hurt? ────
     const pairChart = new Vis.PairedBarChart('#chart-injury-severity', data0, {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       onClick: clickRoadUser,
       tooltip: d => [d.label, [
         ['Share of all hospital cases:', fmtPct(d.a)],

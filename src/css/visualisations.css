@@ -39,7 +39,7 @@
 
 /* Apple-style subtle horizontal guidelines */
 .grid line {
-  stroke: rgba(0, 0, 0, 0.05);
+  stroke: var(--c-grid);
   stroke-dasharray: 2 4;
   shape-rendering: crispEdges;
 }
@@ -96,7 +96,7 @@
 
 .dot-baseline {
   fill: var(--apple-muted-baseline);
-  stroke: #ffffff;
+  stroke: var(--c-surface);
   stroke-width: 1.5px;
   opacity: 0.6;
 }
@@ -121,7 +121,7 @@
 
 .dot-accent {
   fill: var(--apple-accent);
-  stroke: #ffffff;
+  stroke: var(--c-surface);
   stroke-width: 2px;
   r: 5px;
 }
@@ -156,7 +156,7 @@
 }
 
 .data-dot {
-  stroke: #ffffff;
+  stroke: var(--c-surface);
   stroke-width: 2px;
   transition: r var(--apple-transition-fast);
 }
@@ -221,62 +221,62 @@
    fades, tooltip position, data colours) stays in the JS. */
 .vis-chart .tick text {
   font-size: 13px;
-  fill: #55555a;
+  fill: var(--c-ink-2);
 }
 
 .vis-chart .axis-category .tick text {
   font-size: 13.5px;
   font-weight: 500;
-  fill: #1d1d1f;
+  fill: var(--c-ink);
 }
 
 .vis-chart .axis-label {
   font-size: 13.5px;
-  fill: #55555a;
+  fill: var(--c-ink-2);
 }
 
 .vis-chart .axis-title {
   font-size: 13px;
   font-weight: 500;
-  fill: #55555a;
+  fill: var(--c-ink-2);
 }
 
 .vis-chart .bar-label,
 .vis-chart .lollipop-label {
   font-size: 13px;
   font-weight: 600;
-  fill: #1d1d1f;
+  fill: var(--c-ink);
 }
 
 .vis-chart .legend-item text,
 .vis-chart .leg-item text {
   font-size: 13.5px;
-  fill: #1d1d1f;
+  fill: var(--c-ink);
 }
 
 .vis-chart .break-label {
   font-size: 11px;
-  fill: #64748b;
+  fill: var(--c-ink-3);
 }
 
 .vis-chart .chart-y-axis-title {
   font-family: var(--apple-font, sans-serif);
   font-size: 13px;
   font-weight: 600;
-  fill: #1d1d1f;
+  fill: var(--c-ink);
 }
 
 .vis-chart .quad-x-label,
 .vis-chart .quad-y-label {
   font-size: 12px;
   font-weight: 500;
-  fill: #64748b;
+  fill: var(--c-ink-3);
 }
 
 .vis-chart .cluster-tag {
   font-size: 12px;
   font-weight: 500;
-  fill: #64748b;
+  fill: var(--c-ink-3);
   cursor: pointer;
 }
 
@@ -285,7 +285,7 @@
   font-size: 12.5px;
   font-weight: 600;
   paint-order: stroke fill;
-  stroke: #ffffff;
+  stroke: var(--c-surface);
   stroke-width: 3.5px;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -327,28 +327,28 @@
 /* Phone layout: category names above the bars, key under time charts */
 .vis-chart .rbar-name,
 .vis-chart .lollipop-name {
-  font-size: 13.5px; font-weight: 600; fill: #1d1d1f;
-  paint-order: stroke fill; stroke: #ffffff; stroke-width: 3px; stroke-linejoin: round;
+  font-size: 13.5px; font-weight: 600; fill: var(--c-ink);
+  paint-order: stroke fill; stroke: var(--c-surface); stroke-width: 3px; stroke-linejoin: round;
 }
-.vis-chart .compact-key-text { font-size: 13px; font-weight: 600; fill: #1d1d1f; }
+.vis-chart .compact-key-text { font-size: 13px; font-weight: 600; fill: var(--c-ink); }
 .vis-chart .compact-key-item:focus { outline: none; }
 .vis-chart .compact-key-item:focus-visible rect:first-child { stroke: var(--focus, #1F6FEB); stroke-width: 2; rx: 4; }
-.vis-chart .empty-msg { font-size: 16px; font-weight: 600; fill: #55555a; }
-.vis-chart .ref-label { font-size: 12.5px; font-weight: 600; fill: #1d1d1f; }
-.vis-chart .year-band-label { font-size: 12px; font-weight: 600; fill: #0071e3; }
+.vis-chart .empty-msg { font-size: 16px; font-weight: 600; fill: var(--c-ink-2); }
+.vis-chart .ref-label { font-size: 12.5px; font-weight: 600; fill: var(--c-ink); }
+.vis-chart .year-band-label { font-size: 12px; font-weight: 600; fill: var(--link); }
 .vis-chart .total-label {
-  font-size: 14px; font-weight: 700; fill: #1d1d1f;
-  paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round;
+  font-size: 14px; font-weight: 700; fill: var(--c-ink);
+  paint-order: stroke fill; stroke: var(--c-surface); stroke-width: 4px; stroke-linejoin: round;
 }
 .vis-chart .area-end-label,
 .vis-chart .trend-end-label { font-size: 13.5px; font-weight: 600; }
 .vis-chart .trend-end-change { font-weight: 700; }
-.vis-chart .break-label { font-size: 12px; fill: #475569; }
-.vis-chart .pair-value { font-size: 12.5px; font-weight: 600; fill: #64748b; }
+.vis-chart .break-label { font-size: 12px; fill: var(--c-ink-3); }
+.vis-chart .pair-value { font-size: 12.5px; font-weight: 600; fill: var(--c-ink-3); }
 .vis-chart .pair-value-b { font-size: 13.5px; font-weight: 700; }
 .vis-chart .pair-ratio { font-size: 17px; font-weight: 700; }
-.vis-chart .pair-ratio-head { font-size: 12px; font-weight: 600; fill: #55555a; }
-.vis-chart .pair-legend-text { font-size: 13px; fill: #1d1d1f; }
+.vis-chart .pair-ratio-head { font-size: 12px; font-weight: 600; fill: var(--c-ink-2); }
+.vis-chart .pair-legend-text { font-size: 13px; fill: var(--c-ink); }
 .vis-chart .rbar-hit:focus,
 .vis-chart .lollipop-hitbox:focus,
 .vis-chart .pair-hit:focus { outline: none; }
@@ -363,5 +363,21 @@
 .vis-chart .trend-end-label,
 .vis-chart .area-end-label,
 .vis-chart .pair-value {
-  paint-order: stroke fill; stroke: #ffffff; stroke-width: 3.5px; stroke-linejoin: round;
+  paint-order: stroke fill; stroke: var(--c-surface); stroke-width: 3.5px; stroke-linejoin: round;
 }
+
+/* ── On-chart annotations (plan §6.8) ───────────────────────── */
+.vis-chart .note-label {
+  font-size: 12.5px;
+  fill: var(--c-ink);
+  paint-order: stroke fill; stroke: var(--c-surface); stroke-width: 4px; stroke-linejoin: round;
+}
+.chart-annotation { transition: opacity 500ms ease; }
+.reveal-wait .chart-annotation,
+.is-entering .chart-annotation { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .chart-annotation { transition: none; } }
+
+/* Year brush on Figure 2.1 (drag along the axis) */
+.year-brush .overlay { cursor: ew-resize; }
+.year-brush .selection { fill: var(--link); fill-opacity: 0.14; stroke: var(--link); stroke-width: 1; shape-rendering: crispEdges; }
+.year-brush .handle { fill: var(--link); fill-opacity: 0.5; }

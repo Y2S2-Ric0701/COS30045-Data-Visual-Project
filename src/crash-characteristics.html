@@ -14,6 +14,7 @@
     rel="stylesheet"
   />
 
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
   <link rel="stylesheet" href="css/story.css" />
@@ -78,7 +79,7 @@
         <div class="responsive-svg-container" id="chart-counterparty" data-hint="{Click} a row to follow that road user">
           <!-- D3 SVG injected here -->
         </div>
-        <p class="chart-note">Each row is one road user and adds up to 100%. Darker blue = a bigger share of that row; the outlined cell is what that road user hit most often.</p>
+        <p class="chart-note">Each row is one road user and adds up to 100%. <span class="when-light">Darker</span><span class="when-dark">Brighter</span> blue = a bigger share of that row; the outlined cell is what that road user hit most often.</p>
       </div>
     </section>
 
@@ -118,9 +119,12 @@
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="js/motion.js"></script>
+  <script src="js/highlight.js"></script>
+  <script src="js/detail-panel.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/site-data.js"></script>
   <script src="js/global-filter.js"></script>
+  <script src="js/data-table.js"></script>
   <script src="js/vis-components.js"></script>
   <script src="js/vis-story-charts.js"></script>
   <script src="js/charts-characteristics.js"></script>

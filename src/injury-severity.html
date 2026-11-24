@@ -14,6 +14,7 @@
     rel="stylesheet"
   />
 
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
   <link rel="stylesheet" href="css/story.css" />
@@ -87,6 +88,25 @@
       </div>
     </section>
 
+    <!-- ── Chapter band: size vs harm in two waffles (js/chapter-divider.js) ── -->
+    <section class="chapter-band" data-chapter-waffle="Pedestrian" aria-labelledby="band-pedestrians">
+      <div class="chapter-band-inner">
+        <p class="chapter-kicker"><span class="km">Q5</span> Who is hurt worst</p>
+        <h2 class="chapter-statement" id="band-pedestrians">Pedestrians are <span class="chapter-num" data-waffle-text="cases">7%</span> of patients but <span class="chapter-num" data-waffle-text="deaths:plain">a quarter</span> of deaths in hospital.</h2>
+        <div class="waffle-pair">
+          <figure class="waffle">
+            <div class="waffle-grid" data-waffle="cases"></div>
+            <figcaption><strong data-waffle-text="cases">7%</strong> of all hospital cases</figcaption>
+          </figure>
+          <figure class="waffle">
+            <div class="waffle-grid" data-waffle="deaths"></div>
+            <figcaption><strong data-waffle-text="deaths">26%</strong> of all deaths in hospital</figcaption>
+          </figure>
+        </div>
+        <p class="chapter-source"><span class="waffle-key" aria-hidden="true"></span> Pedestrians. Each square is 1% of all road-crash cases (left) or deaths (right), <span data-waffle-years>2011–2019</span>, the years with death data.</p>
+      </div>
+    </section>
+
     <!-- ── Figure 5.3: Size vs harm ── -->
     <section id="injury-severity" class="apple-section">
       <div class="apple-chart-card">
@@ -123,12 +143,16 @@
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="js/motion.js"></script>
+  <script src="js/highlight.js"></script>
+  <script src="js/detail-panel.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/site-data.js"></script>
   <script src="js/global-filter.js"></script>
+  <script src="js/data-table.js"></script>
   <script src="js/vis-components.js"></script>
   <script src="js/vis-story-charts.js"></script>
   <script src="js/charts-severity.js"></script>
+  <script src="js/chapter-divider.js"></script>
 
 </body>
 </html>

@@ -1198,18 +1198,8 @@ html {
   }
 }
 
-/* Tablet portrait & phones: collapsible menu */
-@media (max-width: 860px) {
-  .insight-row {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-  .hero-title {
-    font-size: 34px;
-  }
-  .conclusion-highlights {
-    grid-template-columns: 1fr;
-  }
+/* Collapsible menu: below 1000px the six links no longer fit on one line */
+@media (max-width: 1000px) {
   .apple-nav-toggle {
     display: flex;
   }
@@ -1242,6 +1232,20 @@ html {
   }
   .apple-nav-links a:last-child {
     border-bottom: none;
+  }
+}
+
+/* Tablet portrait & phones */
+@media (max-width: 860px) {
+  .insight-row {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .hero-title {
+    font-size: 34px;
+  }
+  .conclusion-highlights {
+    grid-template-columns: 1fr;
   }
 }
 
