@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   theme.js – light / dark mode (UI_UX_improvement_plan.md §7)
+   theme.js – light / dark mode (doc/UI_UX_improvement_plan.md §7)
    Loaded in <head>, before the stylesheets, so the right theme is set
    before the first paint (no white flash in dark mode).
 

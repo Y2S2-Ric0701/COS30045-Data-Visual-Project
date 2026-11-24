@@ -1,7 +1,7 @@
 # Changes on `UI-UX-improvement`: dark mode, Tier 3 features and a clarity pass
 
 This file lists what changed on the site on this branch, why it changed, and where the code is.
-The full plan, with the checklist for every tier, is in `UI_UX_improvement_plan.md` at the repo root.
+The full plan, with the checklist for every tier, is in `doc/UI_UX_improvement_plan.md`.
 Tier 1 and Tier 2 of that plan (data tables, chapter band, waffles and the rest) are described there
 and are not repeated here.
 
@@ -176,7 +176,7 @@ the bars change what they measure, re-sort, and highlight that step's group:
 | `src/js/detail-panel.js` | Panel sparkline hover and arrow keys |
 | `src/css/story.css`, `src/css/visualisations.css` | Theme tokens, glass, and styles for all the features above |
 | `who-is-affected.html`, `trends-over-time.html`, `geographic-distribution.html`, `crash-characteristics.html`, `injury-severity.html` (all in `src/`) | Answer sentences and notes |
-| `UI_UX_improvement_plan.md` | Tier 3 checklist ticked, with notes |
+| `doc/UI_UX_improvement_plan.md` | Tier 3 checklist ticked, with notes |
 
 ## How it was checked
 
