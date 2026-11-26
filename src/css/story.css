@@ -1423,11 +1423,16 @@ body[data-page="severity"] { --hero-photo: url("../asset/q5-ambulance-1600.jpg")
 .scrolly-more { margin-top: 14px; font-weight: 600; align-self: flex-start; }
 @media (prefers-reduced-motion: reduce) { .scrolly-step { transition: none; } }
 
-/* Phone and narrow tablet: chart pinned at the top, steps scroll over it as cards */
+/* Phone and narrow tablet: chart pinned at the top; the step cards scroll up
+   in the space below it and slide UNDER the chart, so they never cover the bars */
 @media (max-width: 860px) {
   .scrolly-body { display: block; }
-  .scrolly-graphic { top: 64px; z-index: 1; padding: 12px 12px 8px; }
-  .scrolly-steps { position: relative; z-index: 2; padding: 30vh 0 20vh; }
+  .scrolly-graphic {
+    top: 64px; z-index: 3; padding: 12px 12px 8px;
+    /* opaque band above the card hides steps passing between the nav and the chart */
+    box-shadow: 0 -64px 0 0 var(--apple-bg), var(--apple-shadow-card, none);
+  }
+  .scrolly-steps { position: relative; z-index: 1; padding: 30vh 0 20vh; }
   .scrolly-step {
     min-height: 0; margin: 0 4px 45vh; padding: 18px 18px 16px; border-radius: 16px;
     background: var(--apple-surface, var(--c-surface)); border: 1px solid var(--apple-card-border, var(--c-line));
@@ -1435,6 +1440,11 @@ body[data-page="severity"] { --hero-photo: url("../asset/q5-ambulance-1600.jpg")
   }
   .scrolly-step > p:not(.scrolly-step-kicker) { font-size: 16.5px; }
   .scrolly-measure { font-size: 14.5px; }
+}
+/* Short phones: shed the source line so more of the screen is left for the cards */
+@media (max-width: 860px) and (max-height: 820px) {
+  .scrolly-source { display: none; }
+  .scrolly-step > p:not(.scrolly-step-kicker) { font-size: 15.5px; line-height: 1.5; }
 }
 
 /* Figure 1 colour key: "Bar colour: fewer cases [gradient] more cases" */

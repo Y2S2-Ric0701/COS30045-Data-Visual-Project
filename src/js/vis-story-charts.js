@@ -173,6 +173,55 @@
       .style('text-anchor', compact ? 'start' : 'middle').text(d => d);
   }
 
+  /** Split an SVG <text> into word-wrapped <tspan> lines no wider than maxW; returns the line count */
+  function wrapText(text, maxW, lineH = 16) {
+    let most = 1;
+    text.each(function () {
+      const el = d3.select(this);
+      const words = String(el.text()).split(/\s+/).filter(Boolean);
+      const x = el.attr('x');
+      el.text(null);
+      let line = [];
+      let lines = 1;
+      let ts = el.append('tspan').attr('x', x).attr('dy', 0);
+      words.forEach(w => {
+        line.push(w);
+        ts.text(line.join(' '));
+        if (line.length > 1 && ts.node().getComputedTextLength() > maxW) {
+          line.pop();
+          ts.text(line.join(' '));
+          line = [w];
+          ts = el.append('tspan').attr('x', x).attr('dy', lineH).text(w);
+          lines += 1;
+        }
+      });
+      most = Math.max(most, lines);
+    });
+    return most;
+  }
+
+  /** Phones: keep the first and last x-axis tick labels inside the chart's edges */
+  function pinEdgeTicks(axisG, innerW, roomL, roomR) {
+    axisG.selectAll('.tick').each(function () {
+      const m = /translate\(([-\d.]+)/.exec(this.getAttribute('transform') || '');
+      const tx = m ? +m[1] : 0;
+      const t = d3.select(this).select('text');
+      if (!t.node()) return;
+      const half = t.node().getComputedTextLength() / 2;
+      t.attr('text-anchor', tx - half < -roomL ? 'start' : tx + half > innerW + roomR ? 'end' : 'middle');
+    });
+  }
+
+  /** Text layer drawn above the zero and reference lines, so a line never
+   *  runs through a name or value (their halo hides it). Clicks pass
+   *  through to the row hit areas underneath. */
+  function labelLayer(vis) {
+    if (!vis.labelG || vis.labelG.node().parentNode !== vis.g.node()) {
+      vis.labelG = vis.g.insert('g', '.x-axis').attr('class', 'label-layer').style('pointer-events', 'none');
+    }
+    return vis.labelG;
+  }
+
   function setViewHeight(vis, height) {
     vis.config.height = height;
     vis.innerHeight = height - vis.config.margin.top - vis.config.margin.bottom;
@@ -232,7 +281,11 @@
       const c = vis.config;
       const rows = vis.displayData;
       const compact = vis.compact;
-      setViewHeight(vis, c.margin.top + c.margin.bottom + Math.max(1, rows.length) * (compact ? 56 : c.rowHeight));
+      // Phones: two reference labels may need a second row above the chart
+      if (vis._baseTop == null) vis._baseTop = c.margin.top;
+      c.margin.top = vis._baseTop + (compact && c.refLines.length > 1 ? 20 : 0);
+      vis.g.attr('transform', `translate(${c.margin.left},${c.margin.top})`);
+      setViewHeight(vis, c.margin.top + c.margin.bottom + Math.max(1, rows.length) * (compact ? 62 : c.rowHeight));
       if (c.ariaLabel) vis.svg.attr('aria-label', c.ariaLabel(rows));
 
       const valid = rows.filter(d => d.value != null);
@@ -249,9 +302,23 @@
       const hi = c.xMax ?? Math.max(0, d3.max(vals)) * 1.12;
       const x = d3.scaleLinear().domain([lo, hi || 1]).range([0, vis.innerWidth]);
       if (c.xMin == null || c.xMax == null) x.nice();
+      // Phones, with negative values (e.g. % change): names sit above the
+      // bars from the left edge, so push the zero line right of the longest
+      // name. Done by widening the negative side of the same scale, so bar
+      // lengths stay comparable on both sides of zero.
+      if (compact && lo < 0 && c.xMin == null) {
+        const probe = labelLayer(vis).append('text').attr('class', 'rbar-name');
+        const nameW = d3.max(rows, d => probe.text(d.label).node().getComputedTextLength()) || 0;
+        probe.remove();
+        const [d0, d1] = x.domain();
+        const z = Math.min(vis.innerWidth * 0.6, nameW + 12);       // where zero should sit, px from the left
+        if (z > x(0) && d1 > 0) x.domain([-d1 * z / (vis.innerWidth - z), d1]);
+        if (x.domain()[0] > d0) x.domain([d0, d1]);                 // never cut off a bar
+      }
       const y = d3.scaleBand().domain(rows.map(d => d.label)).range([0, vis.innerHeight]).padding(compact ? 0 : 0.28);
-      const barY = d => (compact ? y(d.label) + 22 : y(d.label));
-      const barH = compact ? y.step() - 30 : y.bandwidth();
+      // Phones: name on its own line, a clear gap, then the bar
+      const barY = d => (compact ? y(d.label) + 26 : y(d.label));
+      const barH = compact ? y.step() - 36 : y.bandwidth();
       const nameY = d => y(d.label) + 13;
       const ticks = compact ? 4 : 6;
       const grad = Vis.barGradient(d3.extent(vals));
@@ -264,13 +331,13 @@
 
       if (compact) {
         vis.yAxisG.selectAll('*').remove();
-        vis.plotG.selectAll('.rbar-name').data(rows, keyOf).join('text')
+        labelLayer(vis).selectAll('.rbar-name').data(rows, keyOf).join('text')
           .attr('class', 'rbar-name').attr('x', 0).attr('y', nameY).attr('dy', '0.35em')
           .attr('opacity', d => (faded(d) ? 0.45 : 1))
           .style('font-weight', d => (c.highlight && keyOf(d) === c.highlight ? 700 : null))
           .text(d => d.label);
       } else {
-        vis.plotG.selectAll('.rbar-name').remove();
+        labelLayer(vis).selectAll('.rbar-name').remove();
         vis.yAxisG.classed('axis-category', true)
           .call(d3.axisLeft(y).tickSize(0).tickPadding(12))
           .call(g => g.select('.domain').remove());
@@ -281,9 +348,13 @@
 
       vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
         .call(d3.axisBottom(x).ticks(ticks).tickFormat(c.tickFormat));
-      vis.xAxisG.selectAll('.axis-label').data([c.xLabel]).join('text')
+      if (compact) pinEdgeTicks(vis.xAxisG, vis.innerWidth, c.margin.left, c.margin.right);
+      const axisLabel = vis.xAxisG.selectAll('.axis-label').data([c.xLabel]).join('text')
         .attr('class', 'axis-label').attr('x', vis.innerWidth / 2).attr('y', 44)
         .attr('text-anchor', 'middle').text(d => d);
+      // A long title wraps onto a second line instead of running off the screen
+      const titleLines = wrapText(axisLabel, c.width - 16);
+      if (titleLines > 1) vis.svg.attr('viewBox', `0 0 ${c.width} ${c.height + 16 * (titleLines - 1)}`);
 
       // Zero line when some values are negative (e.g. % change)
       vis.annotationsG.selectAll('.zero-line').data(lo < 0 ? [0] : []).join('line')
@@ -299,6 +370,26 @@
       refs.append('text').attr('class', 'ref-label')
         .attr('x', d => x(d.value) + (d.anchor === 'start' ? 4 : d.anchor === 'end' ? -4 : 0)).attr('y', -14)
         .attr('text-anchor', d => d.anchor || 'middle').text(d => d.label);
+      // Phones: a label that would run off the edge flips to the other side of
+      // its line; one that would then overlap another moves up a row
+      if (compact) {
+        const minX = -c.margin.left + 2;
+        const maxX = vis.innerWidth + c.margin.right - 2;
+        const placed = [];
+        refs.select('text').each(function (d) {
+          const el = d3.select(this);
+          let b = this.getBBox();
+          if (!b.width) return;
+          if (b.x + b.width > maxX) { el.attr('text-anchor', 'end').attr('x', x(d.value) - 4); b = this.getBBox(); }
+          if (b.x < minX) { el.attr('text-anchor', 'start').attr('x', x(d.value) + 4); b = this.getBBox(); }
+          if (b.x + b.width > maxX) { el.attr('text-anchor', 'end').attr('x', maxX); b = this.getBBox(); }
+          let row = 0;
+          while (placed.some(p => p.row === row && b.x < p.r + 8 && b.x + b.width > p.l - 8)) row += 1;
+          placed.push({ row, l: b.x, r: b.x + b.width });
+          el.attr('y', -14 - row * 20);
+          d3.select(this.parentNode).select('line').attr('y1', -8 - row * 20);
+        });
+      }
 
       const t = vis.svg.transition().duration(c.duration).ease(c.ease);
       vis.plotG.selectAll('.rbar').data(valid, keyOf).join(
@@ -326,7 +417,7 @@
         .attr('x', d => x(d.value)).attr('width', d => Math.max(0, x(c.xMax ?? hi) - x(d.value)))
         .attr('opacity', d => (faded(d) ? 0.2 : 1));
 
-      vis.plotG.selectAll('.rbar-label').data(rows, keyOf).join('text')
+      labelLayer(vis).selectAll('.rbar-label').data(rows, keyOf).join('text')
         .attr('class', 'bar-label rbar-label')
         .attr('y', d => (compact ? nameY(d) : y(d.label) + y.bandwidth() / 2)).attr('dy', '0.35em')
         .attr('x', d => (compact ? vis.innerWidth
@@ -373,7 +464,7 @@
       const k = key || vis.config.highlight;
       const faded = d => k && keyOf(d) !== k;
       vis.plotG.selectAll('.rbar, .rbar-rest').interrupt().attr('opacity', d => (faded(d) ? 0.2 : 1));
-      vis.plotG.selectAll('.rbar-label, .rbar-name').attr('opacity', d => (faded(d) ? 0.45 : 1));
+      labelLayer(vis).selectAll('.rbar-label, .rbar-name').attr('opacity', d => (faded(d) ? 0.45 : 1));
       vis.yAxisG.selectAll('.tick text')
         .style('opacity', label => (faded(vis.displayData.find(r => r.label === label) || {}) ? 0.45 : 1));
     }
@@ -840,6 +931,7 @@
         .selectAll('line').style('stroke', 'var(--c-grid)').attr('stroke-dasharray', '2 4');
       vis.xAxisG.attr('transform', `translate(0,${vis.innerHeight})`)
         .call(d3.axisBottom(x).ticks(5).tickFormat(pct));
+      if (compact) pinEdgeTicks(vis.xAxisG, vis.innerWidth, c.margin.left, c.margin.right);
       if (compact) {
         vis.yAxisG.selectAll('*').remove();
       } else {

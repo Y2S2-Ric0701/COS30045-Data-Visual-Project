@@ -40,6 +40,7 @@
       draw(false);
       watchSteps();
       watchWheel();
+      watchTouch();
       watchResize();
     })
     .catch(err => console.error('Error loading the scrollytelling data:', err));
@@ -104,7 +105,7 @@
     drawnWidth = Math.floor(chartEl.clientWidth) || 600;
     const compact = drawnWidth < 520;
     const m = { top: 30, right: compact ? 58 : 76, bottom: 30, left: compact ? 96 : 150 };
-    const rowH = compact ? 30 : 42;
+    const rowH = compact ? 25 : 42;   // phones: shorter rows leave room below the pinned chart for the cards
     const H = m.top + m.bottom + USERS.length * rowH;
     svg = d3.select(chartEl).append('svg')
       .attr('width', drawnWidth).attr('height', H).attr('viewBox', `0 0 ${drawnWidth} ${H}`)
@@ -217,12 +218,45 @@
     ref.transition(t).style('opacity', 1).attr('transform', d => `translate(${x(d.value)},0)`);
   }
 
-  /** A 2px line across the middle of the visible area below the nav (the
-   *  same middle the chart is pinned to and the page snaps steps to) */
-  function middleLine() {
+  const narrowMQ = window.matchMedia('(max-width: 860px)');
+  const graphicEl = section.querySelector('.scrolly-graphic');
+
+  /** Where a step's middle rests. Wide screens: the middle of the visible
+   *  area below the nav, level with the pinned chart. Phones: the middle of
+   *  the space left below the chart pinned at the top. */
+  function midY() {
+    if (narrowMQ.matches && graphicEl) {
+      const bottom = (parseFloat(getComputedStyle(graphicEl).top) || 0) + graphicEl.offsetHeight;
+      return bottom + (window.innerHeight - bottom) / 2;
+    }
     const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-    const mid = Math.round(pad + (window.innerHeight - pad) / 2);
+    return pad + (window.innerHeight - pad) / 2;
+  }
+
+  /** A 2px trigger line at midY() */
+  function middleLine() {
+    const mid = Math.round(midY());
     return `-${mid - 1}px 0px -${Math.max(0, window.innerHeight - mid - 1)}px 0px`;
+  }
+
+  /** How far each step's middle is from where it rests (px, + = below) */
+  const offsets = () => steps.map(el => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 - midY(); });
+  const nearest = off => off.reduce((best, o, i) => (Math.abs(o) < Math.abs(off[best]) ? i : best), 0);
+  let busyUntil = 0;
+  function glideTo(i) {
+    const off = offsets()[i];
+    window.scrollTo({ top: window.scrollY + off, behavior: Motion.REDUCED ? 'auto' : 'smooth' });
+    busyUntil = performance.now() + (Motion.REDUCED ? 80 : 520);
+  }
+  /** True while a step can line up with the pinned chart and moving in
+   *  `dir` (+1 on, -1 back) would stay inside the five questions */
+  function holds(dir) {
+    const off = offsets();
+    const lastI = off.length - 1;
+    if (off[0] > 2 || off[lastI] < -2) return false;               // section not pinned yet / already past
+    if (dir > 0 && Math.abs(off[lastI]) <= 2) return false;        // at the last question: let the page go on
+    if (dir < 0 && Math.abs(off[0]) <= 2) return false;            // at the first question: let the page go back
+    return true;
   }
 
   /** The step whose middle is nearest the middle of the screen is active */
@@ -235,16 +269,15 @@
     };
     steps[0].classList.add('is-active');
     if (!('IntersectionObserver' in window)) return;
-    // Wide screens: the trigger line is the middle of the screen. Phones pin
-    // the chart at the top, so the line sits lower, where a card first shows
-    // below the chart.
-    const narrow = window.matchMedia('(max-width: 860px)');
+    // The trigger line is where steps rest (midY): the middle of the screen,
+    // or on phones the middle of the space below the pinned chart.
+    const narrow = narrowMQ;
     let io = null;
     const observe = () => {
       if (io) io.disconnect();
       io = new IntersectionObserver(entries => {
         entries.forEach(e => { if (e.isIntersecting) setActive(e.target.dataset.step); });
-      }, { rootMargin: narrow.matches ? '-74% 0px -24% 0px' : middleLine() });
+      }, { rootMargin: middleLine() });
       steps.forEach(el => io.observe(el));
     };
     observe();
@@ -263,35 +296,20 @@
    * instead. Keyboard, scrollbar and touch scrolling are left alone.
    */
   function watchWheel() {
-    const narrow = window.matchMedia('(max-width: 860px)');
     const NOTCHES = 2, TRACKPAD_PX = 220;
-    let notches = 0, px = 0, lastDir = 0, idle = null, busyUntil = 0;
-    const midY = () => {
-      const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-      return pad + (window.innerHeight - pad) / 2;
-    };
-    const offsets = () => steps.map(el => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 - midY(); });
-    const glideTo = i => {
-      const off = offsets()[i];
-      window.scrollTo({ top: window.scrollY + off, behavior: Motion.REDUCED ? 'auto' : 'smooth' });
-      busyUntil = performance.now() + (Motion.REDUCED ? 80 : 520);
-    };
+    let notches = 0, px = 0, lastDir = 0, idle = null;
     window.addEventListener('wheel', e => {
-      if (narrow.matches || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       const dy = e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? window.innerHeight : 1);
       if (!dy) return;
       const dir = Math.sign(dy);
-      const off = offsets();
-      const last = off.length - 1;
-      // Only while a step can line up with the pinned chart
-      if (off[0] > 2 || off[last] < -2) return;               // section not pinned yet / already past
-      if (dir > 0 && Math.abs(off[last]) <= 2) return;        // at the last question: let the page go on
-      if (dir < 0 && Math.abs(off[0]) <= 2) return;           // at the first question: let the page go back
+      if (!holds(dir)) return;
       e.preventDefault();
       if (performance.now() < busyUntil) return;
+      const off = offsets();
+      const last = off.length - 1;
       // Nearest step; if it is not lined up yet, line it up first
-      let cur = 0;
-      off.forEach((o, i) => { if (Math.abs(o) < Math.abs(off[cur])) cur = i; });
+      const cur = nearest(off);
       if (Math.abs(off[cur]) > 24) { notches = 0; px = 0; glideTo(cur); return; }
       if (dir !== lastDir) { notches = 0; px = 0; lastDir = dir; }
       clearTimeout(idle);
@@ -302,6 +320,79 @@
         glideTo(Math.max(0, Math.min(last, cur + dir)));
       }
     }, { passive: false });
+  }
+
+  /**
+   * Touch screens: the same pause as the wheel. While the chart is pinned,
+   * one swipe moves exactly one question and the new card glides to the
+   * middle of the space below the chart. A flick that carries the page into
+   * the section stops on the first (or, going back, the last) question.
+   * Above the first question and below the last one the page scrolls as usual.
+   */
+  function watchTouch() {
+    const SWIPE_PX = 30;
+    let startY = null, decided = false, mine = false, touching = false, touchedLast = false;
+    let lastOff0 = null, lastOffN = null, settle = null;
+
+    window.addEventListener('touchstart', e => {
+      touchedLast = true;
+      touching = e.touches.length > 0;
+      startY = e.touches.length === 1 ? e.touches[0].clientY : null;
+      decided = false; mine = false;
+    }, { passive: true });
+
+    // Decide on the first move (while it can still be cancelled) whether
+    // this swipe pages the story or scrolls the page
+    window.addEventListener('touchmove', e => {
+      if (startY == null) return;
+      if (!decided) {
+        const dy = startY - e.touches[0].clientY;      // > 0: finger moves up, page goes on
+        if (!dy) return;
+        decided = true;
+        mine = holds(Math.sign(dy));
+      }
+      if (mine && e.cancelable) e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('touchend', e => {
+      touching = e.touches.length > 0;
+      if (!mine || startY == null) { startY = null; return; }
+      const dy = startY - e.changedTouches[0].clientY;
+      startY = null; mine = false;
+      if (performance.now() < busyUntil) return;
+      const off = offsets();
+      const cur = nearest(off);
+      if (Math.abs(off[cur]) > 24) { glideTo(cur); return; }
+      if (Math.abs(dy) < SWIPE_PX) return;              // a tap or a tiny nudge
+      glideTo(Math.max(0, Math.min(off.length - 1, cur + Math.sign(dy))));
+    }, { passive: true });
+    window.addEventListener('touchcancel', () => { touching = false; startY = null; mine = false; }, { passive: true });
+
+    // Mouse and wheel users are left to watchWheel
+    window.addEventListener('mousedown', () => { touchedLast = false; }, { passive: true });
+    window.addEventListener('wheel', () => { touchedLast = false; }, { passive: true });
+
+    window.addEventListener('scroll', () => {
+      if (!touchedLast) { lastOff0 = null; return; }
+      const off = offsets();
+      const lastI = off.length - 1;
+      // A flick crossing into the section: stop on the question it reaches
+      if (!touching && lastOff0 != null && performance.now() >= busyUntil) {
+        if (lastOff0 > 2 && off[0] <= 2) glideTo(0);
+        else if (lastOffN < -2 && off[lastI] >= -2) glideTo(lastI);
+      }
+      lastOff0 = off[0]; lastOffN = off[lastI];
+      // When the page comes to rest inside the section, line the nearest card up
+      clearTimeout(settle);
+      settle = setTimeout(() => {
+        if (touching || performance.now() < busyUntil) return;
+        const o = offsets();
+        const reach = window.innerHeight * 0.18;          // resting just short of Q1 / just past Q5 still counts
+        if (o[0] > reach || o[o.length - 1] < -reach) return;
+        const cur = nearest(o);
+        if (Math.abs(o[cur]) > 4) glideTo(cur);
+      }, 140);
+    }, { passive: true });
   }
 
   function watchResize() {

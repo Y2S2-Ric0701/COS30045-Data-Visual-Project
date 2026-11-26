@@ -69,7 +69,7 @@
     // Two-line headers need ~84px columns; narrower than that they are slanted
     const slant = compact || (width - 310) / COUNTERPARTIES.length < 84;
     const margin = compact
-      ? { top: 92, right: 6, bottom: 74, left: 92 }
+      ? { top: 92, right: 20, bottom: 74, left: 92 }   // right: room for the last slanted header
       : { top: slant ? 100 : 64, right: 110, bottom: 70, left: width < 760 ? 170 : 200 };
     const height = margin.top + margin.bottom + rows.length * (compact ? 38 : 42) + (width < 820 && !compact ? 26 : 0);
     const innerWidth = width - margin.left - margin.right;

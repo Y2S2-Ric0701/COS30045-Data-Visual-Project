@@ -110,7 +110,7 @@ select *"Open with Live Server"*.
 ## 📊 Data Sources
 
 - **AIHW** – [Hospitalised injury due to land transport crashes](https://www.aihw.gov.au/reports/injury/hospitalised-injury-due-to-land-transport-crashes)
-- **BITRE** – [Road Deaths Australia – Annual Summaries](https://www.bitre.gov.au/publications/ongoing/road_deaths_australia_annual_summaries)
+- **BITRE** – [Hospitalised Injury](https://www.bitre.gov.au/publications/ongoing/hospitalised-injury) (September 2023 release: the national and state and territory files in `analysis/dataset/`, built from AIHW hospital data)
 
 ---
 
