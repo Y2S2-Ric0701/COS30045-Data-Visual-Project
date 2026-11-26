@@ -143,9 +143,9 @@ function renderFooter() {
           </li>
           <li>
             <strong>Bureau of Infrastructure and Transport Research Economics (BITRE):</strong>
-            <em>Road Deaths Australia &amp; Crash Inpatient Summaries</em>.
-            <a href="https://www.bitre.gov.au/publications/ongoing/road_deaths_australia_annual_summaries" target="_blank" rel="noopener noreferrer">
-              Access BITRE data portal &nearr;
+            <em>Hospitalised Injury</em> (September 2023 release: national and state and territory series, 2011&ndash;2021, from AIHW hospital data).
+            <a href="https://www.bitre.gov.au/publications/ongoing/hospitalised-injury" target="_blank" rel="noopener noreferrer">
+              Download the BITRE data files &nearr;
             </a>
           </li>
           <li>

@@ -328,7 +328,7 @@
 .vis-chart .rbar-name,
 .vis-chart .lollipop-name {
   font-size: 13.5px; font-weight: 600; fill: var(--c-ink);
-  paint-order: stroke fill; stroke: var(--c-surface); stroke-width: 3px; stroke-linejoin: round;
+  paint-order: stroke fill; stroke: var(--c-surface); stroke-width: 5px; stroke-linejoin: round;   /* wide halo: hides lines behind the name */
 }
 .vis-chart .compact-key-text { font-size: 13px; font-weight: 600; fill: var(--c-ink); }
 .vis-chart .compact-key-item:focus { outline: none; }
@@ -363,7 +363,7 @@
 .vis-chart .trend-end-label,
 .vis-chart .area-end-label,
 .vis-chart .pair-value {
-  paint-order: stroke fill; stroke: var(--c-surface); stroke-width: 3.5px; stroke-linejoin: round;
+  paint-order: stroke fill; stroke: var(--c-surface); stroke-width: 5px; stroke-linejoin: round;
 }
 
 /* ── On-chart annotations (plan §6.8) ───────────────────────── */
