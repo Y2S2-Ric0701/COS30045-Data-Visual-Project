@@ -26,37 +26,86 @@
   // ═══════════════════════════════════════════════════════════════
   // FIGURE 3.1 (map view): each state shaded by its cases
   // (light blue = fewer, dark blue = more), using the site-wide gradient.
+  // Click a state to zoom to it; + / − / reset buttons, Ctrl + scroll or
+  // pinch to zoom freely, drag to pan once zoomed. Keyboard: Tab to a
+  // state, Enter zooms, + / − zoom, arrow keys pan, Esc resets.
   // ═══════════════════════════════════════════════════════════════
-  function drawMap(containerId, geo, cases, years) {
+  const MAP_W = 850, MAP_H = 600, VIEW_H = 540;   // VIEW_H: map area above the legend
+  // The zoom survives redraws (filter changes, Play), so it is kept here
+  const mapZoom = { code: null, transform: d3.zoomIdentity };
+  // A shared link can open the map already zoomed: ?zoom=QLD (js/global-filter.js)
+  { const z = (GlobalFilter.param('zoom') || '').toUpperCase(); if (z in STATE_NAMES) mapZoom.code = z; }
+
+  // Linked hover (js/highlight.js): hovering a state's line in Figure 3.3
+  // (or its bar) outlines that state on the map, and the reverse
+  let mapStatesSel = null;
+  if (typeof Highlight !== 'undefined') {
+    Highlight.on('state', code => {
+      if (!mapStatesSel || !mapStatesSel.node() || !mapStatesSel.node().isConnected) return;
+      mapStatesSel.each(function (d) {
+        const on = d.properties.code === code;
+        d3.select(this).style('stroke', on ? 'var(--c-ink)' : 'var(--c-surface)').attr('stroke-width', on ? 2.5 : 1.2);
+        if (on) d3.select(this).raise();
+      });
+    });
+  }
+
+  function drawMap(containerId, geo, cases, years, onSelect) {
     const container = d3.select(containerId);
     container.selectAll('*').remove();
 
     const totalCases = d3.sum([...cases.values()]);
     const rank = new Map([...cases.entries()].sort((a, b) => b[1] - a[1]).map(([st], i) => [st, i + 1]));
     const yrs = rangeText(years);
-
-    const width = 850;
-    const height = 600;
     const mapBox = [[20, 20], [700, 530]];   // leaves room on the right for the ACT call-out
 
+    // The map always draws at 850 wide and is scaled down to fit. On a phone that
+    // would shrink the text to ~5px, so labels and the legend are drawn larger
+    // (in map units) to keep them readable on screen.
+    const cw = Vis.BaseChart.contentWidth(container.node());
+    const toScreen = cw > 0 ? cw / MAP_W : 1;           // screen px per map unit
+    const compact = cw > 0 && cw < 600;
+    const ts = compact ? Math.min(2.2, 0.8 / toScreen) : 1;   // label text scale
+    const ls = compact ? Math.min(2.4, 0.85 / toScreen) : 1;  // legend scale
+    const mapH = VIEW_H + Math.round((MAP_H - VIEW_H) * ls);
+
     const svg = container.append('svg')
-      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('viewBox', `0 0 ${MAP_W} ${mapH}`)
       .attr('preserveAspectRatio', 'xMidYMid meet')
       .attr('role', 'img')
       .attr('aria-label', `Map of Australia: hospitalised road injuries by state and territory, ${yrs}. ` +
         [...cases.entries()].sort((a, b) => b[1] - a[1])
-          .map(([st, v]) => `${STATE_NAMES[st]} ${fmt(v)}`).join(', '));
+          .map(([st, v]) => `${STATE_NAMES[st]} ${fmt(v)}`).join(', ') +
+        '. Select a state and press Enter to zoom in; Escape zooms out.');
 
     const projection = d3.geoMercator().fitExtent(mapBox, geo);
     const path = d3.geoPath(projection);
+    const featureOf = code => geo.features.find(f => f.properties.code === code);
 
     const [cMin, cMax] = d3.extent([...cases.values()]);
     const color = Vis.barGradient([cMin, cMax]);
     // White text on the darker half of the scale, dark text on the lighter half
-    const textOn = v => ((v - cMin) / (cMax - cMin || 1)) > 0.45 ? '#ffffff' : '#1d1d1f';
+    const textOn = v => Vis.textOnGradient((v - cMin) / (cMax - cMin || 1));
 
-    const statesG = svg.append('g').attr('class', 'map-states');
-    const labelsG = svg.append('g').attr('class', 'map-labels').style('pointer-events', 'none');
+    // Everything that zooms is clipped to the map area, so it never covers the legend
+    const clipId = 'state-map-clip';
+    svg.append('defs').append('clipPath').attr('id', clipId)
+      .append('rect').attr('width', MAP_W).attr('height', VIEW_H);
+    const viewport = svg.append('g').attr('clip-path', `url(#${clipId})`);
+    viewport.append('rect').attr('class', 'map-bg')
+      .attr('width', MAP_W).attr('height', VIEW_H).attr('fill', 'transparent')
+      .on('click', () => { zoomToState(null); if (onSelect) onSelect(null); });
+
+    // Big faint year in the corner, so Play reads like a flip-book
+    const yearMark = viewport.append('text').attr('class', 'map-year-mark')
+      .attr('x', 24).attr('y', VIEW_H - 16).attr('text-anchor', 'start')   // open sea south-west of the mainland
+      .style('font-size', `${(years[0] === years[1] ? 84 : 56) * Math.min(ts, 1.5)}px`)
+      .text(yrs);
+
+    const zoomG = viewport.append('g').attr('class', 'map-zoom-layer');
+    const statesG = zoomG.append('g').attr('class', 'map-states');
+    const labelsG = viewport.append('g').attr('class', 'map-labels').style('pointer-events', 'none');
+    const calloutsG = viewport.append('g').attr('class', 'map-callouts').style('pointer-events', 'none');
 
     const showTip = d => {
       const st = d.properties.code;
@@ -65,29 +114,32 @@
         ['Hospitalised:', fmt(v)],
         ['Share of all states:', fmtPct(v / totalCases), true],
         ['Rank:', `${rank.get(st)} of 8`],
+        [mapZoom.code === st ? 'Click again to zoom out' : 'Click to zoom in', ''],
       ]));
     };
 
-    statesG.selectAll('path')
+    const states = statesG.selectAll('path')
       .data(geo.features)
       .join('path')
       .attr('class', 'map-state')
       .attr('d', path)
       .attr('fill', d => color(cases.get(d.properties.code)))
-      .attr('stroke', '#ffffff')
+      .style('stroke', 'var(--c-surface)')
       .attr('stroke-width', 1.2)
+      .attr('vector-effect', 'non-scaling-stroke')   // borders stay thin at any zoom
       .attr('stroke-linejoin', 'round')
       .attr('tabindex', 0)
-      .attr('aria-label', d => `${fullName(d.properties.code)}: ${fmt(cases.get(d.properties.code))} hospitalised, ${yrs}`)
+      .attr('role', 'button')
+      .attr('aria-label', d => `${fullName(d.properties.code)}: ${fmt(cases.get(d.properties.code))} hospitalised, ${yrs}. Press Enter to zoom.`)
       .style('cursor', 'pointer')
       .on('mouseenter focus', function (event, d) {
-        d3.select(this).raise().attr('stroke', '#1d1d1f').attr('stroke-width', 2);
-        labelsG.raise();
+        d3.select(this).raise().style('stroke', 'var(--c-ink)').attr('stroke-width', 2);
+        if (typeof Highlight !== 'undefined') Highlight.set('state', d.properties.code);
         showTip(d);
         if (event.type === 'focus') {
-          const [x, y] = path.centroid(d);
+          const [x, y] = mapZoom.transform.apply(path.centroid(d));
           const box = svg.node().getBoundingClientRect();
-          const k = box.width / width;
+          const k = box.width / MAP_W;
           tooltip.style('left', `${box.left + window.scrollX + x * k + 14}px`)
             .style('top', `${box.top + window.scrollY + y * k - 28}px`);
         } else {
@@ -96,26 +148,49 @@
       })
       .on('mousemove', event => Vis.placeTip(tooltip, event))
       .on('mouseleave blur', function () {
-        d3.select(this).attr('stroke', '#ffffff').attr('stroke-width', 1.2);
+        d3.select(this).style('stroke', 'var(--c-surface)').attr('stroke-width', 1.2);
+        if (typeof Highlight !== 'undefined') Highlight.set('state', null);
         tooltip.classed('visible', false);
+      })
+      .on('click', function (event, d) {
+        const st = d.properties.code;
+        zoomToState(mapZoom.code === st ? null : st);
+        showTip(d);
+        if (onSelect) onSelect(mapZoom.code, this);
+      })
+      .on('keydown', (event, d) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        const st = d.properties.code;
+        zoomToState(mapZoom.code === st ? null : st);
+        if (onSelect) onSelect(mapZoom.code, this);
       });
 
     // ── Labels: abbreviation + count + share inside each state ──
-    // Mainland centroids land off-centre for a few states, so nudge them.
-    // ACT and VIC are too small to hold the text, so they get call-out
-    // lines into the open space east of the coast; TAS is labelled beside the island.
+    // Labels sit in their own layer and are moved (not scaled) by the zoom,
+    // so the text stays the same size. ACT and VIC are too small to hold
+    // the text at full view, so they get call-out lines into the open
+    // space east of the coast; once zoomed in they are labelled inside.
     const nudge = { NSW: [-12, 8], QLD: [10, 25], WA: [0, 10], SA: [0, -15], NT: [0, 0] };
-    const callouts = { ACT: -14, VIC: 40 };
+    const callouts = { ACT: -14 - 24 * (ts - 1), VIC: 40 + 24 * (ts - 1) };
 
-    const twoLineLabel = (x, y, anchor, fill, st, v) => {
-      const t = labelsG.append('text').attr('text-anchor', anchor).attr('fill', fill);
-      t.append('tspan').attr('x', x).attr('y', y - 4)
-        .style('font-size', '15px').style('font-weight', '700').text(st);
-      t.append('tspan').attr('x', x).attr('dy', 17)
-        .style('font-size', '12.5px').style('font-weight', '600')
-        .text(`${fmt(v)} · ${fmtPct(v / totalCases)}`);
+    const twoLine = (sel, anchor, fill, st, v) => {
+      // Halo in the opposite tone keeps the text readable over any neighbour
+      const t = sel.append('text').attr('text-anchor', anchor).style('fill', fill)
+        .style('stroke', fill === '#ffffff' ? 'rgba(8, 48, 107, 0.55)'
+          : fill === '#1d1d1f' || fill === '#14171A' ? 'rgba(255, 255, 255, 0.9)' : 'var(--c-surface)')
+        .attr('stroke-width', 3 * ts).attr('stroke-linejoin', 'round').attr('paint-order', 'stroke');
+      t.append('tspan').attr('x', 0).attr('y', -4 * ts)
+        .style('font-size', `${15 * ts}px`).style('font-weight', '700').text(st);
+      // On a phone only the share fits; the count is in the tooltip and the bar view
+      t.append('tspan').attr('x', 0).attr('dy', 17 * ts)
+        .style('font-size', `${12.5 * ts}px`).style('font-weight', '600')
+        .text(compact ? d3.format('.0%')(v / totalCases) : `${fmt(v)} · ${fmtPct(v / totalCases)}`);
     };
 
+    mapStatesSel = states;
+
+    const labelSpecs = [];
     geo.features.forEach(f => {
       const st = f.properties.code;
       const v = cases.get(st);
@@ -123,44 +198,262 @@
 
       if (st in callouts) {
         const tx = 745, ty = cy + callouts[st];
-        labelsG.append('path')
+        calloutsG.append('path')
           .attr('d', `M${cx},${cy} L${cx + 30},${ty} L${tx - 6},${ty}`)
-          .attr('fill', 'none').attr('stroke', '#1d1d1f').attr('stroke-width', 1);
-        labelsG.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 3.5)
-          .attr('fill', '#1d1d1f').attr('stroke', '#ffffff').attr('stroke-width', 1.5);
-        twoLineLabel(tx, ty + 1, 'start', '#1d1d1f', st, v);
+          .attr('fill', 'none').style('stroke', 'var(--c-ink)').attr('stroke-width', 1);
+        calloutsG.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 3.5)
+          .style('fill', 'var(--c-ink)').style('stroke', 'var(--c-surface)').attr('stroke-width', 1.5);
+        twoLine(calloutsG.append('g').attr('transform', `translate(${tx},${ty + 1})`), 'start', 'var(--c-ink)', st, v);
+        labelSpecs.push({ st, v, x: cx, y: cy, anchor: 'middle', fill: textOn(v), zoomOnly: true });
         return;
       }
       if (st === 'TAS') {
         const [[, y0], [x1, y1]] = path.bounds(f);
-        twoLineLabel(x1 + 12, (y0 + y1) / 2, 'start', '#1d1d1f', st, v);
+        labelSpecs.push({ st, v, x: x1 + 12 * ts, y: (y0 + y1) / 2, anchor: 'start', fill: 'var(--c-ink)' });
         return;
       }
       const [dx, dy] = nudge[st] || [0, 0];
-      twoLineLabel(cx + dx, cy + dy, 'middle', textOn(v), st, v);
+      labelSpecs.push({ st, v, x: cx + dx, y: cy + dy, anchor: 'middle', fill: textOn(v) });
     });
+
+    const labels = labelsG.selectAll('.map-label').data(labelSpecs).join('g').attr('class', 'map-label');
+    labels.each(function (d) { twoLine(d3.select(this), d.anchor, d.fill, d.st, d.v); });
+
+    // ── Zoom ───────────────────────────────────────────────────────
+    const zoom = d3.zoom()
+      .scaleExtent([1, 8])
+      .extent([[0, 0], [MAP_W, VIEW_H]])
+      .translateExtent([[0, 0], [MAP_W, VIEW_H]])
+      .filter(event => {
+        if (event.type === 'wheel') return event.ctrlKey || event.metaKey;        // page scroll stays page scroll
+        if (event.type === 'dblclick') return false;
+        if (event.type.startsWith('touch')) return event.touches && event.touches.length >= 2;  // pinch only
+        return !event.button && d3.zoomTransform(svg.node()).k > 1.01;             // drag to pan once zoomed
+      })
+      .on('zoom', event => applyTransform(event.transform));
+    svg.call(zoom).on('dblclick.zoom', null).style('touch-action', 'pan-y');
+
+    function applyTransform(t) {
+      mapZoom.transform = t;
+      zoomG.attr('transform', t);
+      labels.attr('transform', d => `translate(${t.applyX(d.x)},${t.applyY(d.y)})`)
+        .style('display', d => (d.zoomOnly && t.k < 1.6 ? 'none' : null));
+      calloutsG.style('display', t.k > 1.05 ? 'none' : null);
+      yearMark.style('display', t.k > 1.05 ? 'none' : null);
+      zoomOutBtn.property('disabled', t.k <= 1.01);
+      resetBtn.property('disabled', t.k <= 1.01 && !mapZoom.code);
+    }
+
+    function transformFor(code) {
+      if (!code) return d3.zoomIdentity;
+      const [[x0, y0], [x1, y1]] = path.bounds(featureOf(code));
+      const k = Math.max(1, Math.min(8, 0.8 / Math.max((x1 - x0) / MAP_W, (y1 - y0) / VIEW_H)));
+      return d3.zoomIdentity.translate(MAP_W / 2, VIEW_H / 2).scale(k).translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
+    }
+
+    function paintFocus() {
+      states.attr('opacity', d => (mapZoom.code && d.properties.code !== mapZoom.code ? 0.35 : 1));
+      labels.attr('opacity', d => (mapZoom.code && d.st !== mapZoom.code ? 0.45 : 1));
+      status.classed('is-on', !!mapZoom.code)
+        .text(mapZoom.code ? `${STATE_NAMES[mapZoom.code]} · Esc or ⟲ to zoom out` : '');
+    }
+
+    function zoomTo(t, animate = true) {
+      const ms = animate ? Motion.dur(750) : 0;
+      if (ms) svg.transition().duration(ms).ease(d3.easeCubicInOut).call(zoom.transform, t);
+      else svg.call(zoom.transform, t);
+    }
+
+    function zoomToState(code, animate = true) {
+      mapZoom.code = code;
+      GlobalFilter.setParam('zoom', code);
+      paintFocus();
+      zoomTo(transformFor(code), animate);
+    }
+
+    // Keyboard: + / − zoom, arrows pan, Esc resets (focus is on a state)
+    svg.on('keydown.mapkeys', event => {
+      const pan = 60 / mapZoom.transform.k;
+      const moves = { ArrowLeft: [pan, 0], ArrowRight: [-pan, 0], ArrowUp: [0, pan], ArrowDown: [0, -pan] };
+      if (event.key === '+' || event.key === '=') zoomBy(1.6);
+      else if (event.key === '-' || event.key === '_') zoomBy(1 / 1.6);
+      else if (event.key === 'Escape') zoomToState(null);
+      else if (event.key in moves && mapZoom.transform.k > 1.01) {
+        svg.call(zoom.translateBy, ...moves[event.key]);
+      } else return;
+      event.preventDefault();
+    });
+
+    function zoomBy(f) {
+      mapZoom.code = null;
+      GlobalFilter.setParam('zoom', null);
+      paintFocus();
+      const ms = Motion.dur(350);
+      if (ms) svg.transition().duration(ms).call(zoom.scaleBy, f);
+      else svg.call(zoom.scaleBy, f);
+    }
+
+    // On-screen buttons (44 × 44 px) for mouse and touch users
+    const controls = container.append('div').attr('class', 'map-zoom-controls')
+      .attr('role', 'group').attr('aria-label', 'Map zoom');
+    controls.append('button').attr('type', 'button').attr('aria-label', 'Zoom in').text('+')
+      .on('click', () => zoomBy(1.6));
+    const zoomOutBtn = controls.append('button').attr('type', 'button').attr('aria-label', 'Zoom out').text('−')
+      .on('click', () => zoomBy(1 / 1.6));
+    const resetBtn = controls.append('button').attr('type', 'button').attr('aria-label', 'Show all of Australia')
+      .html('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>')
+      .on('click', () => { zoomToState(null); if (onSelect) onSelect(null); });
+    const status = container.append('div').attr('class', 'map-zoom-status').attr('aria-live', 'polite');
+
+    // Restore the zoom from before this redraw, without animating
+    if (mapZoom.code) zoomToState(mapZoom.code, false);
+    else { paintFocus(); zoomTo(mapZoom.transform, false); }
 
     // ── Legend: continuous gradient bar with tick values ──
     const legendW = 320;
-    const legendX = (mapBox[0][0] + mapBox[1][0]) / 2 - legendW / 2;
-    const legendY = 552;
+    const legendX = compact ? MAP_W / 2 - (legendW * ls) / 2 : (mapBox[0][0] + mapBox[1][0]) / 2 - legendW / 2;
+    const legendY = VIEW_H + 12 * ls;
     const gradId = 'state-heat-gradient';
     const grad = svg.append('defs').append('linearGradient').attr('id', gradId);
     d3.range(0, 1.01, 0.1).forEach(t => {
       grad.append('stop').attr('offset', `${t * 100}%`).attr('stop-color', color(cMin + t * (cMax - cMin)));
     });
 
-    const legend = svg.append('g').attr('class', 'map-legend').attr('transform', `translate(${legendX},${legendY})`);
+    const legend = svg.append('g').attr('class', 'map-legend')
+      .attr('transform', `translate(${legendX},${legendY}) scale(${ls})`);
     legend.append('text').attr('x', legendW / 2).attr('y', -8).attr('text-anchor', 'middle')
-      .style('font-size', '12px').style('fill', '#55555a')
-      .text(`Hospitalised injuries, ${yrs} (darker = more)`);
+      .style('font-size', '12px').style('fill', 'var(--c-ink-2)')
+      .text(`Hospitalised injuries, ${yrs} (${Vis.isDark() ? 'brighter' : 'darker'} = more)`);
     legend.append('rect').attr('width', legendW).attr('height', 12).attr('rx', 3).attr('fill', `url(#${gradId})`);
     const lx = d3.scaleLinear().domain([cMin, cMax]).range([0, legendW]);
     legend.append('g').attr('transform', 'translate(0,12)')
       .call(d3.axisBottom(lx).tickValues([cMin, (cMin + cMax) / 2, cMax]).tickSize(5)
         .tickFormat(d => fmt(Math.round(d))))
       .call(g => g.select('.domain').remove())
-      .selectAll('text').style('font-size', '11px').style('fill', '#55555a');
+      .selectAll('text').style('font-size', '11px').style('fill', 'var(--c-ink-2)');
+
+    // "View as table" (js/data-table.js): the svg already has its own aria-label
+    if (typeof DataTable !== 'undefined') {
+      const sorted = [...cases.entries()].sort((a, b) => b[1] - a[1]);
+      DataTable.register(container.node(), () => ({
+        columns: ['State or territory', `Hospitalised, ${yrs}`, 'Share of Australia', 'Rank'],
+        rows: sorted.map(([st, v]) => [fullName(st), fmt(v), totalCases ? d3.format('.1%')(v / totalCases) : '', rank.get(st)]),
+      }));
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // FIGURE 3.1 MORPH: map ⇄ bar chart
+  // Each state's outline is traced as N points and each bar's outline as
+  // N points; the two are lined up and blended, so the shapes melt into
+  // their bars (and back). Drawn on a page overlay because the two views
+  // live in different SVGs. Skipped under reduced motion.
+  // ═══════════════════════════════════════════════════════════════
+  const MORPH_N = 96;
+
+  const toPage = (el, x, y) => {
+    const p = new DOMPoint(x, y).matrixTransform(el.getScreenCTM());
+    return [p.x + window.scrollX, p.y + window.scrollY];
+  };
+
+  /** State outlines (largest piece of land only) as page points, keyed by code */
+  function mapShapes(mapEl) {
+    const out = new Map();
+    mapEl.querySelectorAll('.map-state').forEach(el => {
+      const code = d3.select(el).datum().properties.code;
+      const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      el.parentNode.appendChild(tmp);
+      let best = null, bestArea = -1;
+      (el.getAttribute('d') || '').split(/(?=M)/).forEach(sub => {
+        tmp.setAttribute('d', sub);
+        const b = tmp.getBBox();
+        if (b.width * b.height > bestArea) { bestArea = b.width * b.height; best = sub; }
+      });
+      tmp.setAttribute('d', best);
+      const len = tmp.getTotalLength();
+      const pts = d3.range(MORPH_N).map(i => {
+        const p = tmp.getPointAtLength((i / MORPH_N) * len);
+        return toPage(el, p.x, p.y);
+      });
+      tmp.remove();
+      out.set(code, { pts, fill: el.getAttribute('fill'), opacity: +(el.getAttribute('opacity') ?? 1) });
+    });
+    return out;
+  }
+
+  /** Bar outlines as page points, keyed by state code (clockwise from top-left) */
+  function barShapes(barEl) {
+    const out = new Map();
+    barEl.querySelectorAll('.rbar').forEach(el => {
+      const d = d3.select(el).datum();
+      const x = +el.getAttribute('x'), y = +el.getAttribute('y');
+      const w = Math.max(1, +el.getAttribute('width')), h = +el.getAttribute('height');
+      const per = 2 * (w + h);
+      const pts = d3.range(MORPH_N).map(i => {
+        let s = (i / MORPH_N) * per;
+        if (s < w) return toPage(el, x + s, y);
+        s -= w; if (s < h) return toPage(el, x + w, y + s);
+        s -= h; if (s < w) return toPage(el, x + w - s, y + h);
+        s -= w; return toPage(el, x, y + h - s);
+      });
+      out.set(d.key, { pts, fill: el.getAttribute('fill'), opacity: +(el.getAttribute('opacity') ?? 1) });
+    });
+    return out;
+  }
+
+  /** Start/direction for `src` that travels least to reach `dst`, so shapes don't twist */
+  function alignRing(src, dst) {
+    const n = src.length;
+    let best = src, bestCost = Infinity;
+    [src, [...src].reverse()].forEach(ring => {
+      for (let off = 0; off < n; off++) {
+        let cost = 0;
+        for (let i = 0; i < n; i++) {
+          const a = ring[(i + off) % n], b = dst[i];
+          cost += (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+          if (cost >= bestCost) break;
+        }
+        if (cost < bestCost) { bestCost = cost; best = ring.slice(off).concat(ring.slice(0, off)); }
+      }
+    });
+    return best;
+  }
+
+  let morphLayer = null;
+  function stopMorph() {
+    if (!morphLayer) return;
+    const layer = morphLayer;
+    morphLayer = null;            // set first, so the interrupt handlers below do nothing
+    layer.selectAll('path').interrupt();
+    layer.remove();
+    document.querySelectorAll('.is-morphing').forEach(n => n.classList.remove('is-morphing'));
+  }
+
+  /** Blend `from` shapes into `to` shapes, biggest state first, then call done() */
+  function runMorph(from, to, order, done) {
+    stopMorph();
+    const layer = d3.select(document.body).append('svg').attr('class', 'morph-layer').attr('aria-hidden', 'true');
+    morphLayer = layer;
+    const box = layer.node().getBoundingClientRect();
+    const ox = box.left + window.scrollX, oy = box.top + window.scrollY;
+    const line = pts => `M${pts.map(([x, y]) => `${(x - ox).toFixed(1)},${(y - oy).toFixed(1)}`).join('L')}Z`;
+    const codes = order.filter(c => from.has(c) && to.has(c));
+    const ms = 900, step = 45;
+    let left = codes.length;
+    const finish = () => { if (layer === morphLayer) { stopMorph(); done(); } };
+    if (!left) { finish(); return; }
+    codes.forEach((code, i) => {
+      const a = from.get(code), b = to.get(code);
+      const start = alignRing(a.pts, b.pts);
+      const pt = d3.interpolate(start, b.pts);
+      layer.append('path')
+        .attr('d', line(start)).attr('fill', a.fill).attr('opacity', a.opacity)
+        .style('stroke', 'var(--c-surface)').attr('stroke-width', 1).attr('stroke-linejoin', 'round')
+        .transition().delay(i * step).duration(ms).ease(d3.easeCubicInOut)
+        .attrTween('d', () => t => line(pt(t)))
+        .attr('fill', b.fill).attr('opacity', b.opacity)
+        .on('end interrupt', () => { if (--left === 0) finish(); });
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -178,31 +471,111 @@
           return STATES.map(st => ({ key: st, label: fullName(st), value: cases.get(st), share: cases.get(st) / total }));
         };
         const stateBars = new Vis.RankedBarChart('#chart-state-bars', barData(stateTotals(stateRows, initial.years)), {
+          linkChannel: 'state',   // linked hover (js/highlight.js)
           valueText: d => `${fmt(d.value)} · ${d3.format('.0%')(d.share)}`,
           margin: { top: 24, right: 140, bottom: 54, left: 250 },
           rowHeight: 44,
           tooltip: d => [d.label, [['Hospitalised:', fmt(d.value)], ['Share of all states:', fmtPct(d.share), true]]],
+          onClick: d => openStatePanel(d.key, GlobalFilter.get().years, document.activeElement),
         });
+        // ── Detail panel (plan §6.4): click a state on the map or its bar ──
+        let panelCode = null;
+        const STATE_NOTES = {
+          VIC: 'Victoria stopped counting patients treated only in emergency in 2012, so part of its drop that year is a counting change, not fewer crashes.',
+          NSW: 'NSW made the same counting change in 2017, so part of its fall after 2017 is a counting change, not fewer crashes.',
+        };
+        function openStatePanel(code, years, returnEl, focus = true) {
+          panelCode = code;
+          const totals = stateTotals(stateRows, years);
+          const all = d3.sum([...totals.values()]);
+          const order = [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([st]) => st);
+          const row = yr => stateRows.find(d => d.year === yr) || {};
+          const [y0, y1] = years;
+          const change = (a, b) => (a ? (b - a) / a : null);
+          const fmtChange = v => (v == null ? '–' : `${v >= 0 ? '+' : '−'}${d3.format('.0%')(Math.abs(v))}`);
+          const stChange = change(+row(y0)[code], +row(y1)[code]);
+          const auChange = change(+row(y0).Total, +row(y1).Total);
+          DetailPanel.open({
+            kicker: 'State or territory',
+            title: fullName(code),
+            series: { years: YEARS, values: YEARS.map(yr => +row(yr)[code] || 0), color: STATE_COLORS[code], band: years },
+            stats: [
+              { label: `Hospitalised, ${rangeText(years)}`, value: fmt(totals.get(code)) },
+              { label: 'Share of all states', value: fmtPct(totals.get(code) / all) },
+              { label: 'Rank by cases', value: `${order.indexOf(code) + 1} of 8` },
+              y0 === y1
+                ? { label: 'Change', value: '–', note: 'Choose two or more years' }
+                : { label: `Change ${y0}–${y1}`, value: fmtChange(stChange), note: `Australia: ${fmtChange(auChange)}` },
+            ],
+            note: STATE_NOTES[code] || '',
+            returnFocus: returnEl || document.activeElement,
+            focus,
+            onClose: () => { panelCode = null; },
+          });
+        }
+
         function drawStates(years) {
           const cases = stateTotals(stateRows, years);
           if (view === 'map') {
-            drawMap('#chart-state-territory', geo, cases, years);
+            drawMap('#chart-state-territory', geo, cases, years, (code, el) => {
+              if (code) openStatePanel(code, years, el);
+              else DetailPanel.close();
+            });
           } else {
             stateBars.config.xLabel = `Hospitalised, ${rangeText(years)}`;
             stateBars.wrangleData(barData(cases));
           }
         }
+        // The map is drawn by hand, so redraw it when its width changes
+        const mapNode = document.getElementById('chart-state-territory');
+        if (mapNode && typeof ResizeObserver !== 'undefined') {
+          let lastW = Vis.BaseChart.contentWidth(mapNode), timer = null;
+          new ResizeObserver(() => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+              const w = Vis.BaseChart.contentWidth(mapNode);
+              if (!w || Math.abs(w - lastW) < 4 || view !== 'map') return;
+              lastW = w;
+              drawStates(GlobalFilter.get().years);
+            }, 120);
+          }).observe(mapNode);
+        }
+
         const viewButtons = document.querySelectorAll('#state-view-control .filter-btn');
-        viewButtons.forEach(btn => btn.addEventListener('click', () => {
+        const barNode = document.getElementById('chart-state-bars');
+        const frames = ms => new Promise(r => setTimeout(() => requestAnimationFrame(() => r()), ms));
+        async function switchView(next) {
+          if (next === view) return;
+          stopMorph();
+          const animate = !Motion.REDUCED && typeof DOMPoint !== 'undefined';
+          const from = animate ? (view === 'map' ? mapShapes(mapNode) : barShapes(barNode)) : null;
+          view = next;
           viewButtons.forEach(b => {
-            b.classList.toggle('active', b === btn);
-            b.setAttribute('aria-pressed', String(b === btn));
+            b.classList.toggle('active', b.dataset.view === next);
+            b.setAttribute('aria-pressed', String(b.dataset.view === next));
           });
-          view = btn.dataset.view;
-          document.getElementById('chart-state-territory').hidden = view !== 'map';
-          document.getElementById('chart-state-bars').hidden = view !== 'bar';
+          const toNode = next === 'map' ? mapNode : barNode;
+          if (animate) toNode.classList.add('is-morphing');
+          mapNode.hidden = next !== 'map';
+          barNode.hidden = next !== 'bar';
+          const keepDur = stateBars.config.duration;
+          if (next === 'bar') {
+            // The bars were first built while hidden (no width): size them now,
+            // and draw them in place, since the morph does the moving
+            if (Math.abs(Vis.BaseChart.contentWidth(barNode) - (stateBars.containerWidth || 0)) >= 4) stateBars.initVis();
+            if (animate) stateBars.config.duration = 0;
+          }
           drawStates(GlobalFilter.get().years);
-        }));
+          if (!animate) return;
+          await frames(40);   // let the zero-length bar transition land
+          stateBars.config.duration = keepDur;
+          if (view !== next) return;   // switched again meanwhile
+          const to = next === 'map' ? mapShapes(mapNode) : barShapes(barNode);
+          const order = [...stateTotals(stateRows, GlobalFilter.get().years).entries()]
+            .sort((a, b) => b[1] - a[1]).map(([st]) => st);
+          runMorph(from, to, order, () => toNode.classList.remove('is-morphing'));
+        }
+        viewButtons.forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
 
         // ── Figure 3.2: deaths per 1,000 cases, city vs country ─────
         const AREAS = ['Major Cities', 'Regional', 'Remote'];
@@ -231,23 +604,38 @@
           ]],
         });
 
+        // Highlight the area the reader lives in (shared with "Where do you fit?")
+        const fitArea = v => (AREAS.includes(v) ? v : null);
+        remChart.config.highlight = fitArea(GlobalFilter.profile().area);
+        remChart.renderVis();
+        GlobalFilter.profileChooser(document.getElementById('chart-metro-regional'), {
+          field: 'area', label: 'Highlight where you live',
+          options: [{ key: 'Major Cities', label: 'Major cities' }, { key: 'Regional', label: 'Regional' }, { key: 'Remote', label: 'Remote' }],
+          onChange: v => { remChart.config.highlight = fitArea(v); remChart.renderVis(); },
+        });
+
         // ── Figure 3.3: every state over time ───────────────────────
         const stateTable = YEARS.map(year => {
           const r = stateRows.find(d => d.year === year);
           return Object.assign({ year }, Object.fromEntries(STATES.map(st => [st, +r[st] || 0])));
         });
         const trendChart = new Vis.TrendLinesChart('#chart-state-trends', stateTable, {
-          series: STATES.map(st => ({ key: st, label: STATE_NAMES[st], color: STATE_COLORS[st] })),
+          linkChannel: 'state',   // linked hover (js/highlight.js)
+          series: STATES.map(st => ({ key: st, label: STATE_NAMES[st], short: st, color: STATE_COLORS[st] })),
           breaks: [
-            { year: 2012, lines: ['2012: Victoria stopped counting', 'patients treated only in emergency'] },
-            { year: 2017, lines: ['2017: NSW made the', 'same change'] },
+            // What changed is explained in the "Dashed lines" note under the chart
+            { year: 2012, lines: ['2012: Victoria', 'counting change'], short: ['2012: VIC', 'counting change'] },
+            { year: 2017, lines: ['2017: NSW', 'counting change'], short: ['2017: NSW', 'counting change'] },
           ],
           band: initial.years,
+
           margin: { right: 260 },
         });
 
         GlobalFilter.subscribe(state => {
           drawStates(state.years);
+          // Keep an open panel in step with the chosen years
+          if (panelCode && DetailPanel.isOpen()) openStatePanel(panelCode, state.years, null, false);
           const dy = SiteData.deathYears(state.years);
           remChart.config.xLabel = dy ? `Deaths in hospital per 1,000 cases, ${rangeText(dy)}` : '';
           remChart.wrangleData(remotenessData(state));

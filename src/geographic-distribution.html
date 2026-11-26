@@ -10,12 +10,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
 
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
+  <link rel="stylesheet" href="css/story.css" />
 </head>
 <body data-page="where">
 
@@ -62,13 +64,13 @@
             </div>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-state-territory">
+        <div class="responsive-svg-container" id="chart-state-territory" data-hint="{Click} a state to zoom in">
           <!-- Map injected here -->
         </div>
         <div class="responsive-svg-container" id="chart-state-bars" hidden>
           <!-- Bar chart injected here -->
         </div>
-        <p class="chart-note">The map and the bar chart show the same numbers: darker blue = more cases. Use the years in the filter bar to see one year or add up several. About 7,600 cases (2%) have no state recorded and are left out. The state data is not split by road user, so the road-user filter does not change this figure.</p>
+        <p class="chart-note">The map and the bar chart show the same numbers: <span class="when-light">darker</span><span class="when-dark">brighter</span> blue = more cases. Use the years in the filter bar to see one year or add up several. About 7,600 cases (2%) have no state recorded and are left out. The state data is not split by road user, so the road-user filter does not change this figure.</p>
       </div>
     </section>
 
@@ -84,10 +86,10 @@
             <p class="figure-scope" data-road-user="filter" data-years="deaths"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-metro-regional">
+        <div class="responsive-svg-container" id="chart-metro-regional" data-hint="{Hover} a bar for cases and average stay">
           <!-- D3 SVG injected here -->
         </div>
-        <p class="chart-note">The area is where the patient <strong>lives</strong>, not where the crash happened. Deaths are only recorded up to 2019, so this figure stops there. Cases with no recorded address are left out. Hover a bar for the number of cases and the average hospital stay.</p>
+        <p class="chart-note">The area is where the patient <strong>lives</strong>, not where the crash happened. Deaths are only recorded up to 2019, so this figure stops there. Cases with no recorded address are left out.</p>
       </div>
     </section>
 
@@ -103,10 +105,11 @@
             <p class="figure-scope" data-road-user="none" data-years="trend"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-state-trends">
+        <div class="responsive-svg-container" id="chart-state-trends" data-hint="{Hover} to read every state's value for a year">
           <!-- D3 SVG injected here -->
         </div>
-        <p class="chart-note">All eight states and territories, each in its own colour. The label at the end of each line shows its change over the years selected in the filter bar. Hover to read every state's value for a year.</p>
+        <p class="chart-note">All eight states and territories, each in its own colour. The % at the end of each line is its change over the years selected in the filter bar: (cases in the last year − cases in the first year) ÷ cases in the first year. For Queensland, 2011 to 2021: (10,447 − 6,322) ÷ 6,322 = +65%. A small territory can show a big % from a small rise in cases: the Northern Territory's +56% is 456 → 710.</p>
+        <p class="chart-note"><strong>Dashed lines (counting changes):</strong> these mark years when a state changed which patients it counts. From 2012 Victoria, and from 2017 New South Wales, stopped counting people who were treated only in the emergency department, so those patients drop out of the numbers from then on. A fall right after a dashed line is therefore partly a change in counting, not fewer crashes. The other states did not change, so their lines are not affected.</p>
       </div>
     </section>
 
@@ -126,9 +129,13 @@
 
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/motion.js"></script>
+  <script src="js/highlight.js"></script>
+  <script src="js/detail-panel.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/site-data.js"></script>
   <script src="js/global-filter.js"></script>
+  <script src="js/data-table.js"></script>
   <script src="js/vis-components.js"></script>
   <script src="js/vis-story-charts.js"></script>
   <script src="js/charts-geography.js"></script>

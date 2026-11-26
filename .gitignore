@@ -32,3 +32,7 @@ Thumbs.db
 .metadata/
 Example Workflows/
 data_visual_project/
+
+# UI UX pro max
+.agents/
+.claude/

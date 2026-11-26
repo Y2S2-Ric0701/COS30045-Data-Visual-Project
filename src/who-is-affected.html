@@ -10,12 +10,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
 
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
+  <link rel="stylesheet" href="css/story.css" />
 </head>
 <body data-page="who">
 
@@ -55,7 +57,7 @@
             <p class="figure-scope" data-road-user="highlight" data-years="counts"></p>
           </div>
         </div>
-        <div class="responsive-svg-container" id="chart-road-user-type">
+        <div class="responsive-svg-container" id="chart-road-user-type" data-hint="{Click} a road user to follow it on every page">
           <!-- D3 SVG injected here -->
         </div>
         <p class="chart-note">"Other or not recorded" includes car occupants whose seat (driver or passenger) was not recorded.</p>
@@ -77,7 +79,7 @@
         <div class="responsive-svg-container" id="chart-gender">
           <!-- D3 SVG injected here -->
         </div>
-        <p class="chart-note">Each bar is the share of that group's patients who are men; the rest are women. By default it covers every year in the dataset (2011–2021); change the years in the filter bar. The dashed lines mark an even split (50%) and the average for all road users.</p>
+        <p class="chart-note">Each bar splits that group's patients into men (blue, from the left) and women (pink, the rest), adding up to 100%. Patients whose sex was not recorded are left out. By default it covers every year in the dataset (2011–2021); change the years in the filter bar. There are two dashed lines. The first is at 50%: a bar whose blue part stopped there would have as many women as men. The second is all patients counted together, every road user combined: 65% of them are men, about 2 in every 3. A group whose blue part goes past that line has a higher share of men than patients overall.</p>
       </div>
     </section>
 
@@ -123,9 +125,13 @@
 
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/motion.js"></script>
+  <script src="js/highlight.js"></script>
+  <script src="js/detail-panel.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/site-data.js"></script>
   <script src="js/global-filter.js"></script>
+  <script src="js/data-table.js"></script>
   <script src="js/vis-components.js"></script>
   <script src="js/vis-story-charts.js"></script>
   <script src="js/charts-who-is-affected.js"></script>

@@ -3,21 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="COS20031 Database Design Project – Hospitalised Injuries from Road Crashes in Australia – Swinburne University of Technology Sarawak Campus" />
+  <meta name="description" content="COS30045 Data Visualisation Project – Hospitalised Injuries from Road Crashes in Australia – Swinburne University of Technology Sarawak Campus" />
 
   <title>Hospitalised Injuries from Road Crashes in Australia</title>
 
-  <!-- ── Apple San Francisco Font Fallback Stack ─────────────── -->
+  <!-- ── Fonts: Barlow Condensed (display) + Public Sans (body) ── -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
 
   <!-- ── Stylesheets ─────────────────────────────────────────── -->
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/visualisations.css" />
+  <link rel="stylesheet" href="css/story.css" />
 </head>
 <body data-page="home">
 
@@ -27,29 +29,40 @@
   <!-- ═══════════════════════════════════════════════════════════
        HERO SECTION – Apple-style Clean Minimalist Editorial
        ═══════════════════════════════════════════════════════════ -->
-  <header class="apple-hero">
-    <div class="container hero-container">
-      <div class="hero-eyebrow">
-        <span>Data Vis Project (2026 S2)_Group 9</span>
-        <span class="eyebrow-divider">•</span>
-        <span>Swinburne University of Technology Sarawak Campus</span>
+  <header class="apple-hero story-hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <div class="hero-eyebrow">
+          <span>Data Vis Project (2026 S2)_Group 9</span>
+          <span class="eyebrow-divider">•</span>
+          <span>Swinburne University of Technology Sarawak Campus</span>
+        </div>
+        <!-- The hook numbers are recalculated from the data by js/main-narrative.js -->
+        <h1 class="hero-title">
+          <span class="hero-title-kicker">Hospitalised injuries from road crashes in Australia</span>
+          <span class="hero-title-hook">Every <em id="hero-minutes">13 minutes</em>, someone is admitted to hospital after a road crash.</span>
+        </h1>
+        <p class="hero-subtitle">
+          That is <strong id="hero-per-day-text">108 people a day</strong> (2021). One question runs through this site:
+          <strong>who gets hurt on Australian roads, and who gets hurt worst?</strong> Five short questions answer it, one page each.
+        </p>
+        <nav class="hero-chips" aria-label="Jump to section">
+          <a href="#questions" class="hero-chip">Start the journey &darr;</a>
+          <a href="#key-statistics" class="hero-chip">Key numbers &darr;</a>
+          <a href="#explore" class="hero-chip">Compare states &darr;</a>
+          <a href="#conclusion" class="hero-chip">What should change &darr;</a>
+        </nav>
+        <p class="hero-meta">
+          Data: <a href="#citations">AIHW national hospital data</a> &bull; Injuries 2011&ndash;2021 &bull; Deaths in hospital 2011&ndash;2019
+        </p>
       </div>
-      <h1 class="hero-title">
-        Hospitalised Injuries from Road Crashes in Australia
-      </h1>
-      <p class="hero-subtitle">
-        One question runs through this site: <strong>who gets hurt on Australian roads, and who gets hurt worst?</strong>
-        Five short questions answer it, one page each.
-      </p>
-      <nav class="hero-chips" aria-label="Jump to section">
-        <a href="#questions" class="hero-chip">The five questions &darr;</a>
-        <a href="#key-statistics" class="hero-chip">Key numbers &darr;</a>
-        <a href="#explore" class="hero-chip">Compare states &darr;</a>
-        <a href="#conclusion" class="hero-chip">What should change &darr;</a>
-      </nav>
-      <p class="hero-meta">
-        Data: <a href="#citations">AIHW national hospital data</a> &bull; Injuries 2011&ndash;2021 &bull; Deaths in hospital 2011&ndash;2019
-      </p>
+
+      <figure class="hero-units">
+        <div class="hero-units-title">One day on Australian roads</div>
+        <p class="hero-units-sub">Each dot is one person admitted to hospital on an average day in 2021, coloured by how they were travelling.</p>
+        <div id="hero-unit-chart"></div>
+        <ul class="unit-legend" id="hero-unit-legend" aria-label="Road users: select one to highlight its dots"></ul>
+      </figure>
     </div>
   </header>
 
@@ -85,26 +98,41 @@
       </div>
       <div class="question-grid">
         <a href="who-is-affected.html" class="question-card">
+          <img class="question-card-img" src="asset/q1-cyclist-800.jpg"
+               srcset="asset/q1-cyclist-800.jpg 800w, asset/q1-cyclist-1600.jpg 1600w"
+               sizes="(max-width: 700px) 92vw, 340px" alt="" loading="lazy" decoding="async" width="800" height="533" />
           <div class="card-eyebrow">QUESTION 1</div>
           <h3 class="question-card-title">Who ends up in hospital?</h3>
           <p class="question-card-meta">Road users &bull; Men and women &bull; Age</p>
         </a>
         <a href="trends-over-time.html" class="question-card">
+          <img class="question-card-img" src="asset/q2-freeway-800.jpg"
+               srcset="asset/q2-freeway-800.jpg 800w, asset/q2-freeway-1600.jpg 1600w"
+               sizes="(max-width: 700px) 92vw, 340px" alt="" loading="lazy" decoding="async" width="800" height="533" />
           <div class="card-eyebrow">QUESTION 2</div>
           <h3 class="question-card-title">Is it getting better or worse?</h3>
           <p class="question-card-meta">The total &bull; Each road user &bull; Who changed most</p>
         </a>
         <a href="geographic-distribution.html" class="question-card">
+          <img class="question-card-img" src="asset/q3-coral-bay-road-800.jpg"
+               srcset="asset/q3-coral-bay-road-800.jpg 800w, asset/q3-coral-bay-road-1600.jpg 1600w"
+               sizes="(max-width: 700px) 92vw, 340px" alt="" loading="lazy" decoding="async" width="800" height="533" />
           <div class="card-eyebrow">QUESTION 3</div>
           <h3 class="question-card-title">Where does it happen?</h3>
           <p class="question-card-meta">States &bull; City or country &bull; Each state over time</p>
         </a>
         <a href="crash-characteristics.html" class="question-card">
+          <img class="question-card-img" src="asset/q4-traffic-800.jpg"
+               srcset="asset/q4-traffic-800.jpg 800w, asset/q4-traffic-1600.jpg 1600w"
+               sizes="(max-width: 700px) 92vw, 340px" alt="" loading="lazy" decoding="async" width="800" height="533" />
           <div class="card-eyebrow">QUESTION 4</div>
           <h3 class="question-card-title">What did they crash into?</h3>
           <p class="question-card-meta">What they hit &bull; By road user &bull; Deadliest crashes</p>
         </a>
         <a href="injury-severity.html" class="question-card">
+          <img class="question-card-img" src="asset/q5-ambulance-800.jpg"
+               srcset="asset/q5-ambulance-800.jpg 800w, asset/q5-ambulance-1600.jpg 1600w"
+               sizes="(max-width: 700px) 92vw, 340px" alt="" loading="lazy" decoding="async" width="800" height="533" />
           <div class="card-eyebrow">QUESTION 5</div>
           <h3 class="question-card-title">Who is hurt the worst?</h3>
           <p class="question-card-meta">Dying in hospital &bull; Time in hospital &bull; Size vs harm</p>
@@ -124,6 +152,7 @@
         <a class="callout-card" href="trends-over-time.html#total">
           <div class="card-eyebrow">Hospitalised in <span id="callout-year">2021</span></div>
           <div class="callout-number" id="callout-total">39,505</div>
+          <div class="callout-spark" id="spark-total" aria-hidden="true"></div>
           <div class="callout-footer">
             <span class="trend-badge trend-up" id="callout-change">+16%</span>
             <span class="callout-label" id="callout-change-label">since 2011 (Figure 2.1)</span>
@@ -133,6 +162,7 @@
         <a class="callout-card" href="geographic-distribution.html#state-territory">
           <div class="card-eyebrow">NSW, Victoria &amp; Queensland</div>
           <div class="callout-number" id="callout-states">79%</div>
+          <div class="callout-spark" id="spark-states" aria-hidden="true"></div>
           <div class="callout-footer">
             <span class="trend-badge trend-neutral">2011&ndash;2021</span>
             <span class="callout-label">of all cases (Figure 3.1)</span>
@@ -140,13 +170,60 @@
         </a>
 
         <a class="callout-card" href="trends-over-time.html#change">
-          <div class="card-eyebrow">Fastest-rising group</div>
-          <div class="callout-number" id="callout-riser">Cyclists</div>
+          <div class="card-eyebrow"><span id="callout-riser">Cyclists</span>: fastest-rising group</div>
+          <div class="callout-number" id="callout-riser-change">+51%</div>
+          <div class="callout-spark" id="spark-riser" aria-hidden="true"></div>
           <div class="callout-footer">
-            <span class="trend-badge trend-alert" id="callout-riser-change">+51%</span>
-            <span class="callout-label">since 2011 (Figure 2.3)</span>
+            <span class="trend-badge trend-alert" id="callout-riser-counts">5,391 &rarr; 8,141</span>
+            <span class="callout-label" id="callout-riser-label">patients, 2011 to 2021 (Figure 2.3)</span>
           </div>
         </a>
+      </div>
+    </section>
+
+    <!-- ═══ Scrollytelling: the five questions in one pinned chart (js/scrolly.js) ═══ -->
+    <section id="story-in-one" class="apple-section scrolly" aria-labelledby="scrolly-title">
+      <div class="section-header-compact">
+        <div class="section-kicker">The story in one chart</div>
+        <h2 class="section-heading" id="scrolly-title">Five questions, eight road users</h2>
+        <p class="scrolly-lede">Scroll on. The same eight bars answer each question in turn, and a different group comes out on top each time.</p>
+      </div>
+      <div class="scrolly-body">
+        <figure class="scrolly-graphic" aria-labelledby="scrolly-caption">
+          <div class="scrolly-chart-head">
+            <span class="scrolly-q" id="scrolly-q">Q1</span>
+            <span class="scrolly-measure" id="scrolly-caption">Hospitalised, 2011–2021</span>
+          </div>
+          <div class="scrolly-chart" id="scrolly-chart"></div>
+          <figcaption class="scrolly-source">Data: AIHW hospital records. Cases 2011–2021; deaths 2011–2019.</figcaption>
+        </figure>
+        <ol class="scrolly-steps">
+          <li class="scrolly-step" data-step="who">
+            <p class="scrolly-step-kicker"><span class="km">Q1</span> Who is hurt the most?</p>
+            <p><strong>Car drivers are the biggest group:</strong> about 1 in 3 of the 410,000 people hospitalised after a road crash from 2011 to 2021. Motorcyclists and cyclists come next.</p>
+            <a class="scrolly-more" href="who-is-affected.html">Question 1: who is affected →</a>
+          </li>
+          <li class="scrolly-step" data-step="trend">
+            <p class="scrolly-step-kicker"><span class="km">Q2</span> Is it getting worse?</p>
+            <p>Overall, yes: <strong>+16%</strong> from 2011 to 2021. But the groups split. <strong>Cyclists rose fastest, +51%</strong>, while pedestrians and car passengers fell.</p>
+            <a class="scrolly-more" href="trends-over-time.html">Question 2: trends over time →</a>
+          </li>
+          <li class="scrolly-step" data-step="where">
+            <p class="scrolly-step-kicker"><span class="km">Q3</span> Where do they live?</p>
+            <p>Each bar is the share of that group who live outside the major cities. The <strong>dashed line is all patients: 32%, about 1 in 3</strong>. For <strong>truck occupants it is more than half</strong>. Regional patients are also more likely to die once in hospital.</p>
+            <a class="scrolly-more" href="geographic-distribution.html">Question 3: where it happens →</a>
+          </li>
+          <li class="scrolly-step" data-step="crash">
+            <p class="scrolly-step-kicker"><span class="km">Q4</span> What did they hit?</p>
+            <p>Often nothing at all. <strong>More than half of injured cyclists, and half of motorcyclists</strong>, were hurt with no other vehicle involved. Bus occupants rank highest of all, at 69%.</p>
+            <a class="scrolly-more" href="crash-characteristics.html">Question 4: crash factors →</a>
+          </li>
+          <li class="scrolly-step" data-step="severity">
+            <p class="scrolly-step-kicker"><span class="km">Q5</span> Who is hurt worst?</p>
+            <p><strong>Pedestrians.</strong> For every 1,000 pedestrians admitted to hospital, about 22 die there (21.8, or 2.2%). That is a rate, not a count, which is why it can have a decimal. It is more than 3 times the average of 6 per 1,000. The biggest group, car drivers, is close to the average: the biggest group is not the worst hurt.</p>
+            <a class="scrolly-more" href="injury-severity.html">Question 5: injury severity →</a>
+          </li>
+        </ol>
       </div>
     </section>
 
@@ -215,11 +292,11 @@
             </p>
           </div>
           <div class="chart-legend-box" id="chart-1-legend">
-            <span class="legend-chip">Fewer <span class="swatch swatch-gradient"></span> More hospitalisations</span>
+            <span class="legend-chip legend-scale"><span class="legend-scale-title">Bar colour:</span> <span class="legend-scale-end">fewer cases</span> <span class="swatch swatch-gradient"></span> <span class="legend-scale-end">more cases</span></span>
           </div>
         </div>
 
-        <div class="responsive-svg-container" id="chart-1">
+        <div class="responsive-svg-container" id="chart-1" data-hint="{Hover} a bar to see its numbers">
           <!-- D3 SVG injected here -->
         </div>
       </div>
@@ -242,12 +319,60 @@
           </div>
         </div>
 
-        <div class="responsive-svg-container" id="chart-2">
+        <div class="responsive-svg-container" id="chart-2" data-hint="{Hover} a dot for that year's change">
           <!-- D3 SVG injected here -->
         </div>
       </div>
     </section>
     </div><!-- /.explore-group -->
+
+    <!-- ── Chapter band: size vs harm in two waffles (js/chapter-divider.js) ── -->
+    <section class="chapter-band" data-chapter-waffle="Pedestrian" aria-labelledby="band-pedestrians">
+      <div class="chapter-band-inner">
+        <p class="chapter-kicker"><span class="km">Q5</span> Who is hurt worst</p>
+        <h2 class="chapter-statement" id="band-pedestrians">Pedestrians are <span class="chapter-num" data-waffle-text="cases">7%</span> of patients but <span class="chapter-num" data-waffle-text="deaths:plain">a quarter</span> of deaths in hospital.</h2>
+        <div class="waffle-pair">
+          <figure class="waffle">
+            <div class="waffle-grid" data-waffle="cases"></div>
+            <figcaption><strong data-waffle-text="cases">7%</strong> of all hospital cases</figcaption>
+          </figure>
+          <figure class="waffle">
+            <div class="waffle-grid" data-waffle="deaths"></div>
+            <figcaption><strong data-waffle-text="deaths">26%</strong> of all deaths in hospital</figcaption>
+          </figure>
+        </div>
+        <p class="chapter-source"><span class="waffle-key" aria-hidden="true"></span> Pedestrians. Each square is 1% of all road-crash cases (left) or deaths (right), <span data-waffle-years>2011–2019</span>, the years with death data. <a href="injury-severity.html#injury-severity">See Figure 5.3</a></p>
+      </div>
+    </section>
+
+    <!-- ── Where do you fit? (js/where-you-fit.js) ─────────── -->
+    <section id="where-you-fit" class="apple-section" aria-labelledby="fit-title">
+      <div class="apple-card fit-card">
+        <div class="section-kicker">Where do you fit?</div>
+        <h2 class="apple-card-title" id="fit-title">Find the numbers for people like you</h2>
+        <p class="fit-intro">Pick how you usually travel, then add your age, sex or where you live if you like. The data never splits age, sex and area together, so each card answers one question for your road user. Once you pick, the question pages follow you too: every chart filters to your road user, and Figures 1.3 and 3.2 highlight your age group and area (you can also change those right on the figures). Your choices stay in this browser.</p>
+        <div class="fit-form">
+          <fieldset class="fit-q fit-q-wide">
+            <legend>How do you usually travel?</legend>
+            <div class="fit-options" data-fit="ru"></div>
+          </fieldset>
+          <fieldset class="fit-q">
+            <legend>Your age</legend>
+            <div class="fit-options" data-fit="age"></div>
+          </fieldset>
+          <fieldset class="fit-q">
+            <legend>You are a…</legend>
+            <div class="fit-options" data-fit="sex"></div>
+          </fieldset>
+          <fieldset class="fit-q">
+            <legend>You live in…</legend>
+            <div class="fit-options" data-fit="area"></div>
+          </fieldset>
+        </div>
+        <div class="fit-results" id="fit-results" aria-live="polite"></div>
+        <p class="fit-foot"><a id="fit-follow" class="fit-follow" href="who-is-affected.html">Follow car drivers through all five questions →</a></p>
+      </div>
+    </section>
 
     <!-- ── Narrative Conclusion (Apple Card) ─────────────────── -->
     <section id="conclusion" class="apple-section">
@@ -267,7 +392,7 @@
           <article class="insight-row">
             <div class="insight-text">
               <div class="insight-kicker">Vulnerable road users</div>
-              <div class="insight-number">4&times;</div>
+              <div class="insight-number" data-count-up>4&times;</div>
               <p class="insight-headline">
                 Once in hospital, <strong>pedestrians are about 4 times more likely to die</strong>
                 than car drivers.
@@ -285,7 +410,7 @@
           <article class="insight-row">
             <div class="insight-text">
               <div class="insight-kicker">Regional areas</div>
-              <div class="insight-number">+25%</div>
+              <div class="insight-number" data-count-up>+25%</div>
               <p class="insight-headline">
                 People injured in <strong>regional areas have a 25% higher death rate</strong>
                 in hospital than people in major cities.
@@ -357,10 +482,17 @@
        ═══════════════════════════════════════════════════════════ -->
   <script src="js/layout.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="js/motion.js"></script>
+  <script src="js/highlight.js"></script>
+  <script src="js/detail-panel.js"></script>
+  <script src="js/data-table.js"></script>
   <script src="js/shared-constants.js"></script>
   <script src="js/site-data.js"></script>
   <script src="js/main-narrative.js"></script>
   <script src="js/summary-charts.js"></script>
+  <script src="js/chapter-divider.js"></script>
+  <script src="js/where-you-fit.js"></script>
+  <script src="js/scrolly.js"></script>
 
 </body>
 </html>

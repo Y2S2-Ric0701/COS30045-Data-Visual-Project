@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   main-narrative.js – Apple UI Narrative Orchestration & D3 Charts
-   COS20031 Database Design Project / COS30045 Data Visualisation
+   main-narrative.js – Overview page: hero, key numbers, Figures 1 & 2
+   COS30045 Data Visualisation Project
    ═══════════════════════════════════════════════════════════════ */
 
 // Cached dataset across filters
@@ -17,7 +17,8 @@ function initTooltip() {
   tooltip = d3.select('body')
     .append('div')
     .attr('class', 'tooltip')
-    .style('opacity', 0);
+    .attr('role', 'status')
+    .attr('aria-live', 'polite');
 }
 
 /**
@@ -35,7 +36,6 @@ function showTooltip(event, title, rows) {
 
   tooltip
     .html(content)
-    .style('opacity', 1)
     .attr('class', 'tooltip visible');
 
   positionTooltip(event);
@@ -52,7 +52,11 @@ function positionTooltip(event) {
   const x = (event.clientX + pad + tipW > window.innerWidth - 8)
     ? Math.max(8, event.pageX - pad - tipW)
     : event.pageX + pad;
-  const y = event.pageY - 28;
+  // Flip above the pointer if it would run off the bottom of the screen
+  const tipH = node ? node.offsetHeight : 0;
+  const y = (event.clientY - 28 + tipH > window.innerHeight - 8)
+    ? Math.max(window.scrollY + 8, event.pageY - tipH - pad)
+    : event.pageY - 28;
   tooltip
     .style('left', `${x}px`)
     .style('top', `${y}px`);
@@ -62,9 +66,7 @@ function positionTooltip(event) {
  * Hide tooltip
  */
 function hideTooltip() {
-  tooltip
-    .style('opacity', 0)
-    .attr('class', 'tooltip');
+  tooltip.attr('class', 'tooltip');
 }
 
 /**
@@ -107,9 +109,11 @@ function createResponsiveSVG(selector) {
  * Vis.barGradient in vis-components.js so all pages match.
  */
 function barGradient(domain) {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   return d3.scaleSequential()
     .domain(domain)
-    .interpolator(t => d3.interpolateBlues(0.3 + t * 0.7));
+    // Dark mode: dim → bright blue (bigger = brighter), as in vis-components.js
+    .interpolator(dark ? d3.interpolateHcl('#2B5C8F', '#B5DAFF') : t => d3.interpolateBlues(0.3 + t * 0.7));
 }
 
 /** Figure 1 legend: gradient key normally, accent key when a state is selected */
@@ -117,7 +121,7 @@ function updateRegionalLegend(filterState) {
   const box = document.getElementById('chart-1-legend');
   if (!box) return;
   box.innerHTML = filterState === 'all'
-    ? `<span class="legend-chip">Fewer <span class="swatch swatch-gradient"></span> More hospitalisations</span>`
+    ? `<span class="legend-chip legend-scale"><span class="legend-scale-title">Bar colour:</span> <span class="legend-scale-end">fewer cases</span> <span class="swatch swatch-gradient"></span> <span class="legend-scale-end">more cases</span></span>`
     : `<span class="legend-chip"><span class="swatch swatch-accent"></span> Selected: ${stateLabel(filterState)}</span>
        <span class="legend-chip"><span class="swatch swatch-gradient swatch-faded"></span> Other jurisdictions</span>`;
 }
@@ -152,7 +156,146 @@ function updateKeyNumbers(states, people) {
   const change = (val(riser.key, last.year) - val(riser.key, first.year)) / val(riser.key, first.year);
   setText('callout-riser', riser.plural);
   setText('callout-riser-change', signed(change));
+  setText('callout-riser-counts', `${val(riser.key, first.year).toLocaleString()} → ${val(riser.key, last.year).toLocaleString()}`);
+  setText('callout-riser-label', `patients, ${first.year} to ${last.year} (Figure 2.3)`);
+
+  // Sparklines under each number: the same measure, every year 2011–2021
+  const big3 = d => (d.NSW + d.VIC + d.QLD) / d3.sum(STATE_CODES, st => d[st]);
+  drawSpark('#spark-total', states.map(d => ({ year: d.year, value: d.Total })), '#0072B2');
+  drawSpark('#spark-states', states.map(d => ({ year: d.year, value: big3(d) })), '#0072B2');
+  drawSpark('#spark-riser', YEARS.map(y => ({ year: y, value: val(riser.key, y) })), riser.color);
+
+  ['callout-total', 'callout-states', 'callout-riser-change'].forEach(id => Motion.countUpOnView(document.getElementById(id)));
 }
+
+/**
+ * Tiny line chart (2011–2021) under a key number. Start and end values
+ * are labelled so the trend can be read without hovering.
+ */
+function drawSpark(selector, series, color) {
+  const box = d3.select(selector);
+  if (box.empty()) return;
+  box.selectAll('*').remove();
+  const W = 260, H = 40, padL = 2, padR = 2;
+  const x = d3.scaleLinear().domain(d3.extent(series, d => d.year)).range([padL, W - padR]);
+  const ext = d3.extent(series, d => d.value);
+  const pad = (ext[1] - ext[0]) * 0.25 || 1;
+  const y = d3.scaleLinear().domain([ext[0] - pad, ext[1] + pad]).range([H - 14, 4]);
+  const svg = box.append('svg').attr('viewBox', `0 0 ${W} ${H}`);
+  const area = d3.area().x(d => x(d.year)).y0(H - 14).y1(d => y(d.value)).curve(d3.curveMonotoneX);
+  const line = d3.line().x(d => x(d.year)).y(d => y(d.value)).curve(d3.curveMonotoneX);
+  svg.append('path').datum(series).attr('d', area).attr('fill', color).attr('opacity', 0.1);
+  const path = svg.append('path').datum(series).attr('d', line)
+    .attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2).attr('vector-effect', 'non-scaling-stroke');
+  const end = series[series.length - 1];
+  svg.append('circle').attr('cx', x(end.year)).attr('cy', y(end.value)).attr('r', 3.5).attr('fill', color);
+  svg.append('text').attr('class', 'spark-cap').attr('x', padL).attr('y', H - 1).text(series[0].year);
+  svg.append('text').attr('class', 'spark-cap').attr('x', W - padR).attr('y', H - 1)
+    .attr('text-anchor', 'end').text(end.year);
+
+  // Draw the line when the card scrolls into view
+  if (!Motion.REDUCED && path.node().animate) {
+    const len = path.node().getTotalLength();
+    path.attr('stroke-dasharray', len).attr('stroke-dashoffset', len);
+    Motion.whenVisible(box.node(), () => {
+      path.transition().duration(1200).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0)
+        .on('end', () => path.attr('stroke-dasharray', null));
+    }, 0.6);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HERO: "Every 13 minutes" + one day as 108 dots
+   All three numbers come from the data (latest year), not hard-coded.
+   ═══════════════════════════════════════════════════════════════ */
+function renderHero(states, people) {
+  const last = states.find(d => d.year === PERIOD.last);
+  const perDay = last.Total / 365;
+  const dots = Math.round(perDay);
+  const minutes = (24 * 60) / perDay;
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  setText('hero-minutes', `${Math.round(minutes)} minutes`);
+  setText('hero-per-day-text', `${dots} people a day`);
+
+  // Road-user mix of the latest year, rounded to whole dots (largest remainder)
+  const byUser = d3.rollup(people.filter(d => d.year === last.year), v => d3.sum(v, d => d.hospitalisations), d => d.road_user);
+  const yearTotal = d3.sum([...byUser.values()]);
+  const groups = ROAD_USERS.map(r => {
+    const raw = ((byUser.get(r.key) || 0) / yearTotal) * dots;
+    return Object.assign({}, r, { cases: byUser.get(r.key) || 0, raw, n: Math.floor(raw) });
+  });
+  const missing = dots - d3.sum(groups, g => g.n);
+  [...groups].sort((a, b) => (b.raw - b.n) - (a.raw - a.n)).slice(0, missing).forEach(g => { g.n += 1; });
+  groups.sort((a, b) => (a.key === 'Other or not recorded') - (b.key === 'Other or not recorded') || b.n - a.n);
+  const units = groups.flatMap(g => d3.range(g.n).map(() => g));
+
+  const host = d3.select('#hero-unit-chart');
+  if (host.empty()) return;
+  host.selectAll('*').remove();
+  const cols = 12, step = 28, r = 10.5;
+  const rows = Math.ceil(units.length / cols);
+  const svg = host.append('svg')
+    .attr('viewBox', `0 0 ${cols * step} ${rows * step}`)
+    .attr('role', 'img')
+    .attr('aria-label', `${dots} dots, one per person admitted on an average day in ${last.year}: ` +
+      groups.filter(g => g.n).map(g => `${g.plural} ${g.n}`).join(', '));
+
+  const circles = svg.selectAll('.unit').data(units).join('circle')
+    .attr('class', 'unit')
+    .attr('cx', (d, i) => (i % cols) * step + step / 2)
+    .attr('cy', (d, i) => Math.floor(i / cols) * step + step / 2)
+    .attr('r', r)
+    .attr('fill', d => d.color);
+
+  const pct = d3.format('.0%');
+  const setFocus = key => {
+    host.classed('is-hovering', !!key);
+    circles.classed('is-on', d => d.key === key);
+    legend.classed('is-on', d => d.key === key);
+  };
+  let pinned = null;
+  circles
+    .on('mouseenter', (event, d) => {
+      setFocus(d.key);
+      showTooltip(event, d.plural, [
+        { label: 'On an average day', value: `${d.n} of ${dots} people`, highlight: true },
+        { label: `Share of ${last.year}`, value: pct(d.cases / yearTotal) },
+        { label: `Hospitalised in ${last.year}`, value: d.cases.toLocaleString() },
+      ]);
+    })
+    .on('mousemove', positionTooltip)
+    .on('mouseleave', () => { setFocus(pinned); hideTooltip(); });
+
+  // Legend = filter: hover previews, click pins a group
+  const legend = d3.select('#hero-unit-legend').selectAll('li').data(groups.filter(g => g.n))
+    .join('li').append('button').attr('type', 'button')
+    .attr('aria-pressed', 'false')
+    .html(d => `<span class="dot" style="background:${d.color}"></span>${d.plural} <span class="n">${d.n}</span>`)
+    .on('mouseenter focus', (event, d) => setFocus(d.key))
+    .on('mouseleave blur', () => setFocus(pinned))
+    .on('click', (event, d) => {
+      pinned = pinned === d.key ? null : d.key;
+      legend.attr('aria-pressed', g => String(g.key === pinned));
+      setFocus(pinned);
+    });
+
+  // Dots arrive one by one (≈1.5 s), the first time the chart is on screen
+  // (on phones it sits below the fold, so this waits until it is scrolled to)
+  if (!Motion.REDUCED && svg.node().animate) {
+    circles.style('opacity', 0);
+    Motion.whenVisible(host.node(), () => {
+      circles.each(function (d, i) {
+        this.style.transformBox = 'fill-box';
+        this.style.transformOrigin = 'center';
+        this.animate([{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }],
+          { duration: 420, delay: 150 + i * 12, easing: 'cubic-bezier(0.34, 1.4, 0.64, 1)', fill: 'backwards' });
+      });
+      circles.style('opacity', null);
+    }, 0.3);
+  }
+
+}
+
 
 /**
  * Figure 1: Which states have the most injuries? (2011–2021 added up)
@@ -167,6 +310,13 @@ function renderRegionalChart(filterState = 'all') {
     .map(state => ({ state, total: d3.sum(stateRows, d => d[state]) }))
     .sort((a, b) => b.total - a.total);
   const grandTotal = d3.sum(stateData, d => d.total);
+  if (typeof DataTable !== 'undefined') {
+    DataTable.register('#chart-1', () => ({
+      columns: ['State or territory', 'Hospitalised, 2011–2021', 'Share of all states'],
+      rows: stateData.map(d => [stateLabel(d.state), d.total.toLocaleString(), `${((d.total / grandTotal) * 100).toFixed(1)}%`]),
+      summary: `Hospitalised road injuries by state or territory, 2011–2021: ${stateData.map(d => `${d.state} ${d.total.toLocaleString()}`).join(', ')}.`,
+    }));
+  }
 
   const x = d3.scaleBand().domain(stateData.map(d => d.state)).range([0, INNER_WIDTH]).padding(0.32);
   const y = d3.scaleLinear().domain([0, d3.max(stateData, d => d.total) * 1.15]).nice().range([INNER_HEIGHT, 0]);
@@ -202,15 +352,23 @@ function renderRegionalChart(filterState = 'all') {
     .on('mousemove', positionTooltip)
     .on('mouseleave', hideTooltip);
 
-  const focalItem = filterState === 'all' ? stateData[0] : stateData.find(d => d.state === filterState);
   updateRegionalLegend(filterState);
-  if (focalItem) {
-    g.append('text').attr('class', 'annotation-text')
-      .style('fill', filterState === 'all' ? gradient(focalItem.total) : COLORS.storytelling.accent)
-      .attr('x', x(focalItem.state) + x.bandwidth() / 2).attr('y', y(focalItem.total) - 8)
-      .attr('text-anchor', 'middle')
-      .text(compact ? focalItem.total.toLocaleString() : `${focalItem.state}: ${focalItem.total.toLocaleString()}`);
-  }
+  // Values on the three biggest bars (and the selected state). If the full
+  // number is wider than a bar's slot it would touch its neighbour, so all
+  // labels switch to the short form ("116k") together.
+  const labelled = stateData.slice(0, 3);
+  const focal = stateData.find(d => d.state === filterState);
+  if (focal && !labelled.includes(focal)) labelled.push(focal);
+  const labelsG = g.append('g').attr('class', 'bar-values');
+  const probe = labelsG.append('text').attr('class', 'annotation-text').style('visibility', 'hidden');
+  const widest = d3.max(labelled, d => { probe.text(d.total.toLocaleString()); return probe.node().getComputedTextLength(); });
+  probe.remove();
+  const short = widest > x.step() - 6;
+  labelsG.selectAll('text').data(labelled).join('text').attr('class', 'annotation-text')
+    .style('fill', d => (isSelected(d) ? COLORS.storytelling.accent : 'var(--c-ink)'))
+    .attr('x', d => x(d.state) + x.bandwidth() / 2).attr('y', d => y(d.total) - 8)
+    .attr('text-anchor', 'middle')
+    .text(d => (short ? `${Math.round(d.total / 1000)}k` : d.total.toLocaleString()));
 }
 
 /**
@@ -225,6 +383,14 @@ function renderTrendChart(filterState = 'all') {
   const place = filterState === 'all' ? 'Australia' : STATE_NAMES[filterState];
   const series = stateRows.map(d => ({ year: d.year, value: d[key] }));
   const color = filterState === 'all' ? '#0072B2' : COLORS.storytelling.accent;
+  if (typeof DataTable !== 'undefined') {
+    DataTable.register('#chart-2', () => ({
+      columns: ['Year', `Hospitalised (${place})`, 'Change from year before'],
+      rows: series.map((d, i) => [d.year, d.value.toLocaleString(), i
+        ? `${d.value >= series[i - 1].value ? '+' : '−'}${Math.abs(d.value - series[i - 1].value).toLocaleString()}` : '']),
+      summary: `Hospitalised road injuries per year, ${place}: ${series.map(d => `${d.year} ${d.value.toLocaleString()}`).join(', ')}.`,
+    }));
+  }
 
   const x = d3.scaleLinear().domain(d3.extent(series, d => d.year)).range([0, INNER_WIDTH]);
   const y = d3.scaleLinear().domain([0, d3.max(series, d => d.value) * 1.18]).nice().range([INNER_HEIGHT, 0]);
@@ -246,10 +412,10 @@ function renderTrendChart(filterState = 'all') {
   [[2012, 'VIC'], [2017, 'NSW']].forEach(([yr, st]) => {
     const on = filterState === 'all' || filterState === st;
     g.append('line').attr('x1', x(yr)).attr('x2', x(yr)).attr('y1', 0).attr('y2', INNER_HEIGHT)
-      .attr('stroke', '#94a3b8').attr('stroke-dasharray', '3 3').attr('opacity', on ? 1 : 0.35);
+      .style('stroke', 'var(--c-muted)').attr('stroke-dasharray', '3 3').attr('opacity', on ? 1 : 0.35);
     if (!compact) {
       g.append('text').attr('class', 'tick').attr('x', x(yr) + 5).attr('y', 12)
-        .style('font-size', '13px').style('fill', '#55555a').attr('opacity', on ? 1 : 0.5)
+        .style('font-size', '13px').style('fill', 'var(--c-ink-2)').attr('opacity', on ? 1 : 0.5)
         .text(`${yr}: ${st} counting change`);
     }
   });
@@ -260,7 +426,7 @@ function renderTrendChart(filterState = 'all') {
 
   g.selectAll('.trend-dot').data(series).join('circle').attr('class', 'trend-dot')
     .attr('cx', d => x(d.year)).attr('cy', d => y(d.value)).attr('r', 5)
-    .attr('fill', color).attr('stroke', '#ffffff').attr('stroke-width', 2)
+    .attr('fill', color).style('stroke', 'var(--c-surface)').attr('stroke-width', 2)
     .style('cursor', 'pointer')
     .on('mouseenter', function (event, d) {
       d3.select(this).attr('r', 7);
@@ -276,12 +442,31 @@ function renderTrendChart(filterState = 'all') {
   // Start and end labels with the change between them
   const a = series[0], b = series[series.length - 1];
   const change = (b.value - a.value) / a.value;
-  g.append('text').attr('class', 'annotation-text').style('fill', color)
-    .attr('x', x(a.year)).attr('y', y(a.value) - 14).attr('text-anchor', 'start')
-    .text(a.value.toLocaleString());
-  g.append('text').attr('class', 'annotation-text').style('fill', color)
-    .attr('x', x(b.year)).attr('y', y(b.value) - 14).attr('text-anchor', 'end')
-    .text(`${b.value.toLocaleString()} (${change >= 0 ? '+' : '−'}${Math.abs(change * 100).toFixed(0)}%)`);
+  // Each label sits just above the highest point of the line under the
+  // text (not just above its own dot), so a line that climbs steeply at
+  // the end (e.g. the Northern Territory) never runs through it
+  const lineY = px => {   // line height at screen x, between data points
+    const yr = x.invert(px);
+    const i = Math.max(0, Math.min(series.length - 2, Math.floor(yr - series[0].year)));
+    const p = series[i], q = series[i + 1];
+    return y(p.value + (q.value - p.value) * Math.max(0, Math.min(1, yr - p.year)));
+  };
+  const placeLabel = (text, px, anchor) => {
+    const t = g.append('text').attr('class', 'annotation-text').style('fill', color)
+      .attr('x', px).attr('text-anchor', anchor).text(text);
+    const w = t.node().getComputedTextLength();
+    const [x0, x1] = anchor === 'end' ? [px - w, px] : [px, px + w];
+    const ys = d3.range(0, 11).map(k => lineY(x0 + (k / 10) * (x1 - x0)));
+    const dotY = y(anchor === 'end' ? b.value : a.value);
+    // Above the highest point under the text, or below the lowest one:
+    // whichever keeps the label closer to its own dot
+    const above = Math.min(dotY, d3.min(ys)) - 14;
+    const below = Math.max(dotY, d3.max(ys)) + 24;
+    const fitsBelow = below <= INNER_HEIGHT - 6;
+    t.attr('y', fitsBelow && below - dotY < dotY - above ? below : Math.max(14, above));
+  };
+  placeLabel(a.value.toLocaleString(), x(a.year), 'start');
+  placeLabel(`${b.value.toLocaleString()} (${change >= 0 ? '+' : '−'}${Math.abs(change * 100).toFixed(0)}%)`, x(b.year), 'end');
 
   const answer = document.getElementById('chart-2-answer');
   if (answer) {
@@ -335,6 +520,7 @@ document.addEventListener('DOMContentLoaded', function () {
   Promise.all([SiteData.states(), SiteData.trends()])
     .then(([states, people]) => {
       stateRows = [...states].sort((a, b) => a.year - b.year);
+      renderHero(stateRows, people);
       updateKeyNumbers(stateRows, people);
       renderOverviewCharts();
     })
@@ -349,4 +535,6 @@ document.addEventListener('DOMContentLoaded', function () {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(renderOverviewCharts, 150);
   });
+  // Light / dark switch: redraw so the bar gradient follows the theme
+  document.addEventListener('themechange', () => { if (stateRows.length) renderOverviewCharts(); });
 });

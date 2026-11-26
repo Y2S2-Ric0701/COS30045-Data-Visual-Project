@@ -27,7 +27,46 @@ const GlobalFilter = (function () {
   let state = restore();
   let slider = null;
 
+  // ── Shareable views (plan §10) ─────────────────────────────────
+  // The view lives in the address as a query string, so a link opens the
+  // page exactly as it was:  ?ru=Pedal%20cyclist&y=2015-2021&zoom=QLD
+  // (# stays free for the in-page section links). A link beats what was
+  // saved in this tab.
+  function fromUrl() {
+    const q = new URLSearchParams(location.search);
+    const out = {};
+    const ru = q.get('ru');
+    if (ru && (ru === 'all' || ROAD_USER_BY_KEY.has(ru))) out.roadUser = ru;
+    const m = /^(\d{4})(?:-(\d{4}))?$/.exec(q.get('y') || '');
+    if (m) {
+      const y0 = Math.max(PERIOD.first, Math.min(PERIOD.last, +m[1]));
+      const y1 = Math.max(y0, Math.min(PERIOD.last, +(m[2] || m[1])));
+      out.years = [y0, y1];
+    }
+    return out;
+  }
+
+  /** Write the view into the address bar (no new history entry, no reload) */
+  function writeUrl(extra = {}) {
+    if (!window.history || !history.replaceState) return;
+    const q = new URLSearchParams(location.search);
+    const isDefaultYears = state.years[0] === PERIOD.first && state.years[1] === PERIOD.last;
+    if (state.roadUser === 'all') q.delete('ru'); else q.set('ru', state.roadUser);
+    if (isDefaultYears) q.delete('y'); else q.set('y', rangeText(state.years).replace('–', '-'));
+    Object.entries(extra).forEach(([k, v]) => (v == null ? q.delete(k) : q.set(k, v)));
+    const qs = q.toString().replace(/\+/g, '%20');
+    history.replaceState(history.state, '', `${location.pathname}${qs ? `?${qs}` : ''}${location.hash}`);
+  }
+
+  /** Read or write one extra part of the view (e.g. the map zoom) */
+  function param(name) { return new URLSearchParams(location.search).get(name); }
+  function setParam(name, value) { writeUrl({ [name]: value }); }
+
   function restore() {
+    const url = fromUrl();
+    if (url.roadUser || url.years) {
+      return { years: url.years || [...DEFAULT.years], roadUser: url.roadUser || DEFAULT.roadUser };
+    }
     try {
       const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
       if (saved && Array.isArray(saved.years) && saved.years.length === 2) {
@@ -39,6 +78,79 @@ const GlobalFilter = (function () {
     } catch (e) { /* storage blocked: start from the default */ }
     return { years: [...DEFAULT.years], roadUser: DEFAULT.roadUser };
   }
+
+  // ── "Where do you fit?" profile (js/where-you-fit.js, Overview) ──────
+  // The reader's age group and area, kept in this browser. Figure 1.3
+  // highlights their age group and Figure 3.2 their area, with a note
+  // saying why and a button to clear it. (Their road user arrives through
+  // the normal filter state above.)
+  const FIT_KEY = 'fit-choices';
+  function readFit() {
+    try { return JSON.parse(localStorage.getItem(FIT_KEY) || 'null') || {}; } catch (e) { return {}; }
+  }
+  function profile() {
+    const p = readFit();
+    return { age: p.age || '', sex: p.sex || '', area: p.area || '' };
+  }
+  function clearProfile(field) {
+    const p = readFit();
+    p[field] = '';
+    try { localStorage.setItem(FIT_KEY, JSON.stringify(p)); } catch (e) { /* ignore */ }
+  }
+  function setProfile(field, value) {
+    const p = readFit();
+    p[field] = value || '';
+    try { localStorage.setItem(FIT_KEY, JSON.stringify(p)); } catch (e) { /* ignore */ }
+  }
+
+  /**
+   * Chip row above a chart: "Highlight your age group: [0–7] [8–16] …".
+   * The pressed chip is the reader's saved choice (shared with "Where do
+   * you fit?" on the Overview); pressing it again clears it. onChange(value)
+   * redraws the chart. Re-synced when the page is shown again from the
+   * back/forward cache or the choice changes in another tab.
+   */
+  const choosers = [];
+  function profileChooser(chartEl, { field, label, options, onChange }) {
+    if (!chartEl) return;
+    const box = document.createElement('div');
+    box.className = 'fit-chooser';
+    box.setAttribute('role', 'group');
+    box.setAttribute('aria-label', label);
+    const title = document.createElement('span');
+    title.className = 'fit-chooser-label';
+    title.textContent = `${label}:`;
+    box.appendChild(title);
+    const buttons = options.map(o => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'fit-chooser-chip';
+      b.textContent = o.label;
+      b.addEventListener('click', () => {
+        const next = profile()[field] === o.key ? '' : o.key;
+        setProfile(field, next);
+        sync();
+        onChange(next);
+      });
+      box.appendChild(b);
+      return [o.key, b];
+    });
+    const link = document.createElement('a');
+    link.className = 'fit-chooser-link';
+    link.href = 'index.html#where-you-fit';
+    link.textContent = 'Where do you fit? →';
+    box.appendChild(link);
+    chartEl.parentNode.insertBefore(box, chartEl);
+    const sync = () => {
+      const v = profile()[field];
+      buttons.forEach(([k, b]) => b.setAttribute('aria-pressed', String(k === v)));
+    };
+    sync();
+    choosers.push(() => { sync(); onChange(profile()[field]); });
+  }
+  const resyncChoosers = () => choosers.forEach(f => f());
+  window.addEventListener('pageshow', e => { if (e.persisted) resyncChoosers(); });
+  window.addEventListener('storage', e => { if (e.key === FIT_KEY) resyncChoosers(); });
 
   function save() {
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
@@ -54,6 +166,7 @@ const GlobalFilter = (function () {
         next.roadUser === state.roadUser) return;
     state = next;
     save();
+    if (!playTimer) writeUrl();   // Play steps through years; the address keeps the reader's choice
     syncControls();
     listeners.forEach(fn => fn(get()));
   }
@@ -64,6 +177,9 @@ const GlobalFilter = (function () {
   }
 
   /** Call fn(state) now and every time the filter changes */
+  // Light / dark switch: let every page redraw (map and heatmap colours)
+  document.addEventListener('themechange', () => listeners.forEach(fn => fn(get())));
+
   function subscribe(fn) {
     listeners.push(fn);
     fn(get());
@@ -135,9 +251,33 @@ const GlobalFilter = (function () {
   // same year they move together. Click the track or a year to move the
   // nearer button there. Keyboard: ←/→, Home, End.
   function yearSlider(container, onChange) {
+    // Drawn at the slider's real width so the year labels and knobs keep their
+    // size on any screen; rebuilt when that width changes.
+    const node = d3.select(container).node();
+    if (!node) return { set() {} };
+    let inner = buildYearSlider(node, onChange);
+    let lastW = node.clientWidth, timer = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const w = node.clientWidth;
+          if (!w || Math.abs(w - lastW) < 8) return;
+          lastW = w;
+          const hadFocus = node.contains(document.activeElement);
+          node.innerHTML = '';
+          inner = buildYearSlider(node, onChange);
+          if (hadFocus) { const k = node.querySelector('.year-knob'); if (k) k.focus(); }
+        }, 120);
+      }).observe(node);
+    }
+    return { set(r) { inner.set(r); } };
+  }
+
+  function buildYearSlider(container, onChange) {
     const years = YEARS;
     const first = years[0], last = years[years.length - 1];
-    const W = 500, H = 56;
+    const W = Math.max(240, Math.min(520, Math.round(container.clientWidth) || 500)), H = 56;
     const m = { top: 2, right: 20, bottom: 2, left: 20 };
     const iw = W - m.left - m.right;
     const trackY = 18;
@@ -156,7 +296,9 @@ const GlobalFilter = (function () {
       .attr('stroke', '#0071e3').attr('stroke-width', 4).attr('stroke-linecap', 'round');
     const ticks = g.selectAll('.year-tick').data(years).join('text').attr('class', 'year-tick')
       .attr('x', d => x(d)).attr('y', trackY + 32).attr('text-anchor', 'middle')
-      .style('font-size', '12.5px').text(d => `'${String(d).slice(2)}`);
+      .style('font-size', '12.5px').text(d => `'${String(d).slice(2)}`)
+      // Too narrow for 11 labels: show every second year (the chosen range is in the text above)
+      .style('display', (d, i) => (iw / (years.length - 1) < 30 && i % 2 ? 'none' : null));
     g.append('rect').attr('x', -m.left).attr('y', 0).attr('width', W).attr('height', H)
       .attr('fill', 'transparent').style('cursor', 'pointer')
       .on('click', event => {
@@ -172,12 +314,12 @@ const GlobalFilter = (function () {
       .attr('aria-label', i => (i === 0 ? 'First year' : 'Last year'))
       .style('cursor', 'grab');
     knobs.append('circle').attr('class', 'year-knob-ring').attr('r', R + 4).attr('fill', 'transparent');
-    knobs.append('circle').attr('class', 'year-knob-thumb').attr('r', R).attr('fill', '#ffffff')
+    knobs.append('circle').attr('class', 'year-knob-thumb').attr('r', R).style('fill', 'var(--c-knob)')
       .attr('stroke', 'rgba(0,0,0,0.08)').attr('stroke-width', 0.5);
 
     function paint(r) {
       fill.attr('x1', x(r[0])).attr('x2', x(r[1]));
-      ticks.style('fill', d => (d >= r[0] && d <= r[1] ? '#1d1d1f' : '#94a3b8'))
+      ticks.style('fill', d => (d >= r[0] && d <= r[1] ? 'var(--c-ink)' : 'var(--c-muted)'))
         .style('font-weight', d => (d === r[0] || d === r[1] ? '700' : '400'));
       knobs.attr('transform', i => `translate(${x(r[i])},${trackY})`)
         .attr('aria-valuenow', i => r[i]).attr('aria-valuetext', i => String(r[i]));
@@ -242,16 +384,88 @@ const GlobalFilter = (function () {
           <span class="gf-label">Years: <span class="gf-year-readout" id="gf-year-readout" aria-live="polite"></span></span>
           <div class="gf-slider" id="gf-year-slider"></div>
         </div>
-        <button type="button" class="gf-reset" id="gf-reset">Reset</button>
+        <div class="gf-actions">
+          <button type="button" class="gf-play" id="gf-play" aria-pressed="false"
+                  title="Show each year from ${PERIOD.first} to ${PERIOD.last}, one at a time"></button>
+          <button type="button" class="gf-reset" id="gf-reset">Reset</button>
+          <button type="button" class="gf-share" id="gf-share" aria-label="Copy link to this view"
+                  title="Copy a link that opens this page with the same filter and map zoom">
+            <svg class="icon-link" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L12 5.6M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4L12 18.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg class="icon-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="gf-share-tip" aria-hidden="true">Link copied</span>
+          </button>
+          <span class="visually-hidden" id="gf-share-status" aria-live="polite"></span>
+        </div>
       </div>
       </div>`;
 
     document.getElementById('gf-road-user')
       .addEventListener('change', e => set({ roadUser: e.target.value }));
     document.getElementById('gf-reset')
-      .addEventListener('click', () => set({ years: [...DEFAULT.years], roadUser: 'all' }));
-    slider = yearSlider('#gf-year-slider', years => set({ years }));
+      .addEventListener('click', () => { stopPlay(); set({ years: [...DEFAULT.years], roadUser: 'all' }); });
+    slider = yearSlider('#gf-year-slider', years => { stopPlay(); set({ years }); });
+    document.getElementById('gf-play').addEventListener('click', () => (playTimer ? stopPlay() : startPlay()));
+    document.getElementById('gf-share').addEventListener('click', copyLink);
+    paintPlay();
     syncControls();
+  }
+
+  // ── Play: step through the years one at a time (plan §6.2) ─────
+  // Every chart on the page follows, like a flip-book. Touching the
+  // slider or Reset stops it; it ends on the last year.
+  const PLAY_STEP_MS = 1100;
+  const ICON_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15a1 1 0 0 0 1.52.85l12-7.5a1 1 0 0 0 0-1.7l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect fill="currentColor" x="5" y="4" width="5" height="16" rx="1.5"/><rect fill="currentColor" x="14" y="4" width="5" height="16" rx="1.5"/></svg>';
+  let playTimer = null;
+  let played = false;
+
+  function paintPlay() {
+    const btn = document.getElementById('gf-play');
+    if (!btn) return;
+    const on = !!playTimer;
+    btn.setAttribute('aria-pressed', String(on));
+    btn.innerHTML = on ? `${ICON_PAUSE}<span>Pause</span>`
+      : `${ICON_PLAY}<span>${played ? 'Replay' : 'Play'}<span class="visually-hidden"> each year, ${PERIOD.first} to ${PERIOD.last}</span></span>`;
+  }
+
+  function startPlay() {
+    let year = PERIOD.first;
+    set({ years: [year, year] });
+    playTimer = setInterval(() => {
+      year += 1;
+      if (year > PERIOD.last) { stopPlay(); return; }
+      set({ years: [year, year] });
+    }, PLAY_STEP_MS);
+    played = true;
+    paintPlay();
+  }
+
+  function stopPlay() {
+    if (!playTimer) return;
+    clearInterval(playTimer);
+    playTimer = null;
+    writeUrl();
+    paintPlay();
+  }
+
+  /** "Copy link": the address already holds the view; copy it and say so */
+  let shareTimer = null;
+  function copyLink() {
+    writeUrl();
+    const btn = document.getElementById('gf-share');
+    const tip = btn.querySelector('.gf-share-tip');
+    const status = document.getElementById('gf-share-status');
+    const done = ok => {
+      tip.textContent = ok ? 'Link copied' : 'Copy it from the address bar';
+      btn.classList.toggle('is-done', ok);
+      btn.classList.add('show-tip');
+      status.textContent = ok ? 'Link to this view copied' : 'Could not copy; the address bar holds the link';
+      clearTimeout(shareTimer);
+      shareTimer = setTimeout(() => btn.classList.remove('is-done', 'show-tip'), 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(location.href).then(() => done(true), () => done(false));
+    } else done(false);
   }
 
   function syncControls() {
@@ -271,5 +485,5 @@ const GlobalFilter = (function () {
     syncScopes();
   });
 
-  return { get, set, subscribe, toggleRoadUser, roadUserChips, isDefault };
+  return { get, set, subscribe, toggleRoadUser, roadUserChips, isDefault, param, setParam, profile, clearProfile, profileChooser };
 })();

@@ -46,9 +46,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Figure 5.1: Who is most likely to die? ───────────────────
     const deathChart = new Vis.RankedBarChart('#chart-mortality-risk', data0.map(d => ({ ...d, value: d.rate })), {
-      valueText: d => `${fmtDec1(d.value)} per 1,000`,
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
+      // A rate, not a count: deaths per 1,000 patients, also shown as a percentage
+      valueText: d => `${fmtDec1(d.value)} per 1,000 (${d3.format('.1%')(d.value / 1000)})`,
       tickFormat: d3.format('~'),
-      margin: { top: 24, right: 130, bottom: 54, left: 200 },
+      margin: { top: 24, right: 200, bottom: 54, left: 200 },
       rowHeight: 42,
       emptyText: NO_DEATHS,
       onClick: clickRoadUser,
@@ -57,6 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Figure 5.2: Who stays in hospital longest? ───────────────
     const stayChart = new Vis.RankedBarChart('#chart-length-of-stay', data0.map(d => ({ ...d, value: d.stay })), {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       valueText: d => `${fmtDec1(d.value)} days`,
       tickFormat: d3.format('~'),
       margin: { top: 24, right: 110, bottom: 54, left: 200 },
@@ -68,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Figure 5.3: Is the biggest group also the worst hurt? ────
     const pairChart = new Vis.PairedBarChart('#chart-injury-severity', data0, {
+      linkChannel: 'roadUser',   // linked hover (js/highlight.js)
       onClick: clickRoadUser,
       tooltip: d => [d.label, [
         ['Share of all hospital cases:', fmtPct(d.a)],
@@ -83,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const hl = highlightOf(state);
 
       deathChart.config.highlight = hl;
-      deathChart.config.xLabel = dy ? `Deaths in hospital per 1,000 cases, ${rangeText(dy)}` : '';
+      deathChart.config.xLabel = dy ? `Deaths in hospital for every 1,000 patients admitted, ${rangeText(dy)}` : '';
       deathChart.wrangleData(rows.map(d => ({ ...d, value: d.rate })));
 
       stayChart.config.highlight = hl;
@@ -92,6 +96,50 @@ document.addEventListener('DOMContentLoaded', function () {
 
       pairChart.config.highlight = hl;
       pairChart.wrangleData(rows);
+
+      drawStayCalendars(rows, hl, dy);
     });
+
+    // ── Figure 5.2, as days: the stay drawn on a two-week calendar ──
+    // One square = one day in hospital; the last day is filled in part
+    // (8.8 days = 8 full squares and most of the 9th). Shows the longest
+    // stay, the chosen road user (or car drivers, the biggest group) and
+    // the shortest, so "three times as long" can be counted.
+    function drawStayCalendars(rows, hl, dy) {
+      const calBox = document.getElementById('stay-calendars');
+      if (!calBox) return;
+      const valid = rows.filter(d => d.stay != null && d.cases > 0);
+      if (!dy || !valid.length) { calBox.innerHTML = ''; calBox.hidden = true; return; }
+      calBox.hidden = false;
+      const sorted = [...valid].sort((a, b) => b.stay - a.stay);
+      const longest = sorted[0], shortest = sorted[sorted.length - 1];
+      const middle = valid.find(d => d.key === hl) || valid.find(d => d.key === 'Car driver');
+      const picks = [longest, middle, shortest].filter((d, i, a) => d && a.indexOf(d) === i);
+      const tag = d => (d === longest ? 'Longest stay' : d === shortest ? 'Shortest stay'
+        : d.key === hl ? 'Your road user' : 'Biggest group');
+      const DAYS = Math.max(14, Math.ceil(longest.stay / 7) * 7);   // whole weeks
+      calBox.innerHTML = `
+        <p class="stay-cal-title">The same stays, one square per day in hospital <span>(${rangeText(dy)})</span></p>
+        <div class="stay-cal-row">${picks.map(d => {
+          const ru = ROAD_USER_BY_KEY.get(d.key);
+          const cells = d3.range(DAYS).map(i => {
+            const f = Math.max(0, Math.min(1, d.stay - i));
+            return `<span class="stay-day${f > 0 ? ' is-on' : ''}" style="--f:${f.toFixed(2)};--i:${i}"></span>`;
+          }).join('');
+          return `
+          <figure class="stay-cal${d.key === hl ? ' is-chosen' : ''}" style="--ru:${ru ? ru.color : '#0072B2'}"
+                  role="img" aria-label="${d.label}: ${fmtDec1(d.stay)} days in hospital on average">
+            <figcaption><span class="stay-cal-tag">${tag(d)}</span>
+              <strong>${d.label}</strong><span class="stay-cal-days">${fmtDec1(d.stay)} days</span></figcaption>
+            <div class="stay-cal-head" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+            <div class="stay-cal-grid" aria-hidden="true">${cells}</div>
+          </figure>`;
+        }).join('')}</div>`;
+      // Days fill in one after another the first time the calendars are seen
+      if (!drawStayCalendars.shown && !Motion.REDUCED) {
+        calBox.classList.add('is-waiting');
+        Motion.whenVisible(calBox, () => { drawStayCalendars.shown = true; calBox.classList.remove('is-waiting'); }, 0.4);
+      }
+    }
   }).catch(err => console.error('Error loading data/q5_severity/:', err));
 });
