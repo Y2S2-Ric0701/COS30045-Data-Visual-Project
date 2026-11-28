@@ -330,7 +330,9 @@
       .call(d3.axisBottom(lx).tickValues([cMin, (cMin + cMax) / 2, cMax]).tickSize(5)
         .tickFormat(d => fmt(Math.round(d))))
       .call(g => g.select('.domain').remove())
-      .selectAll('text').style('font-size', '11px').style('fill', 'var(--c-ink-2)');
+      .selectAll('text').style('font-size', '11px').style('fill', 'var(--c-ink-2)')
+      // end numbers line up with the bar ends, so the last one stays on screen
+      .attr('text-anchor', (d, i) => (i === 0 ? 'start' : i === 2 ? 'end' : 'middle'));
 
     // "View as table" (js/data-table.js): the svg already has its own aria-label
     if (typeof DataTable !== 'undefined') {
