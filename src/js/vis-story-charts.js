@@ -79,7 +79,8 @@
     g.append('text').attr('class', 'year-band-label')
       .attr('x', (Math.max(0, left) + Math.min(vis.innerWidth, right)) / 2).attr('y', vis.innerHeight - 8)
       .attr('text-anchor', 'middle')
-      .text(band[0] === band[1] ? `${band[0]}` : `${band[0]}–${band[1]} selected`);
+      .text(band[0] === band[1] ? `${band[0]}` : `${band[0]}–${band[1]} selected`)
+      .call(keepInside, 0, vis.innerWidth);   // first/last years: don't run off the chart
   }
 
   /** Spread end-of-line labels apart so they never overlap */
@@ -200,6 +201,30 @@
     return most;
   }
 
+  /** Centred "nothing to show" message, wrapped onto more lines on a narrow chart */
+  function drawEmptyMsg(vis, text, y) {
+    const lineH = 20;
+    const el = vis.svg.append('text').attr('class', 'empty-msg')
+      .attr('x', vis.config.width / 2).attr('y', y).attr('text-anchor', 'middle').text(text);
+    const lines = wrapText(el, vis.config.width - 32, lineH);
+    el.attr('y', y - ((lines - 1) * lineH) / 2);   // keep the block centred
+  }
+
+  /** Slide labels sideways so they stay between lo and hi (same units as the label) */
+  function keepInside(sel, lo, hi) {
+    const fit = () => sel.each(function () {
+      const b = this.getBBox();   // own box, without the transform we add
+      let dx = 0;
+      if (b.x + b.width > hi) dx = hi - (b.x + b.width);
+      if (b.x + dx < lo) dx = lo - b.x;
+      this.__dx = dx;
+      d3.select(this).attr('transform', dx ? `translate(${dx},0)` : null);
+    });
+    fit();
+    // The web font is wider than the fallback: measure again once it has loaded
+    if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(fit);
+  }
+
   /** Phones: keep the first and last x-axis tick labels inside the chart's edges */
   function pinEdgeTicks(axisG, innerW, roomL, roomR) {
     axisG.selectAll('.tick').each(function () {
@@ -292,8 +317,7 @@
       vis.svg.selectAll('.empty-msg').remove();
       if (!valid.length) {
         [vis.plotG, vis.gridG, vis.xAxisG, vis.yAxisG, vis.annotationsG].forEach(g => g.selectAll('*').remove());
-        vis.svg.append('text').attr('class', 'empty-msg')
-          .attr('x', c.width / 2).attr('y', c.height / 2).attr('text-anchor', 'middle').text(c.emptyText);
+        drawEmptyMsg(vis, c.emptyText, c.height / 2);
         return;
       }
 
@@ -613,7 +637,21 @@
           } else {
             el.text(compact ? p.text.replace(/ in (\d{4})/, ' ($1)').replace(') (', ', ') : p.text);
           }
-        });
+        })
+        .call(keepInside, -c.margin.left + 4, vis.innerWidth + c.margin.right - 4);
+      // Two years side by side on a phone: lift the first label above the second
+      const [l0, l1] = vis.annotationsG.selectAll('.total-label').nodes();
+      if (l0 && l1) {
+        const b0 = l0.getBBox();
+        const b1 = l1.getBBox();
+        const x0 = b0.x + (l0.__dx || 0);
+        const x1 = b1.x + (l1.__dx || 0);
+        const overlapX = x0 < x1 + b1.width && x1 < x0 + b0.width;
+        const lift = b0.y + b0.height - (b1.y - 2);
+        if (overlapX && lift > 0 && b0.y < b1.y + b1.height) {
+          d3.select(l0).attr('y', +d3.select(l0).attr('y') - lift);
+        }
+      }
 
       // Name each layer at the right edge when it is thick enough to hold a label
       const lastRow = compact ? [] : series.map(s => {
@@ -911,8 +949,7 @@
       vis.svg.selectAll('.empty-msg').remove();
       if (!rows.length) {
         [vis.plotG, vis.gridG, vis.xAxisG, vis.yAxisG, vis.annotationsG, vis.legendG].forEach(g => g.selectAll('*').remove());
-        vis.svg.append('text').attr('class', 'empty-msg').attr('x', c.width / 2).attr('y', 120)
-          .attr('text-anchor', 'middle').text('No death records for these years');
+        drawEmptyMsg(vis, 'No death records for these years', 120);
         return;
       }
 
